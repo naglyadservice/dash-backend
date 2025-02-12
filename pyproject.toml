@@ -1,0 +1,49 @@
+[project]
+name = "dash"
+version = "0.1.0"
+description = "A user-friendly admin panel for handling IoC controllers."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "sqlalchemy>=2.0.38",
+    "alembic>=1.14.1",
+    "pydantic-settings>=2.7.1",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+
+[tool.ruff.lint]
+select = [
+    "C",
+    "DTZ",
+    "E",
+    "F",
+    "I",
+    "ICN",
+    "N",
+    "PLC",
+    "PLE",
+    "Q",
+    "S",
+    "T",
+    "W",
+    "YTT",
+    "RET",
+    "SIM",
+    "ASYNC",
+]
+ignore = ["SIM117"]
+exclude = [
+    ".git",
+    ".venv",
+    ".idea",
+    ".tests",
+    ".cache",
+    "build",
+    "dist",
+    "logs",
+]
