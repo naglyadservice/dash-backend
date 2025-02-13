@@ -5,6 +5,23 @@ x-logging-defaults: &logging-defaults
     max-file: 10
 
 services:
+  webapi:
+    container_name: dash.webapi
+    hostname: dash.webapi
+    ports:
+      - "8000:8000"
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dash.postgres.network
+      - dash.redis.network
+
   postgres:
     container_name: dash.postgres
     image: "postgres:16-alpine"
@@ -28,10 +45,31 @@ services:
       start_period: 30s
     logging:
       <<: *logging-defaults
+      
+  redis:
+    container_name: dash.redis
+    hostname: dash.redis
+    image: "redis:7.4-alpine"
+    ports:
+      - "6379:6379"
+    command: redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD} ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - dash.redis.data:/data
+    networks:
+      - dash.redis.network
+    logging:
+      <<: *logging-defaults
 
 
 volumes:
   dash.postgres.data: {}
+  dash.redis.data: {}
 
 networks:
   dash.postgres.network: {}
+  dash.redis.network: {}
