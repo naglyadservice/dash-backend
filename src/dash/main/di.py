@@ -11,7 +11,7 @@ from dash.infrastructure.db.setup import (
 )
 from dash.infrastructure.db.tracker import SATracker
 from dash.infrastructure.db.transaction_manager import SATransactionManager
-from dash.infrastructure.gateways.user_gateway import UserMapper
+from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
 from dash.main.config import AppConfig, Config, DbConfig, RedisConfig
@@ -49,7 +49,7 @@ def provide_db() -> Provider:
 def provide_gateways() -> Provider:
     provider = Provider()
 
-    provider.provide(UserMapper, scope=Scope.REQUEST)
+    provider.provide(UserRepository, scope=Scope.REQUEST)
 
     return provider
 

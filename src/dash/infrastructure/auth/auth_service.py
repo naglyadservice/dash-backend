@@ -6,7 +6,7 @@ from pydantic import EmailStr
 from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.db.tracker import SATracker
 from dash.infrastructure.db.transaction_manager import SATransactionManager
-from dash.infrastructure.gateways.user_gateway import UserMapper
+from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
 from dash.models.user import User, UserRole
 
@@ -54,20 +54,20 @@ class InvalidCredentialsError(Exception):
 class AuthService:
     def __init__(
         self,
-        user_gateway: UserMapper,
+        user_repository: UserRepository,
         password_processor: PasswordProcessor,
         transaction_manager: SATransactionManager,
         tracker: SATracker,
         session_storage: SessionStorage,
     ) -> None:
-        self.user_gateway = user_gateway
+        self.user_repository = user_repository
         self.password_processor = password_processor
         self.transaction_manager = transaction_manager
         self.tracker = tracker
         self.session_storage = session_storage
 
     async def register(self, data: RegisterUserRequest) -> RegisterUserResponse:
-        if await self.user_gateway.ensure_exists(data.email):
+        if await self.user_repository.ensure_exists(data.email):
             raise EmailAlreadyRegisteredError
 
         user = User(
@@ -87,7 +87,7 @@ class AuthService:
         if session_id:
             await self.session_storage.delete(session_id)
 
-        user = await self.user_gateway.get_by_email(data.email)
+        user = await self.user_repository.get_by_email(data.email)
         if not user:
             raise InvalidCredentialsError
 

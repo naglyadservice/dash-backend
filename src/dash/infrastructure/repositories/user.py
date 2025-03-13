@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dash.models.user import User
 
 
-class UserMapper:
+class UserRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
