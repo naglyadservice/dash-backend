@@ -1,5 +1,12 @@
-from sqlalchemy.orm import DeclarativeBase
+from typing import Any
+
+from sqlalchemy import JSON
+from sqlalchemy.orm import DeclarativeBase, registry
 
 
 class Base(DeclarativeBase):
-    pass
+    registry = registry(
+        type_annotation_map={
+            dict[str, Any]: JSON,
+        }
+    )

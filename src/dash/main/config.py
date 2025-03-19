@@ -35,6 +35,14 @@ class RedisConfig(BaseSettings, env_prefix="REDIS_"):
     password: str = Field(default=...)
 
 
+class MqttConfig(BaseSettings, env_prefix="MQTT_"):
+    host: str = Field(default=...)
+    port: int = Field(default=...)
+    username: str = Field(default=...)
+    password: str = Field(default=...)
+    client_id: str | None = Field(default=None)
+
+
 class AppConfig(BaseSettings):
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000)
@@ -45,3 +53,4 @@ class Config(BaseSettings):
     db: DbConfig = DbConfig()
     redis: RedisConfig = RedisConfig()
     app: AppConfig = AppConfig()
+    mqtt: MqttConfig = MqttConfig()

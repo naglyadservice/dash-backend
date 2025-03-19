@@ -2,7 +2,7 @@
 
 Revision ID: 001
 Revises:
-Create Date: 2025-02-12 22:52:29.944230
+Create Date: 2025-03-18 20:15:55.862266
 
 """
 
@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.create_table(
         "controllers",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("serial_number", sa.String(), nullable=False),
+        sa.Column("device_id", sa.String(), nullable=False),
         sa.Column(
             "type",
             sa.Enum("CARWASH", "WATER_VENDING", "VACUUM", name="controllertype"),
@@ -37,7 +37,11 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("state", sa.JSON(), nullable=True),
+        sa.Column("settings", sa.JSON(), nullable=True),
+        sa.Column("config", sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("device_id"),
     )
     op.create_table(
         "users",
@@ -85,6 +89,7 @@ def upgrade() -> None:
     op.create_table(
         "water_vending_controllers",
         sa.Column("controller_id", sa.Integer(), nullable=False),
+        sa.Column("display", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(
             ["controller_id"],
             ["controllers.id"],
