@@ -1,5 +1,6 @@
-from dishka import AsyncContainer, Provider, Scope, make_async_container
+from dishka import AnyOf, AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
+from npc_iot import NpcClient as NpcIotClient
 
 from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
@@ -11,9 +12,14 @@ from dash.infrastructure.db.setup import (
 )
 from dash.infrastructure.db.tracker import SATracker
 from dash.infrastructure.db.transaction_manager import SATransactionManager
-from dash.infrastructure.mqtt.client import get_npc_client
-from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.mqtt.client import NpcClient, get_npc_client
 from dash.infrastructure.repositories.user import UserRepository
+from dash.infrastructure.repositories.water_vending.controller import (
+    WaterVendingControllerRepository,
+)
+from dash.infrastructure.repositories.water_vending.transaction import (
+    WaterVendingTransactionRepository,
+)
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
 from dash.main.config import AppConfig, Config, DbConfig, MqttConfig, RedisConfig
@@ -45,10 +51,6 @@ def provide_db() -> Provider:
     provider.provide(get_redis_pool, scope=Scope.APP)
     provider.provide(get_redis_client, scope=Scope.REQUEST)
 
-    provider.provide(SessionStorage, scope=Scope.REQUEST)
-
-    provider.provide(ControllerRepository, scope=Scope.REQUEST)
-
     return provider
 
 
@@ -63,7 +65,11 @@ def provide_services() -> Provider:
 def provide_gateways() -> Provider:
     provider = Provider()
 
+    provider.provide(SessionStorage, scope=Scope.REQUEST)
+
     provider.provide(UserRepository, scope=Scope.REQUEST)
+    provider.provide(WaterVendingControllerRepository, scope=Scope.REQUEST)
+    provider.provide(WaterVendingTransactionRepository, scope=Scope.REQUEST)
 
     return provider
 
@@ -77,7 +83,9 @@ def provide_infrastructure() -> Provider:
     provider.provide(AuthService, scope=Scope.REQUEST)
     provider.provide(IdProvider, scope=Scope.REQUEST)
 
-    provider.provide(get_npc_client, scope=Scope.APP)
+    provider.provide(
+        get_npc_client, scope=Scope.APP, provides=AnyOf[NpcClient, NpcIotClient]
+    )
 
     return provider
 

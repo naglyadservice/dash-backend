@@ -12,6 +12,5 @@ class WaterVendingController(Controller):
     controller_id: Mapped[int] = mapped_column(
         ForeignKey("controllers.id"), primary_key=True
     )
-    display: Mapped[dict[str, Any] | None] = mapped_column()
 
     __mapper_args__ = {"polymorphic_identity": ControllerType.WATER_VENDING.value}

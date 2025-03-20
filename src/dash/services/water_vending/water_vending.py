@@ -4,8 +4,13 @@ from npc_iot.exception import DeviceResponceError
 from sqlalchemy.orm.attributes import flag_modified
 
 from dash.infrastructure.mqtt.client import NpcClient
-from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.models.controllers.controller import Controller
+from dash.infrastructure.repositories.water_vending.controller import (
+    WaterVendingControllerRepository,
+)
+from dash.infrastructure.repositories.water_vending.transaction import (
+    WaterVendingTransactionRepository,
+)
+from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.errors import (
     ControllerNotFoundError,
     ControllerResponseError,
@@ -21,18 +26,23 @@ from dash.services.water_vending.dto import (
     SetWaterVendingConfigRequest,
     SetWaterVendingSettingsRequest,
     WaterVendingControllerScheme,
+    WaterVendingTransactionScheme,
 )
 
 
 class WaterVendingService:
     def __init__(
-        self, npc_client: NpcClient, controller_repository: ControllerRepository
+        self,
+        npc_client: NpcClient,
+        controller_repository: WaterVendingControllerRepository,
+        transaction_repository: WaterVendingTransactionRepository,
     ):
         self.npc_client = npc_client
         self.controller_repository = controller_repository
+        self.transaction_repository = transaction_repository
 
-    async def _get_controller(self, controller_id: int) -> Controller:
-        controller = await self.controller_repository.get_water_vending(controller_id)
+    async def _get_controller(self, controller_id: int) -> WaterVendingController:
+        controller = await self.controller_repository.get(controller_id)
 
         if not controller:
             raise ControllerNotFoundError
@@ -202,3 +212,18 @@ class WaterVendingService:
             qos=1,
             ttl=5,
         )
+
+    async def read_transactions(
+        self, data: ControllerID
+    ) -> list[WaterVendingTransactionScheme]:
+        controller = await self._get_controller(data.controller_id)
+
+        transactions = await self.transaction_repository.get_list_by_controller_id(
+            controller_id=controller.id
+        )
+        return [
+            WaterVendingTransactionScheme.model_validate(
+                transaction, from_attributes=True
+            )
+            for transaction in transactions
+        ]

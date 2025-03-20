@@ -7,12 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from dash.models.base import Base
 
 
-class PaymentMethod(StrEnum):
-    CASH = "CASH"
-    MONOPAY = "MONOPAY"
-    LIQPAY = "LIQPAY"
-
-
 class PaymentStatus(StrEnum):
     PENDING = "PENDING"
     COMPLETED = "COMPLETED"
@@ -29,17 +23,24 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    controller_transaction_id: Mapped[int] = mapped_column()
     controller_id: Mapped[str] = mapped_column(
         ForeignKey("controllers.id", ondelete="CASCADE")
     )
-    location_id: Mapped[int] = mapped_column(
+    location_id: Mapped[int | None] = mapped_column(
         ForeignKey("locations.id", ondelete="CASCADE")
     )
-    amount: Mapped[float] = mapped_column()
-    payment_method: Mapped[PaymentMethod] = mapped_column()
+    coin_amount: Mapped[int] = mapped_column()
+    bill_amount: Mapped[int] = mapped_column()
+    prev_amount: Mapped[int] = mapped_column()
+    free_amount: Mapped[int] = mapped_column()
+    qr_amount: Mapped[int] = mapped_column()
+    paypass_amount: Mapped[int] = mapped_column()
+
     status: Mapped[PaymentStatus] = mapped_column()
     type: Mapped[TransactionType] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    received_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )
 

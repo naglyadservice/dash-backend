@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, field_validator
 
+from dash.models.transactions.transaction import PaymentStatus
+
 COIN_VALIDATOR_TYPE = Literal["protocol", "impulse"]
 
 
@@ -139,3 +141,22 @@ class FreePaymentRequest(BaseModel):
 
 class SendFreePaymentRequest(ControllerID, FreePaymentRequest):
     pass
+
+
+class WaterVendingTransactionScheme(BaseModel):
+    id: int
+    controller_transaction_id: int
+    controller_id: int
+    location_id: int | None
+    coin_amount: int
+    bill_amount: int
+    prev_amount: int
+    free_amount: int
+    qr_amount: int
+    paypass_amount: int
+    out_liters_1: int
+    out_liters_2: int
+    sale_type: str
+    status: PaymentStatus
+    created_at: datetime
+    received_at: datetime

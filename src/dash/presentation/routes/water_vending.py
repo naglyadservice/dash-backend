@@ -105,3 +105,11 @@ async def clear_payments(
     return await water_vending_service.clear_payments(
         ClearPaymentsRequest(controller_id=path.controller_id, options=data)
     )
+
+
+@water_vending_router.get("/{controller_id}/transactions")
+async def read_transactions(
+    water_vending_service: FromDishka[WaterVendingService],
+    path: ControllerID = Depends(),
+):
+    return await water_vending_service.read_transactions(path)

@@ -2,7 +2,7 @@
 
 Revision ID: 001
 Revises:
-Create Date: 2025-03-18 20:15:55.862266
+Create Date: 2025-03-19 21:56:37.914562
 
 """
 
@@ -89,7 +89,6 @@ def upgrade() -> None:
     op.create_table(
         "water_vending_controllers",
         sa.Column("controller_id", sa.Integer(), nullable=False),
-        sa.Column("display", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(
             ["controller_id"],
             ["controllers.id"],
@@ -130,14 +129,15 @@ def upgrade() -> None:
     op.create_table(
         "transactions",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("controller_transaction_id", sa.Integer(), nullable=False),
         sa.Column("controller_id", sa.Integer(), nullable=False),
-        sa.Column("location_id", sa.Integer(), nullable=False),
-        sa.Column("amount", sa.Float(), nullable=False),
-        sa.Column(
-            "payment_method",
-            sa.Enum("CASH", "MONOPAY", "LIQPAY", name="paymentmethod"),
-            nullable=False,
-        ),
+        sa.Column("location_id", sa.Integer(), nullable=True),
+        sa.Column("coin_amount", sa.Integer(), nullable=False),
+        sa.Column("bill_amount", sa.Integer(), nullable=False),
+        sa.Column("prev_amount", sa.Integer(), nullable=False),
+        sa.Column("free_amount", sa.Integer(), nullable=False),
+        sa.Column("qr_amount", sa.Integer(), nullable=False),
+        sa.Column("paypass_amount", sa.Integer(), nullable=False),
         sa.Column(
             "status",
             sa.Enum("PENDING", "COMPLETED", "FAILED", name="paymentstatus"),
@@ -149,6 +149,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("received_at", sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
             ["controller_id"], ["controllers.id"], ondelete="CASCADE"
         ),
@@ -158,20 +159,6 @@ def upgrade() -> None:
     op.create_table(
         "carwash_transactions",
         sa.Column("transaction_id", sa.Integer(), nullable=False),
-        sa.Column(
-            "service_type",
-            sa.Enum(
-                "WATER",
-                "WARM_WATER",
-                "FOAM",
-                "PINK_FOAM",
-                "WAX",
-                "OSMOSIS",
-                "WINTER_CLEANER",
-                name="carwashservicetype",
-            ),
-            nullable=False,
-        ),
         sa.ForeignKeyConstraint(
             ["transaction_id"],
             ["transactions.id"],
@@ -181,18 +168,6 @@ def upgrade() -> None:
     op.create_table(
         "vacuum_transactions",
         sa.Column("transaction_id", sa.Integer(), nullable=False),
-        sa.Column(
-            "service_type",
-            sa.Enum(
-                "VACUUM",
-                "AIR_BLOWING",
-                "TIRE_INFLATION",
-                "GLASS_WASHER",
-                "RUBBER_BLACKENING",
-                name="vacuumservicetype",
-            ),
-            nullable=False,
-        ),
         sa.ForeignKeyConstraint(
             ["transaction_id"],
             ["transactions.id"],
@@ -202,11 +177,9 @@ def upgrade() -> None:
     op.create_table(
         "water_vending_transactions",
         sa.Column("transaction_id", sa.Integer(), nullable=False),
-        sa.Column(
-            "service_type",
-            sa.Enum("WATER_1", "WATER_2", name="watervendingservicetype"),
-            nullable=False,
-        ),
+        sa.Column("out_liters_1", sa.Integer(), nullable=False),
+        sa.Column("out_liters_2", sa.Integer(), nullable=False),
+        sa.Column("sale_type", sa.String(), nullable=False),
         sa.ForeignKeyConstraint(
             ["transaction_id"],
             ["transactions.id"],
