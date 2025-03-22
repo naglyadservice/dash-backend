@@ -49,6 +49,10 @@ def controller_timeout_error_handler(request: Request, exc: Exception) -> JSONRe
     return JSONResponse(status_code=504, content={"detail": "Controller timeout"})
 
 
+def admin_required_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": "Not found"})
+
+
 def setup_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(
         EmailAlreadyRegisteredError, email_already_registered_error_handler

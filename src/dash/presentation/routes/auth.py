@@ -34,7 +34,7 @@ async def register(
     status_code=200,
     responses={401: {"description": "Invalid email or password"}},
 )
-async def authenticate(
+async def login(
     request: Request,
     data: LoginRequest,
     auth_service: FromDishka[AuthService],

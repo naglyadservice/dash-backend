@@ -49,8 +49,14 @@ class AppConfig(BaseSettings):
     reload: bool = Field(default=True)
 
 
+class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
+    token: str = Field(default=...)
+    redirect_url: str = Field(default=...)
+
+
 class Config(BaseSettings):
     db: DbConfig = DbConfig()
     redis: RedisConfig = RedisConfig()
     app: AppConfig = AppConfig()
     mqtt: MqttConfig = MqttConfig()
+    monopay: MonopayConfig = MonopayConfig()

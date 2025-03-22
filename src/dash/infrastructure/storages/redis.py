@@ -8,7 +8,6 @@ def get_redis_pool(config: RedisConfig) -> ConnectionPool:
         host=config.host,
         port=config.port,
         password=config.password,
-        decode_responses=True,
     )
 
 

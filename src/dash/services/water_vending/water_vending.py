@@ -3,14 +3,11 @@ from typing import Any, Literal
 from npc_iot.exception import DeviceResponceError
 from sqlalchemy.orm.attributes import flag_modified
 
+from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.mqtt.client import NpcClient
-from dash.infrastructure.repositories.water_vending.controller import (
-    WaterVendingControllerRepository,
-)
-from dash.infrastructure.repositories.water_vending.transaction import (
-    WaterVendingTransactionRepository,
-)
+from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.controllers.water_vending import WaterVendingController
+from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.errors import (
     ControllerNotFoundError,
     ControllerResponseError,
@@ -26,7 +23,6 @@ from dash.services.water_vending.dto import (
     SetWaterVendingConfigRequest,
     SetWaterVendingSettingsRequest,
     WaterVendingControllerScheme,
-    WaterVendingTransactionScheme,
 )
 
 
@@ -34,15 +30,15 @@ class WaterVendingService:
     def __init__(
         self,
         npc_client: NpcClient,
-        controller_repository: WaterVendingControllerRepository,
-        transaction_repository: WaterVendingTransactionRepository,
+        controller_repository: ControllerRepository,
+        identity_provider: IdProvider,
     ):
         self.npc_client = npc_client
         self.controller_repository = controller_repository
-        self.transaction_repository = transaction_repository
+        self.identity_provider = identity_provider
 
     async def _get_controller(self, controller_id: int) -> WaterVendingController:
-        controller = await self.controller_repository.get(controller_id)
+        controller = await self.controller_repository.get_vending(controller_id)
 
         if not controller:
             raise ControllerNotFoundError
@@ -74,6 +70,8 @@ class WaterVendingService:
         return response
 
     async def set_config(self, data: SetWaterVendingConfigRequest) -> None:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         config_dict = data.config.model_dump(exclude_unset=True)
@@ -95,6 +93,8 @@ class WaterVendingService:
         await self.controller_repository.commit()
 
     async def set_settings(self, data: SetWaterVendingSettingsRequest) -> None:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         settings_dict = data.settings.model_dump(exclude_unset=True)
@@ -148,6 +148,8 @@ class WaterVendingService:
         return display
 
     async def read_controller(self, data: ControllerID) -> WaterVendingControllerScheme:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         if not controller.config or not controller.settings:
@@ -165,6 +167,8 @@ class WaterVendingService:
         return scheme
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         await self.npc_client.reboot(controller.device_id, {"delay": data.delay})
@@ -181,6 +185,8 @@ class WaterVendingService:
         )
 
     async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         await self._send_message(
@@ -190,8 +196,18 @@ class WaterVendingService:
             qos=1,
             ttl=5,
         )
+        payment = Payment(
+            controller_id=controller.id,
+            amount=data.amount,
+            status=PaymentStatus.COMPLETED,
+            type=PaymentType.FREE,
+        )
+        self.controller_repository.add(payment)
+        await self.controller_repository.commit()
 
     async def clear_payments(self, data: ClearPaymentsRequest) -> None:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         await self._send_message(
@@ -203,6 +219,8 @@ class WaterVendingService:
         )
 
     async def send_action(self, data: SendActionRequest) -> None:
+        await self.identity_provider.ensure_admin()
+
         controller = await self._get_controller(data.controller_id)
 
         await self._send_message(
@@ -212,18 +230,3 @@ class WaterVendingService:
             qos=1,
             ttl=5,
         )
-
-    async def read_transactions(
-        self, data: ControllerID
-    ) -> list[WaterVendingTransactionScheme]:
-        controller = await self._get_controller(data.controller_id)
-
-        transactions = await self.transaction_repository.get_list_by_controller_id(
-            controller_id=controller.id
-        )
-        return [
-            WaterVendingTransactionScheme.model_validate(
-                transaction, from_attributes=True
-            )
-            for transaction in transactions
-        ]

@@ -2,7 +2,7 @@
 
 Revision ID: 001
 Revises:
-Create Date: 2025-03-19 21:56:37.914562
+Create Date: 2025-03-21 21:36:53.694603
 
 """
 
@@ -78,6 +78,41 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
+        "payments",
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("invoice_id", sa.String(), nullable=True),
+        sa.Column("controller_id", sa.Integer(), nullable=False),
+        sa.Column("amount", sa.Integer(), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum(
+                "CREATED",
+                "PROCESSING",
+                "HOLD",
+                "COMPLETED",
+                "REVERSED",
+                "EXPIRED",
+                "FAILED",
+                name="paymentstatus",
+            ),
+            nullable=False,
+        ),
+        sa.Column(
+            "type",
+            sa.Enum("BILL", "COIN", "PAYPASS", "MONOPAY", "FREE", name="paymenttype"),
+            nullable=False,
+        ),
+        sa.Column("failure_reason", sa.String(), nullable=True),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["controller_id"],
+            ["controllers.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("invoice_id"),
+    )
+    op.create_table(
         "vacuum_controllers",
         sa.Column("controller_id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
@@ -139,11 +174,6 @@ def upgrade() -> None:
         sa.Column("qr_amount", sa.Integer(), nullable=False),
         sa.Column("paypass_amount", sa.Integer(), nullable=False),
         sa.Column(
-            "status",
-            sa.Enum("PENDING", "COMPLETED", "FAILED", name="paymentstatus"),
-            nullable=False,
-        ),
-        sa.Column(
             "type",
             sa.Enum("CARWASH", "WATER_VENDING", "VACUUM", name="transactiontype"),
             nullable=False,
@@ -200,6 +230,7 @@ def downgrade() -> None:
     op.drop_table("locations")
     op.drop_table("water_vending_controllers")
     op.drop_table("vacuum_controllers")
+    op.drop_table("payments")
     op.drop_table("companies")
     op.drop_table("carwash_controllers")
     op.drop_table("users")

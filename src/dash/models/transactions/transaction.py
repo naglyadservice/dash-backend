@@ -7,12 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from dash.models.base import Base
 
 
-class PaymentStatus(StrEnum):
-    PENDING = "PENDING"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
-
-
 class TransactionType(StrEnum):
     CARWASH = "CARWASH_TRANSACTION"
     WATER_VENDING = "WATER_VENDING_TRANSACTION"
@@ -36,8 +30,6 @@ class Transaction(Base):
     free_amount: Mapped[int] = mapped_column()
     qr_amount: Mapped[int] = mapped_column()
     paypass_amount: Mapped[int] = mapped_column()
-
-    status: Mapped[PaymentStatus] = mapped_column()
     type: Mapped[TransactionType] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     received_at: Mapped[datetime] = mapped_column(

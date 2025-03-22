@@ -12,17 +12,26 @@ from dash.infrastructure.db.setup import (
 )
 from dash.infrastructure.db.tracker import SATracker
 from dash.infrastructure.db.transaction_manager import SATransactionManager
+from dash.infrastructure.monopay import MonopayService
 from dash.infrastructure.mqtt.client import NpcClient, get_npc_client
+from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.payment import PaymentRepository
+from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.repositories.user import UserRepository
-from dash.infrastructure.repositories.water_vending.controller import (
-    WaterVendingControllerRepository,
-)
-from dash.infrastructure.repositories.water_vending.transaction import (
-    WaterVendingTransactionRepository,
-)
+from dash.infrastructure.storages.acquring import AcquringStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
-from dash.main.config import AppConfig, Config, DbConfig, MqttConfig, RedisConfig
+from dash.main.config import (
+    AppConfig,
+    Config,
+    DbConfig,
+    MonopayConfig,
+    MqttConfig,
+    RedisConfig,
+)
+from dash.services.controller.controller import ControllerService
+from dash.services.payment.payment import PaymentService
+from dash.services.transaction.transaction import TransactionService
 from dash.services.water_vending.water_vending import WaterVendingService
 
 
@@ -34,6 +43,7 @@ def provide_configs() -> Provider:
     provider.provide(lambda: config.redis, provides=RedisConfig, scope=Scope.APP)
     provider.provide(lambda: config.app, provides=AppConfig, scope=Scope.APP)
     provider.provide(lambda: config.mqtt, provides=MqttConfig, scope=Scope.APP)
+    provider.provide(lambda: config.monopay, provides=MonopayConfig, scope=Scope.APP)
 
     return provider
 
@@ -58,6 +68,9 @@ def provide_services() -> Provider:
     provider = Provider()
 
     provider.provide(WaterVendingService, scope=Scope.REQUEST)
+    provider.provide(TransactionService, scope=Scope.REQUEST)
+    provider.provide(PaymentService, scope=Scope.REQUEST)
+    provider.provide(ControllerService, scope=Scope.REQUEST)
 
     return provider
 
@@ -68,8 +81,10 @@ def provide_gateways() -> Provider:
     provider.provide(SessionStorage, scope=Scope.REQUEST)
 
     provider.provide(UserRepository, scope=Scope.REQUEST)
-    provider.provide(WaterVendingControllerRepository, scope=Scope.REQUEST)
-    provider.provide(WaterVendingTransactionRepository, scope=Scope.REQUEST)
+    provider.provide(ControllerRepository, scope=Scope.REQUEST)
+    provider.provide(TransactionRepository, scope=Scope.REQUEST)
+    provider.provide(PaymentRepository, scope=Scope.REQUEST)
+    provider.provide(AcquringStorage, scope=Scope.REQUEST)
 
     return provider
 
@@ -86,6 +101,7 @@ def provide_infrastructure() -> Provider:
     provider.provide(
         get_npc_client, scope=Scope.APP, provides=AnyOf[NpcClient, NpcIotClient]
     )
+    provider.provide(MonopayService, scope=Scope.REQUEST)
 
     return provider
 

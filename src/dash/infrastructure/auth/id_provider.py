@@ -2,7 +2,7 @@ from fastapi import Request
 
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
-from dash.models.user import User
+from dash.models.user import User, UserRole
 
 
 class AuthenticationError(Exception):
@@ -10,6 +10,10 @@ class AuthenticationError(Exception):
 
 
 class UserNotFoundError(Exception):
+    pass
+
+
+class AdminRequiredError(Exception):
     pass
 
 
@@ -38,3 +42,8 @@ class IdProvider:
             raise UserNotFoundError
 
         return user
+
+    async def ensure_admin(self) -> None:
+        user = await self.get_current_user()
+        if user.role not in (UserRole.SUPERADMIN, UserRole.ADMIN):
+            raise AdminRequiredError
