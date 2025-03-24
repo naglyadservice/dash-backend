@@ -225,7 +225,7 @@ requires-dist = [
     { name = "email-validator", specifier = ">=2.2.0" },
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "greenlet", specifier = ">=3.1.1" },
-    { name = "npc-iot", git = "https://github.com/naglyadservice/npc-iot.git" },
+    { name = "npc-iot", git = "https://github.com/naglyadservice/npc-iot" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
     { name = "redis", specifier = ">=5.2.1" },
     { name = "sqlalchemy", specifier = ">=2.0.38" },
@@ -496,7 +496,7 @@ wheels = [
 [[package]]
 name = "npc-iot"
 version = "0.1.5"
-source = { git = "https://github.com/naglyadservice/npc-iot.git#87c7a908e4e5f696c8ce3669def9f31e1510b079" }
+source = { git = "https://github.com/naglyadservice/npc-iot#87c7a908e4e5f696c8ce3669def9f31e1510b079" }
 dependencies = [
     { name = "mqttproto" },
 ]

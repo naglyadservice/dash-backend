@@ -51,6 +51,7 @@ class AppConfig(BaseSettings):
 
 class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
     token: str = Field(default=...)
+    webhook_url: str = Field(default=...)
     redirect_url: str = Field(default=...)
 
 

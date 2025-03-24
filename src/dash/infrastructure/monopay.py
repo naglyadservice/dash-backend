@@ -26,7 +26,6 @@ class ProcessWebhookRequest(BaseModel):
 class CreateInvoiceRequest(BaseModel):
     controller_id: int
     amount: int
-    webhook_url: str
 
 
 class CreateInvoiceResponse(BaseModel):
@@ -109,7 +108,7 @@ class MonopayService:
             data={
                 "amount": data.amount,
                 "ccy": 980,
-                "webHookUrl": data.webhook_url,
+                "webHookUrl": self.config.webhook_url,
                 "redirectUrl": self.config.redirect_url,
                 "paymentType": "hold",
             },

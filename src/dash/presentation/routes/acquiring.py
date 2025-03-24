@@ -27,10 +27,7 @@ async def request_invoice(
     data: MonopayInvoiceRequest,
 ) -> CreateInvoiceResponse:
     return await monopay_service.create_invoice(
-        CreateInvoiceRequest(
-            **data.model_dump(),
-            webhook_url=str(request.url_for("monopay_webhook")),
-        )
+        CreateInvoiceRequest(**data.model_dump())
     )
 
 

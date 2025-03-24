@@ -9,7 +9,7 @@ packages = ["dash"]
 [project]
 name = "dash"
 version = "0.1.0"
-description = "A user-friendly admin panel for handling IoC controllers."
+description = "A user-friendly admin panel for handling IoT controllers."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -67,4 +67,4 @@ exclude = [
 ]
 
 [tool.uv.sources]
-npc-iot = { git = "https://github.com/naglyadservice/npc-iot.git" }
+npc-iot = { git = "https://github.com/naglyadservice/npc-iot" }

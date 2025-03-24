@@ -1,3 +1,3 @@
 ## Dash
 
-A user-friendly admin panel for handling IoC controllers.
+A user-friendly admin panel for handling IoT controllers.
