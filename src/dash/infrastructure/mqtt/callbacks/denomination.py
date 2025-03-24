@@ -11,32 +11,33 @@ from dash.models.payment import Payment, PaymentStatus, PaymentType
 async def denomination_callback(
     device_id: str, data: dict[str, Any], di_container: AsyncContainer
 ) -> None:
-    payment_repository = await di_container.get(PaymentRepository)
-    controller_repository = await di_container.get(ControllerRepository)
+    async with di_container() as container:
+        payment_repository = await container.get(PaymentRepository)
+        controller_repository = await container.get(ControllerRepository)
 
-    controller = await controller_repository.get_vending_by_device_id(device_id)
+        controller = await controller_repository.get_vending_by_device_id(device_id)
 
-    if controller is None:
-        return
+        if controller is None:
+            return
 
-    if data.get("bill"):
-        amount = data["bill"]
-        type = PaymentType.BILL
+        if data.get("bill"):
+            amount = data["bill"]
+            type = PaymentType.BILL
 
-    elif data.get("coin"):
-        amount = data["coin"]
-        type = PaymentType.COIN
+        elif data.get("coin"):
+            amount = data["coin"]
+            type = PaymentType.COIN
 
-    else:
-        return
+        else:
+            return
 
-    payment = Payment(
-        controller_id=controller.id,
-        amount=amount,
-        status=PaymentStatus.COMPLETED,
-        type=type,
-        created_at=datetime.fromisoformat(data["time"]),
-    )
+        payment = Payment(
+            controller_id=controller.id,
+            amount=amount,
+            status=PaymentStatus.COMPLETED,
+            type=type,
+            created_at=datetime.fromisoformat(data["time"]),
+        )
 
-    payment_repository.add(payment)
-    await payment_repository.commit()
+        payment_repository.add(payment)
+        await payment_repository.commit()
