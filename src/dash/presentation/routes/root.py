@@ -18,6 +18,6 @@ root_router.include_router(payment_router)
 root_router.include_router(controller_router)
 
 
-@root_router.get("/health", tags=["HEALTHCHECK"])
-async def health() -> dict[Literal["status"], Literal["ok"]]:
+@root_router.get("/health")
+async def health():
     return {"status": "ok"}

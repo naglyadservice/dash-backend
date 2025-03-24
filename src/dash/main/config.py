@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import Field
 from pydantic_settings import BaseSettings as _BaseSettings
 from pydantic_settings import SettingsConfigDict
@@ -47,6 +49,7 @@ class AppConfig(BaseSettings):
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000)
     reload: bool = Field(default=True)
+    allowed_origins: list[str] = Field(default=...)
 
 
 class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
@@ -55,9 +58,19 @@ class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
     redirect_url: str = Field(default=...)
 
 
+LoggingLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+
+class LoggingConfig(BaseSettings, env_prefix="LOG_"):
+    level: LoggingLevel = Field(default=...)
+    json_mode: bool = Field(default=...)
+    colorize: bool = Field(default=...)
+
+
 class Config(BaseSettings):
     db: DbConfig = DbConfig()
     redis: RedisConfig = RedisConfig()
     app: AppConfig = AppConfig()
     mqtt: MqttConfig = MqttConfig()
     monopay: MonopayConfig = MonopayConfig()
+    logging: LoggingConfig = LoggingConfig()

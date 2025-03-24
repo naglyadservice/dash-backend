@@ -1,3 +1,5 @@
+from typing import Any
+
 from dishka import AnyOf, AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
 from npc_iot import NpcClient as NpcIotClient
@@ -35,9 +37,8 @@ from dash.services.transaction.transaction import TransactionService
 from dash.services.water_vending.water_vending import WaterVendingService
 
 
-def provide_configs() -> Provider:
+def provide_configs(config: Config) -> Provider:
     provider = Provider()
-    config = Config()
 
     provider.provide(lambda: config.db, provides=DbConfig, scope=Scope.APP)
     provider.provide(lambda: config.redis, provides=RedisConfig, scope=Scope.APP)
@@ -106,9 +107,9 @@ def provide_infrastructure() -> Provider:
     return provider
 
 
-def setup_di() -> AsyncContainer:
+def setup_di(config: Config) -> AsyncContainer:
     return make_async_container(
-        provide_configs(),
+        provide_configs(config),
         provide_db(),
         provide_gateways(),
         provide_infrastructure(),
