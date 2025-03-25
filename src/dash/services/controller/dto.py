@@ -21,3 +21,15 @@ class ControllerScheme(BaseModel):
 class ReadControllerResponse(BaseModel):
     controllers: list[ControllerScheme]
     total: int
+
+
+class AddControllerRequest(BaseModel):
+    device_id: str
+    type: ControllerType = ControllerType.WATER_VENDING
+    name: str
+    version: str
+    status: ControllerStatus = ControllerStatus.ACTIVE
+
+
+class AddControllerResponse(BaseModel):
+    id: int

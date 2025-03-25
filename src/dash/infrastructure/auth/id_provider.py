@@ -47,3 +47,8 @@ class IdProvider:
         user = await self.get_current_user()
         if user.role not in (UserRole.SUPERADMIN, UserRole.ADMIN):
             raise AdminRequiredError
+
+    async def ensure_superadmin(self) -> None:
+        user = await self.get_current_user()
+        if user.role is not UserRole.SUPERADMIN:
+            raise AdminRequiredError

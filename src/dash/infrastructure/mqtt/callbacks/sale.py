@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 
+import structlog
 from dishka import AsyncContainer
 from npc_iot import NpcClient
 
@@ -9,10 +10,13 @@ from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WaterVendingTransaction
 
+logger = structlog.get_logger()
+
 
 async def sale_callback(
     device_id: str, data: dict[str, Any], di_container: AsyncContainer
 ) -> None:
+    logger.info("Sale received", data=data)
     async with di_container() as container:
         controller_repository = await container.get(ControllerRepository)
         transaction_repository = await container.get(TransactionRepository)
@@ -61,5 +65,6 @@ async def send_ack(
         topic="client/sale/ack",
         payload={"id": transaction_id, "code": 0},
         qos=1,
-        ttl=5,
+        ttl=None,
     )
+    logger.info("Sale ack sent", transaction_id=transaction_id)
