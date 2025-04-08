@@ -12,11 +12,10 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.db.tracker import SATracker
-from dash.infrastructure.db.transaction_manager import SATransactionManager
 from dash.infrastructure.monopay import MonopayService
 from dash.infrastructure.mqtt.client import NpcClient, get_npc_client
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.repositories.user import UserRepository
@@ -32,8 +31,10 @@ from dash.main.config import (
     RedisConfig,
 )
 from dash.services.controller.controller import ControllerService
+from dash.services.location.location import LocationService
 from dash.services.payment.payment import PaymentService
 from dash.services.transaction.transaction import TransactionService
+from dash.services.user.user import UserService
 from dash.services.water_vending.water_vending import WaterVendingService
 
 
@@ -56,9 +57,6 @@ def provide_db() -> Provider:
     provider.provide(get_async_sessionmaker, scope=Scope.APP)
     provider.provide(get_async_session, scope=Scope.REQUEST)
 
-    provider.provide(SATransactionManager, scope=Scope.REQUEST)
-    provider.provide(SATracker, scope=Scope.REQUEST)
-
     provider.provide(get_redis_pool, scope=Scope.APP)
     provider.provide(get_redis_client, scope=Scope.REQUEST)
 
@@ -72,6 +70,8 @@ def provide_services() -> Provider:
     provider.provide(TransactionService, scope=Scope.REQUEST)
     provider.provide(PaymentService, scope=Scope.REQUEST)
     provider.provide(ControllerService, scope=Scope.REQUEST)
+    provider.provide(LocationService, scope=Scope.REQUEST)
+    provider.provide(UserService, scope=Scope.REQUEST)
 
     return provider
 
@@ -86,6 +86,7 @@ def provide_gateways() -> Provider:
     provider.provide(TransactionRepository, scope=Scope.REQUEST)
     provider.provide(PaymentRepository, scope=Scope.REQUEST)
     provider.provide(AcquringStorage, scope=Scope.REQUEST)
+    provider.provide(LocationRepository, scope=Scope.REQUEST)
 
     return provider
 

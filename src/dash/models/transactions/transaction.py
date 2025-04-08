@@ -18,11 +18,11 @@ class Transaction(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     controller_transaction_id: Mapped[int] = mapped_column()
-    controller_id: Mapped[str] = mapped_column(
-        ForeignKey("controllers.id", ondelete="CASCADE")
+    controller_id: Mapped[int] = mapped_column(
+        ForeignKey("controllers.id", ondelete="SET NULL")
     )
     location_id: Mapped[int | None] = mapped_column(
-        ForeignKey("locations.id", ondelete="CASCADE")
+        ForeignKey("locations.id", ondelete="SET NULL")
     )
     coin_amount: Mapped[int] = mapped_column()
     bill_amount: Mapped[int] = mapped_column()

@@ -33,6 +33,7 @@ async def denomination_callback(
 
         payment = Payment(
             controller_id=controller.id,
+            location_id=controller.location_id,
             amount=amount,
             status=PaymentStatus.COMPLETED,
             type=type,

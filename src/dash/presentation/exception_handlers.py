@@ -1,71 +1,83 @@
+from typing import cast
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from starlette.types import ExceptionHandler
 
-from dash.infrastructure.auth.auth_service import (
-    EmailAlreadyRegisteredError,
-    InvalidCredentialsError,
+from dash.infrastructure.auth.auth_service import EmailAlreadyTakenError
+from dash.infrastructure.auth.errors import AuthError
+from dash.services.common.errors.base import (
+    AccessDeniedError,
+    AccessForbiddenError,
+    EntityNotFoundError,
+    ValidationError,
 )
-from dash.infrastructure.auth.id_provider import AuthenticationError, UserNotFoundError
-from dash.services.errors import (
-    ControllerNotFoundError,
+from dash.services.common.errors.controller import (
     ControllerResponseError,
     ControllerTimeoutError,
 )
 
 
-def email_already_registered_error_handler(
-    request: Request, exc: Exception
+def build_response(status_code: int, message: str) -> JSONResponse:
+    return JSONResponse(status_code=status_code, content={"detail": message})
+
+
+def register_handler(app: FastAPI, error_type: type[Exception], handler):
+    app.add_exception_handler(error_type, cast(ExceptionHandler, handler))
+
+
+def email_already_taken_error_handler(
+    request: Request, exc: EmailAlreadyTakenError
 ) -> JSONResponse:
-    return JSONResponse(status_code=409, content={"detail": "Email already registered"})
+    return build_response(409, exc.message)
 
 
-def invalid_credentials_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(
-        status_code=401, content={"detail": "Invalid email or password"}
-    )
+def authentication_error_handler(request: Request, exc: AuthError) -> JSONResponse:
+    return build_response(401, exc.message)
 
 
-def authentication_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=401, content={"detail": "Invalid session"})
+def not_found_error_handler(request: Request, exc: EntityNotFoundError) -> JSONResponse:
+    return build_response(404, exc.message)
 
 
-def user_not_found_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=404, content={"detail": "User not found"})
-
-
-def controller_not_found_error_handler(
-    request: Request, exc: Exception
+def controller_response_error_handler(
+    request: Request, exc: ControllerResponseError
 ) -> JSONResponse:
-    return JSONResponse(status_code=404, content={"detail": "Controller not found"})
+    return build_response(502, exc.message)
 
 
-def controller_response_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(
-        status_code=502, content={"detail": "Controller response error"}
-    )
+def controller_timeout_error_handler(
+    request: Request, exc: ControllerTimeoutError
+) -> JSONResponse:
+    return build_response(504, exc.message)
 
 
-def controller_timeout_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=504, content={"detail": "Controller timeout"})
+def access_denied_error_handler(
+    request: Request, exc: AccessDeniedError
+) -> JSONResponse:
+    return build_response(403, exc.message)
 
 
-def admin_required_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=404, content={"detail": "Not found"})
+def access_forbidden_error_handler(
+    request: Request, exc: AccessForbiddenError
+) -> JSONResponse:
+    return build_response(404, exc.message)
+
+
+def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
+    return build_response(400, exc.message)
 
 
 def setup_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(
-        EmailAlreadyRegisteredError, email_already_registered_error_handler
-    )
-    app.add_exception_handler(
-        InvalidCredentialsError, invalid_credentials_error_handler
-    )
-    app.add_exception_handler(AuthenticationError, authentication_error_handler)
-    app.add_exception_handler(UserNotFoundError, user_not_found_error_handler)
-    app.add_exception_handler(
-        ControllerNotFoundError, controller_not_found_error_handler
-    )
-    app.add_exception_handler(
-        ControllerResponseError, controller_response_error_handler
-    )
-    app.add_exception_handler(ControllerTimeoutError, controller_timeout_error_handler)
+    exc_handler_list: list[tuple[type[Exception], function]] = [
+        (EmailAlreadyTakenError, email_already_taken_error_handler),
+        (AuthError, authentication_error_handler),
+        (EntityNotFoundError, not_found_error_handler),
+        (ControllerResponseError, controller_response_error_handler),
+        (ControllerTimeoutError, controller_timeout_error_handler),
+        (AccessDeniedError, access_denied_error_handler),
+        (AccessForbiddenError, access_forbidden_error_handler),
+        (ValidationError, validation_error_handler),
+    ]
+    for exc, handler in exc_handler_list:
+        register_handler(app, exc, handler)

@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends
 from dash.services.water_vending.dto import (
     ClearPaymentsRequest,
     ControllerID,
-    FreePaymentRequest,
+    FreePaymentDTO,
+    GetDisplayInfoRequest,
     PaymentClearOptionsDTO,
-    QRPaymentRequest,
+    QRPaymentDTO,
     RebootControllerRequest,
     SendActionRequest,
     SendFreePaymentRequest,
@@ -37,33 +38,33 @@ async def read_controller(
 @water_vending_router.post("/{controller_id}/config", status_code=204)
 async def set_config(
     water_vending_service: FromDishka[WaterVendingService],
-    body: WaterVendingConfig,
-    path: ControllerID = Depends(),
+    data: WaterVendingConfig,
+    controller_id: int,
 ) -> None:
     return await water_vending_service.set_config(
-        SetWaterVendingConfigRequest(controller_id=path.controller_id, config=body)
+        SetWaterVendingConfigRequest(controller_id=controller_id, config=data)
     )
 
 
 @water_vending_router.post("/{controller_id}/settings", status_code=204)
 async def set_settings(
     water_vending_service: FromDishka[WaterVendingService],
-    body: WaterVendingSettings,
-    path: ControllerID = Depends(),
+    data: WaterVendingSettings,
+    controller_id: int,
 ) -> None:
     return await water_vending_service.set_settings(
-        SetWaterVendingSettingsRequest(controller_id=path.controller_id, settings=body)
+        SetWaterVendingSettingsRequest(controller_id=controller_id, settings=data)
     )
 
 
 @water_vending_router.post("/{controller_id}/actions", status_code=204)
 async def send_action(
     water_vending_service: FromDishka[WaterVendingService],
-    body: WaterVendingActionDTO,
-    path: ControllerID = Depends(),
+    data: WaterVendingActionDTO,
+    controller_id: int,
 ) -> None:
     return await water_vending_service.send_action(
-        SendActionRequest(controller_id=path.controller_id, actions=body)
+        SendActionRequest(controller_id=controller_id, actions=data)
     )
 
 
@@ -78,22 +79,22 @@ async def reboot_controller(
 @water_vending_router.post("/{controller_id}/payments/qr", status_code=204)
 async def send_qr_payment(
     water_vending_service: FromDishka[WaterVendingService],
-    body: QRPaymentRequest,
-    path: ControllerID = Depends(),
+    data: QRPaymentDTO,
+    controller_id: int,
 ) -> None:
     return await water_vending_service.send_qr_payment(
-        SendQRPaymentRequest(controller_id=path.controller_id, **body.model_dump())
+        SendQRPaymentRequest(controller_id=controller_id, payment=data)
     )
 
 
 @water_vending_router.post("/{controller_id}/payments/free", status_code=204)
 async def send_free_payment(
     water_vending_service: FromDishka[WaterVendingService],
-    body: FreePaymentRequest,
-    path: ControllerID = Depends(),
+    data: FreePaymentDTO,
+    controller_id: int,
 ) -> None:
     return await water_vending_service.send_free_payment(
-        SendFreePaymentRequest(controller_id=path.controller_id, amount=body.amount)
+        SendFreePaymentRequest(controller_id=controller_id, payment=data)
     )
 
 
@@ -101,8 +102,16 @@ async def send_free_payment(
 async def clear_payments(
     water_vending_service: FromDishka[WaterVendingService],
     data: PaymentClearOptionsDTO,
-    path: ControllerID = Depends(),
+    controller_id: int,
 ) -> None:
     return await water_vending_service.clear_payments(
-        ClearPaymentsRequest(controller_id=path.controller_id, options=data)
+        ClearPaymentsRequest(controller_id=controller_id, options=data)
     )
+
+
+@water_vending_router.get("/{controller_id}/display")
+async def get_display_info(
+    water_vending_service: FromDishka[WaterVendingService],
+    data: GetDisplayInfoRequest = Depends(),
+):
+    return await water_vending_service.get_display(data)

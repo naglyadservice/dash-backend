@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.models.transactions.transaction import TransactionType
+from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 
 
@@ -33,10 +35,42 @@ class WaterVendingTransactionScheme(TransactionBase):
 TRANSACTION_SCHEME_TYPE = WaterVendingTransactionScheme
 
 
-class ReadTransactionsRequest(Pagination):
+class ReadTransactionListRequest(Pagination):
     controller_id: int | None = None
+    location_id: int | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["controller_id"] and values["location_id"]:
+            raise ValidationError(
+                "Filters 'controller_id' and 'location_id' cannot be used together"
+            )
+        return values
 
 
-class ReadTransactionsResponse(BaseModel):
+class ReadTransactionListResponse(BaseModel):
     transactions: list[TRANSACTION_SCHEME_TYPE]
     total: int
+
+
+class GetTransactionStatsRequest(BaseModel):
+    location_id: int | None = None
+    controller_id: int | None = None
+    from_date: date
+    to_date: date
+
+
+class TransactionStatDTO(BaseModel):
+    date: date
+    total: int
+    bill: int
+    coin: int
+    qr: int
+    paypass: int
+    out_liters_1: int | None = None
+    out_liters_2: int | None = None
+
+
+class GetTransactionStatsResponse(BaseModel):
+    statistics: list[TransactionStatDTO]

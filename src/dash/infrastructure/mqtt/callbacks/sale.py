@@ -27,7 +27,7 @@ async def sale_callback(
         if controller is None:
             return
 
-        if await transaction_repository.ensure_exists(
+        if await transaction_repository.exists(
             transaction_id=data["id"], created=datetime.fromisoformat(data["created"])
         ):
             await send_ack(npc_client, device_id, data["id"])
@@ -36,6 +36,7 @@ async def sale_callback(
         transaction = WaterVendingTransaction(
             controller_transaction_id=data["id"],
             controller_id=controller.id,
+            location_id=controller.location_id,
             coin_amount=data["addCoin"],
             bill_amount=data["addBill"],
             prev_amount=data["addPrev"],

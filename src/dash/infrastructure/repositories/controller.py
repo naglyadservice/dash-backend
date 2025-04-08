@@ -1,43 +1,76 @@
 from typing import Any, Sequence
 
-from sqlalchemy import ColumnElement, func, select
+from sqlalchemy import ColumnElement, exists, func, or_, select
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.water_vending import WaterVendingController
-from dash.services.controller.dto import ReadControllerRequest
+from dash.models.location import Location
+from dash.models.location_admin import LocationAdmin
+from dash.services.controller.dto import ReadControllerListRequest
 
 
 class ControllerRepository(BaseRepository):
+    async def exists(self, controller_id: int) -> bool:
+        stmt = select(exists().where(Controller.id == controller_id))
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def get(self, controller_id: int) -> Controller | None:
+        return await self.session.get(Controller, controller_id)
+
     async def get_vending_by_device_id(
         self, device_id: str
     ) -> WaterVendingController | None:
-        query = select(WaterVendingController).where(
+        stmt = select(WaterVendingController).where(
             WaterVendingController.device_id == device_id
         )
-        return await self.session.scalar(query)
+        return await self.session.scalar(stmt)
 
     async def get_vending(self, controller_id: int) -> WaterVendingController | None:
-        query = select(WaterVendingController).where(
+        stmt = select(WaterVendingController).where(
             WaterVendingController.id == controller_id
         )
-        return await self.session.scalar(query)
+        return await self.session.scalar(stmt)
 
-    async def get_list(
-        self, data: ReadControllerRequest
+    async def _get_list(
+        self,
+        data: ReadControllerListRequest,
+        whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Controller], int]:
-        query = select(Controller).offset(data.offset).limit(data.limit)
+        stmt = select(Controller).offset(data.offset).limit(data.limit)
+
         if data.type is not None:
-            query = query.where(Controller.type == data.type)
+            stmt = stmt.where(Controller.type == data.type)
 
-        result = await self.session.scalars(query)
-        return result.all(), await self._get_count(query.whereclause)
-
-    async def _get_count(self, whereclause: ColumnElement[Any] | None) -> int:
-        query = select(func.count()).select_from(Controller)
+        if data.location_id:
+            stmt = stmt.where(Controller.location_id == data.location_id)
 
         if whereclause is not None:
-            query = query.where(whereclause)
+            stmt = stmt.where(whereclause)
 
-        result = await self.session.execute(query)
-        return result.scalar_one()
+        result = await self.session.scalars(stmt)
+        return result.all(), await self._get_count(stmt)
+
+    async def get_list_all(
+        self, data: ReadControllerListRequest
+    ) -> tuple[Sequence[Controller], int]:
+        return await self._get_list(data)
+
+    async def get_list_by_owner(
+        self, data: ReadControllerListRequest, user_id: int
+    ) -> tuple[Sequence[Controller], int]:
+        whereclause = Controller.location_id.in_(
+            select(Location.id).where(Location.owner_id == user_id)
+        )
+        return await self._get_list(data, whereclause)
+
+    async def get_list_by_admin(
+        self, data: ReadControllerListRequest, user_id: int
+    ) -> tuple[Sequence[Controller], int]:
+        whereclause = Controller.location_id.in_(
+            select(Location.id)
+            .outerjoin(LocationAdmin)
+            .where(LocationAdmin.user_id == user_id)
+        )
+        return await self._get_list(data, whereclause)

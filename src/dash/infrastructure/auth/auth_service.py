@@ -3,12 +3,12 @@ from dataclasses import dataclass
 
 from pydantic import EmailStr
 
+from dash.infrastructure.auth.errors import InvalidCredentialsError
 from dash.infrastructure.auth.password_processor import PasswordProcessor
-from dash.infrastructure.db.tracker import SATracker
-from dash.infrastructure.db.transaction_manager import SATransactionManager
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
 from dash.models.user import User, UserRole
+from dash.services.common.errors.user import EmailAlreadyTakenError
 
 
 @dataclass
@@ -43,32 +43,20 @@ class LoginResponse:
     session_id: str
 
 
-class EmailAlreadyRegisteredError(Exception):
-    pass
-
-
-class InvalidCredentialsError(Exception):
-    pass
-
-
 class AuthService:
     def __init__(
         self,
         user_repository: UserRepository,
         password_processor: PasswordProcessor,
-        transaction_manager: SATransactionManager,
-        tracker: SATracker,
         session_storage: SessionStorage,
     ) -> None:
         self.user_repository = user_repository
         self.password_processor = password_processor
-        self.transaction_manager = transaction_manager
-        self.tracker = tracker
         self.session_storage = session_storage
 
     async def register(self, data: RegisterUserRequest) -> RegisterUserResponse:
-        if await self.user_repository.ensure_exists(data.email):
-            raise EmailAlreadyRegisteredError
+        if await self.user_repository.exists(data.email):
+            raise EmailAlreadyTakenError
 
         user = User(
             email=data.email,
@@ -76,8 +64,8 @@ class AuthService:
             password_hash=self.password_processor.hash(data.password),
             role=UserRole.USER,
         )
-        self.tracker.add(user)
-        await self.transaction_manager.commit()
+        self.user_repository.add(user)
+        await self.user_repository.commit()
 
         return RegisterUserResponse(id=user.id)
 

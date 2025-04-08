@@ -3,8 +3,10 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.services.transaction.dto import (
-    ReadTransactionsRequest,
-    ReadTransactionsResponse,
+    GetTransactionStatsRequest,
+    GetTransactionStatsResponse,
+    ReadTransactionListRequest,
+    ReadTransactionListResponse,
 )
 from dash.services.transaction.transaction import TransactionService
 
@@ -16,6 +18,14 @@ transaction_router = APIRouter(
 @transaction_router.get("")
 async def read_transactions(
     transaction_service: FromDishka[TransactionService],
-    data: ReadTransactionsRequest = Depends(),
-) -> ReadTransactionsResponse:
+    data: ReadTransactionListRequest = Depends(),
+) -> ReadTransactionListResponse:
     return await transaction_service.read_transactions(data)
+
+
+@transaction_router.get("/statistics")
+async def get_stats(
+    transaction_service: FromDishka[TransactionService],
+    data: GetTransactionStatsRequest = Depends(),
+) -> GetTransactionStatsResponse:
+    return await transaction_service.get_stats(data)

@@ -2,8 +2,7 @@ from .base import Base
 from .company import Company
 from .controllers import CarwashController, Controller, WaterVendingController
 from .location import Location
-from .location_device import LocationDevice
-from .location_manager import LocationManager
+from .location_admin import LocationAdmin
 from .payment import Payment
 from .transactions import (
     CarwashTransaction,

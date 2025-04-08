@@ -39,7 +39,7 @@ async def get_npc_client(
         topic_prefix="wsm",
         dispatcher=Dispatcher(callback_kwargs={"di_container": di_container}),
     ) as client:
-        client.dispatcher.state_info.register_callback(state_info_callback)
-        client.dispatcher.sale.register_callback(sale_callback)  # type: ignore
-        client.dispatcher.denomination.register_callback(denomination_callback)  # type: ignore
+        # client.dispatcher.state_info.register_callback(state_info_callback)
+        # client.dispatcher.sale.register_callback(sale_callback)  # type: ignore
+        # client.dispatcher.denomination.register_callback(denomination_callback)  # type: ignore
         yield client

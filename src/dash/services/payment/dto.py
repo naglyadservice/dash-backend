@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.models.payment import PaymentStatus, PaymentType
+from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 
 
@@ -17,10 +19,40 @@ class PaymentScheme(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ReadPaymentsRequest(Pagination):
+class ReadPaymentListRequest(Pagination):
     controller_id: int | None = None
+    location_id: int | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("controller_id") and values.get("location_id"):
+            raise ValidationError(
+                "Filters 'controller_id' and 'location_id' cannot be used together"
+            )
+        return values
 
 
-class ReadPaymentsResponse(BaseModel):
+class ReadPaymentListResponse(BaseModel):
     payments: list[PaymentScheme]
     total: int
+
+
+class GetPaymentStatsRequest(BaseModel):
+    location_id: int | None = None
+    controller_id: int | None = None
+    from_date: date
+    to_date: date
+
+
+class PaymentStatDTO(BaseModel):
+    date: date
+    total: int
+    bill: int
+    coin: int
+    qr: int
+    paypass: int
+
+
+class GetPaymentStatsResponse(BaseModel):
+    statistics: list[PaymentStatDTO]

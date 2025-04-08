@@ -67,6 +67,17 @@ class OperatingMode(StrEnum):
     STARTTEST = "STARTTEST"
 
 
+class StateErrors(BaseModel):
+    lowLevelSensor: bool
+    ServerBlock: bool
+    pour: bool
+    reserv: bool
+    coinValidator: bool
+    billValidator: bool
+    PayPass: bool
+    Card: bool
+
+
 class WaterVendingState(BaseModel):
     created: datetime
     summaInBox: int
@@ -78,7 +89,7 @@ class WaterVendingState(BaseModel):
     doorSensor: bool
     coinState: int
     billState: int
-    errors: dict[str, bool]
+    errors: StateErrors
 
 
 class WaterVendingControllerScheme(BaseModel):
@@ -87,7 +98,6 @@ class WaterVendingControllerScheme(BaseModel):
     config: WaterVendingConfig
     settings: WaterVendingSettings
     state: WaterVendingState | None
-    display: dict[str, str] | None = Field(default=None, init=False)
 
 
 class PaymentClearOptionsDTO(BaseModel):
@@ -116,18 +126,22 @@ class RebootControllerRequest(ControllerID):
     delay: int
 
 
-class QRPaymentRequest(BaseModel):
+class QRPaymentDTO(BaseModel):
     amount: int
     order_id: str
 
 
-class SendQRPaymentRequest(ControllerID, QRPaymentRequest):
-    pass
+class SendQRPaymentRequest(ControllerID):
+    payment: QRPaymentDTO
 
 
-class FreePaymentRequest(BaseModel):
+class FreePaymentDTO(BaseModel):
     amount: int
 
 
-class SendFreePaymentRequest(ControllerID, FreePaymentRequest):
+class SendFreePaymentRequest(ControllerID):
+    payment: FreePaymentDTO
+
+
+class GetDisplayInfoRequest(ControllerID):
     pass

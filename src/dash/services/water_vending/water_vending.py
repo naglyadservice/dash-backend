@@ -8,7 +8,7 @@ from dash.infrastructure.mqtt.client import NpcClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.payment import Payment, PaymentStatus, PaymentType
-from dash.services.errors import (
+from dash.services.common.errors.controller import (
     ControllerNotFoundError,
     ControllerResponseError,
     ControllerTimeoutError,
@@ -16,6 +16,7 @@ from dash.services.errors import (
 from dash.services.water_vending.dto import (
     ClearPaymentsRequest,
     ControllerID,
+    GetDisplayInfoRequest,
     RebootControllerRequest,
     SendActionRequest,
     SendFreePaymentRequest,
@@ -69,10 +70,17 @@ class WaterVendingService:
 
         return response
 
-    async def set_config(self, data: SetWaterVendingConfigRequest) -> None:
-        await self.identity_provider.ensure_admin()
+    async def healtcheck(self, device_id: str) -> None:
+        await self._send_message(
+            device_id=device_id,
+            topic="client/state/get",
+            payload={"fields": []},
+        )
 
+    async def set_config(self, data: SetWaterVendingConfigRequest) -> None:
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
 
         config_dict = data.config.model_dump(exclude_unset=True)
 
@@ -80,8 +88,6 @@ class WaterVendingService:
             device_id=controller.device_id,
             topic="client/config/set",
             payload=config_dict,
-            qos=1,
-            ttl=5,
         )
 
         if controller.config:
@@ -93,9 +99,9 @@ class WaterVendingService:
         await self.controller_repository.commit()
 
     async def set_settings(self, data: SetWaterVendingSettingsRequest) -> None:
-        await self.identity_provider.ensure_admin()
-
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
 
         settings_dict = data.settings.model_dump(exclude_unset=True)
 
@@ -103,8 +109,6 @@ class WaterVendingService:
             device_id=controller.device_id,
             topic="client/setting/set",
             payload=settings_dict,
-            qos=1,
-            ttl=5,
         )
 
         if controller.settings:
@@ -120,8 +124,6 @@ class WaterVendingService:
             device_id=device_id,
             topic="client/config/get",
             payload={"fields": []},
-            qos=1,
-            ttl=5,
         )
 
     async def _get_settings(self, device_id: str) -> dict[str, Any]:
@@ -129,28 +131,24 @@ class WaterVendingService:
             device_id=device_id,
             topic="client/setting/get",
             payload={"fields": []},
-            qos=1,
-            ttl=5,
         )
 
-    async def _get_display(self, device_id: str) -> dict[str, Any]:
+    async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
+        controller = await self._get_controller(data.controller_id)
+
         display = await self._send_message(
-            device_id=device_id,
+            device_id=controller.device_id,
             topic="client/display/get",
             payload={"fields": []},
-            qos=1,
-            ttl=5,
         )
-        display = {
+        return {
             k: v for k, v in display.items() if v and v != " " and k != "request_id"
         }
 
-        return display
-
     async def read_controller(self, data: ControllerID) -> WaterVendingControllerScheme:
-        await self.identity_provider.ensure_admin()
-
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_admin(controller.location_id)
 
         if not controller.config or not controller.settings:
             if not controller.config:
@@ -160,16 +158,14 @@ class WaterVendingService:
 
             await self.controller_repository.commit()
 
-        scheme = WaterVendingControllerScheme.model_validate(
+        return WaterVendingControllerScheme.model_validate(
             controller, from_attributes=True
         )
-        scheme.display = await self._get_display(controller.device_id)
-        return scheme
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
-        await self.identity_provider.ensure_admin()
-
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
 
         await self.npc_client.reboot(controller.device_id, {"delay": data.delay})
 
@@ -179,26 +175,28 @@ class WaterVendingService:
         await self._send_message(
             device_id=controller.device_id,
             topic="client/payment/set",
-            payload={"addQRcode": {"order_id": data.order_id, "amount": data.amount}},
-            qos=1,
-            ttl=5,
+            payload={
+                "addQRcode": {
+                    "order_id": data.payment.order_id,
+                    "amount": data.payment.amount,
+                }
+            },
         )
 
     async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
-        await self.identity_provider.ensure_admin()
-
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
 
         await self._send_message(
             device_id=controller.device_id,
             topic="client/payment/set",
-            payload={"addFree": {"amount": data.amount}},
-            qos=1,
-            ttl=5,
+            payload={"addFree": {"amount": data.payment.amount}},
         )
         payment = Payment(
             controller_id=controller.id,
-            amount=data.amount,
+            location_id=controller.location_id,
+            amount=data.payment.amount,
             status=PaymentStatus.COMPLETED,
             type=PaymentType.FREE,
         )
@@ -206,27 +204,23 @@ class WaterVendingService:
         await self.controller_repository.commit()
 
     async def clear_payments(self, data: ClearPaymentsRequest) -> None:
-        await self.identity_provider.ensure_admin()
-
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
 
         await self._send_message(
             device_id=controller.device_id,
             topic="client/payment/set",
             payload=data.options.model_dump(exclude_unset=True),
-            qos=1,
-            ttl=5,
         )
 
     async def send_action(self, data: SendActionRequest) -> None:
-        await self.identity_provider.ensure_admin()
-
         controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
 
         await self._send_message(
             device_id=controller.device_id,
             topic="client/action/set",
             payload=data.model_dump(exclude_unset=True),
-            qos=1,
-            ttl=5,
         )
