@@ -1,9 +1,15 @@
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from pydantic import BaseModel
 
-from dash.infrastructure.monopay import (
+from dash.infrastructure.acquring.liqpay import (
+    CreateLiqpayInvoiceRequest,
+    CreateLiqpayInvoiceResponse,
+    LiqpayService,
+    ProcessLiqpayWebhookRequest,
+)
+from dash.infrastructure.acquring.monopay import (
     CreateInvoiceRequest,
     CreateInvoiceResponse,
     MonopayService,
@@ -21,8 +27,7 @@ class MonopayInvoiceRequest(BaseModel):
 
 
 @acquiring_router.post("/monopay/invoice")
-async def request_invoice(
-    request: Request,
+async def monopay_invoice(
     monopay_service: FromDishka[MonopayService],
     data: MonopayInvoiceRequest,
 ) -> CreateInvoiceResponse:
@@ -48,4 +53,24 @@ async def monopay_webhook(
         ProcessWebhookRequest(body=body, signature=x_sign)
     )
 
+    return {"status": "success"}
+
+
+@acquiring_router.post("/liqpay/invoice")
+async def liqpay_invoice(
+    liqpay_service: FromDishka[LiqpayService],
+    data: CreateLiqpayInvoiceRequest,
+) -> CreateLiqpayInvoiceResponse:
+    return await liqpay_service.create_invoice(data)
+
+
+@acquiring_router.post("/liqpay/webhook")
+async def liqpay_webhook(
+    liqpay_service: FromDishka[LiqpayService],
+    data: str = Form(...),
+    signature: str = Form(...),
+) -> dict[str, str]:
+    await liqpay_service.process_webhook(
+        ProcessLiqpayWebhookRequest(body=data, signature=signature)
+    )
     return {"status": "success"}

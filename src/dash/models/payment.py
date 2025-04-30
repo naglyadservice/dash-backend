@@ -22,6 +22,7 @@ class PaymentType(StrEnum):
     COIN = "COIN"
     PAYPASS = "PAYPASS"
     MONOPAY = "MONOPAY"
+    LIQPAY = "LIQPAY"
     FREE = "FREE"
 
 

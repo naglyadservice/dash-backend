@@ -117,9 +117,9 @@ class MonopayService:
         if not controller:
             raise ControllerNotFoundError
 
-        if not controller.monopay_token:
+        if not controller.monopay_active or not controller.monopay_token:
             raise HTTPException(
-                status_code=400, detail="Controller is not connected with Monopay"
+                status_code=400, detail="Controller is not supported Monopay"
             )
 
         await self.water_vending_service.healtcheck(controller.device_id)
@@ -156,14 +156,14 @@ class MonopayService:
 
         return CreateInvoiceResponse(invoice_url=response["pageUrl"])
 
-    async def _finalize_invoice(self, invoice_id: str, amount: int) -> None:
+    async def _finalize(self, invoice_id: str, amount: int) -> None:
         await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/finalize",
             data={"invoiceId": invoice_id, "amount": amount},
         )
 
-    async def _cancel_invoice(self, invoice_id: str) -> None:
+    async def _refund(self, invoice_id: str) -> None:
         await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/cancel",
@@ -192,7 +192,7 @@ class MonopayService:
         )
 
         async with self.locker.lock(
-            f"mono_hook:{invoice_id}",
+            f"monopay_webhook:{invoice_id}",
             timeout=10,
             blocking=True,
             blocking_timeout=10,
@@ -249,11 +249,11 @@ class MonopayService:
                     )
                 )
             except Exception:
-                await self._cancel_invoice(invoice_id)
+                await self._refund(invoice_id)
                 payment.failure_reason = (
                     "Не вдалося відправити запит контролеру на оплату"
                 )
             else:
-                await self._finalize_invoice(invoice_id, payment.amount)
+                await self._finalize(invoice_id, payment.amount)
 
         await self.payment_repository.commit()

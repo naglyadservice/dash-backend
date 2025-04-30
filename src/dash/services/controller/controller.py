@@ -13,7 +13,8 @@ from dash.services.controller.dto import (
     AddControllerLocationRequest,
     AddControllerRequest,
     AddControllerResponse,
-    AddMonopayTokenRequest,
+    AddLiqpayCredentialsRequest,
+    AddMonopayCredentialsRequest,
     ControllerScheme,
     ReadControllerListRequest,
     ReadControllerResponse,
@@ -79,7 +80,7 @@ class ControllerService:
 
         return AddControllerResponse(id=controller.id)
 
-    async def add_monopay_token(self, data: AddMonopayTokenRequest) -> None:
+    async def add_monopay_credentials(self, data: AddMonopayCredentialsRequest) -> None:
         controller = await self.controller_repository.get(data.controller_id)
         if not controller:
             raise ControllerNotFoundError
@@ -87,6 +88,21 @@ class ControllerService:
         await self.identity_provider.ensure_location_owner(controller.location_id)
 
         controller.monopay_token = data.monopay.token
+        controller.monopay_active = data.monopay.is_active
+
+        await self.controller_repository.commit()
+
+    async def add_liqpay_credentials(self, data: AddLiqpayCredentialsRequest) -> None:
+        controller = await self.controller_repository.get(data.controller_id)
+        if not controller:
+            raise ControllerNotFoundError
+
+        await self.identity_provider.ensure_location_owner(controller.location_id)
+
+        controller.liqpay_private_key = data.liqpay.private_key
+        controller.liqpay_public_key = data.liqpay.public_key
+        controller.liqpay_active = data.liqpay.is_active
+
         await self.controller_repository.commit()
 
     async def add_location(self, data: AddControllerLocationRequest) -> None:

@@ -7,9 +7,11 @@ from dash.services.controller.dto import (
     AddControllerLocationRequest,
     AddControllerRequest,
     AddControllerResponse,
-    AddMonopayTokenRequest,
+    AddLiqpayCredentialsRequest,
+    AddMonopayCredentialsRequest,
+    LiqpayCredentialsDTO,
     LocationID,
-    MonopayTokenDTO,
+    MonopayCredentialsDTO,
     ReadControllerListRequest,
     ReadControllerResponse,
 )
@@ -49,11 +51,22 @@ async def add_controller_location(
 
 
 @controller_router.post("/{controller_id}/monopay", status_code=204)
-async def add_monopay_token(
+async def add_monopay_credentials(
     controller_service: FromDishka[ControllerService],
-    data: MonopayTokenDTO,
+    data: MonopayCredentialsDTO,
     controller_id: int,
 ) -> None:
-    await controller_service.add_monopay_token(
-        AddMonopayTokenRequest(controller_id=controller_id, monopay=data)
+    await controller_service.add_monopay_credentials(
+        AddMonopayCredentialsRequest(controller_id=controller_id, monopay=data)
+    )
+
+
+@controller_router.post("/{controller_id}/liqpay", status_code=204)
+async def add_liqpay_credentials(
+    controller_service: FromDishka[ControllerService],
+    data: LiqpayCredentialsDTO,
+    controller_id: int,
+) -> None:
+    await controller_service.add_liqpay_credentials(
+        AddLiqpayCredentialsRequest(controller_id=controller_id, liqpay=data)
     )

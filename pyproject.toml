@@ -29,6 +29,9 @@ dependencies = [
     "aiohttp>=3.11.14",
     "structlog>=25.2.0",
     "orjson>=3.10.15",
+    "liqpay-python",
+    "alembic-postgresql-enum>=1.7.0",
+    "python-multipart>=0.0.20",
 ]
 
 [tool.ruff]
@@ -70,3 +73,4 @@ exclude = [
 
 [tool.uv.sources]
 npc-iot = { git = "https://github.com/naglyadservice/npc-iot" }
+liqpay-python = { git = "https://github.com/liqpay/sdk-python.git" }

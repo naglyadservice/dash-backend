@@ -53,7 +53,11 @@ class AppConfig(BaseSettings):
 
 
 class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
-    token: str = Field(default=...)
+    webhook_url: str = Field(default=...)
+    redirect_url: str = Field(default=...)
+
+
+class LiqpayConfig(BaseSettings, env_prefix="LIQPAY_"):
     webhook_url: str = Field(default=...)
     redirect_url: str = Field(default=...)
 
@@ -73,4 +77,5 @@ class Config(BaseSettings):
     app: AppConfig = AppConfig()
     mqtt: MqttConfig = MqttConfig()
     monopay: MonopayConfig = MonopayConfig()
+    liqpay: LiqpayConfig = LiqpayConfig()
     logging: LoggingConfig = LoggingConfig()

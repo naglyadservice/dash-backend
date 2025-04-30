@@ -47,7 +47,7 @@ async def login(
         key="session",
         value=login_response.session_id,
         expires=datetime.now(UTC) + timedelta(days=90),
-        secure=True,
+        secure=False,
         httponly=True,
         samesite="none",
     )

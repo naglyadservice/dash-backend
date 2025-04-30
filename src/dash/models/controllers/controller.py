@@ -33,6 +33,10 @@ class Controller(Base):
         DateTime(timezone=True), default=func.now()
     )
     monopay_token: Mapped[str | None] = mapped_column()
+    monopay_active: Mapped[bool] = mapped_column(default=False)
+    liqpay_public_key: Mapped[str | None] = mapped_column()
+    liqpay_private_key: Mapped[str | None] = mapped_column()
+    liqpay_active: Mapped[bool] = mapped_column(default=False)
 
     state: Mapped[dict[str, Any] | None] = mapped_column()
     settings: Mapped[dict[str, Any] | None] = mapped_column()

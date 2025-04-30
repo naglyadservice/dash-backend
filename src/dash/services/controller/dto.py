@@ -41,12 +41,23 @@ class AddControllerResponse(BaseModel):
     id: int
 
 
-class MonopayTokenDTO(BaseModel):
-    token: str
+class MonopayCredentialsDTO(BaseModel):
+    token: str | None
+    is_active: bool
 
 
-class AddMonopayTokenRequest(ControllerID):
-    monopay: MonopayTokenDTO
+class AddMonopayCredentialsRequest(ControllerID):
+    monopay: MonopayCredentialsDTO
+
+
+class LiqpayCredentialsDTO(BaseModel):
+    public_key: str | None
+    private_key: str | None
+    is_active: bool
+
+
+class AddLiqpayCredentialsRequest(ControllerID):
+    liqpay: LiqpayCredentialsDTO
 
 
 class LocationID(BaseModel):

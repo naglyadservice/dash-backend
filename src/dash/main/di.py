@@ -4,6 +4,8 @@ from dishka import AnyOf, AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
 from npc_iot import NpcClient as NpcIotClient
 
+from dash.infrastructure.acquring.liqpay import LiqpayService
+from dash.infrastructure.acquring.monopay import MonopayService
 from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
@@ -12,7 +14,6 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.monopay import MonopayService
 from dash.infrastructure.mqtt.client import NpcClient, get_npc_client
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
@@ -26,6 +27,7 @@ from dash.main.config import (
     AppConfig,
     Config,
     DbConfig,
+    LiqpayConfig,
     MonopayConfig,
     MqttConfig,
     RedisConfig,
@@ -39,13 +41,14 @@ from dash.services.water_vending.water_vending import WaterVendingService
 
 
 def provide_configs(config: Config) -> Provider:
-    provider = Provider()
+    provider = Provider(scope=Scope.APP)
 
-    provider.provide(lambda: config.db, provides=DbConfig, scope=Scope.APP)
-    provider.provide(lambda: config.redis, provides=RedisConfig, scope=Scope.APP)
-    provider.provide(lambda: config.app, provides=AppConfig, scope=Scope.APP)
-    provider.provide(lambda: config.mqtt, provides=MqttConfig, scope=Scope.APP)
-    provider.provide(lambda: config.monopay, provides=MonopayConfig, scope=Scope.APP)
+    provider.provide(lambda: config.db, provides=DbConfig)
+    provider.provide(lambda: config.redis, provides=RedisConfig)
+    provider.provide(lambda: config.app, provides=AppConfig)
+    provider.provide(lambda: config.mqtt, provides=MqttConfig)
+    provider.provide(lambda: config.monopay, provides=MonopayConfig)
+    provider.provide(lambda: config.liqpay, provides=LiqpayConfig)
 
     return provider
 
@@ -64,30 +67,31 @@ def provide_db() -> Provider:
 
 
 def provide_services() -> Provider:
-    provider = Provider()
+    provider = Provider(scope=Scope.REQUEST)
 
-    provider.provide(WaterVendingService, scope=Scope.REQUEST)
-    provider.provide(TransactionService, scope=Scope.REQUEST)
-    provider.provide(PaymentService, scope=Scope.REQUEST)
-    provider.provide(ControllerService, scope=Scope.REQUEST)
-    provider.provide(LocationService, scope=Scope.REQUEST)
-    provider.provide(UserService, scope=Scope.REQUEST)
-
+    provider.provide_all(
+        WaterVendingService,
+        TransactionService,
+        PaymentService,
+        ControllerService,
+        LocationService,
+        UserService,
+    )
     return provider
 
 
 def provide_gateways() -> Provider:
-    provider = Provider()
+    provider = Provider(scope=Scope.REQUEST)
 
-    provider.provide(SessionStorage, scope=Scope.REQUEST)
-
-    provider.provide(UserRepository, scope=Scope.REQUEST)
-    provider.provide(ControllerRepository, scope=Scope.REQUEST)
-    provider.provide(TransactionRepository, scope=Scope.REQUEST)
-    provider.provide(PaymentRepository, scope=Scope.REQUEST)
-    provider.provide(AcquringStorage, scope=Scope.REQUEST)
-    provider.provide(LocationRepository, scope=Scope.REQUEST)
-
+    provider.provide_all(
+        UserRepository,
+        ControllerRepository,
+        TransactionRepository,
+        PaymentRepository,
+        AcquringStorage,
+        LocationRepository,
+        SessionStorage,
+    )
     return provider
 
 
@@ -104,6 +108,7 @@ def provide_infrastructure() -> Provider:
         get_npc_client, scope=Scope.APP, provides=AnyOf[NpcClient, NpcIotClient]
     )
     provider.provide(MonopayService, scope=Scope.REQUEST)
+    provider.provide(LiqpayService, scope=Scope.REQUEST)
 
     return provider
 
