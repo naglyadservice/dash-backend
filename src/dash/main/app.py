@@ -36,7 +36,7 @@ def get_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=config.app.allowed_origins,
         allow_credentials=False,
-        allow_methods=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allow_headers=["*"],
     )
     app.add_middleware(BaseHTTPMiddleware, dispatch=access_logger)
