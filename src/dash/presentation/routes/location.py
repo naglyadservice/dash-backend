@@ -2,6 +2,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter
 
+from dash.presentation.bearer import bearer_scheme
 from dash.services.location.dto import (
     CreateLocationRequest,
     CreateLocationResponse,
@@ -10,7 +11,10 @@ from dash.services.location.dto import (
 from dash.services.location.location import LocationService
 
 location_router = APIRouter(
-    prefix="/locations", tags=["LOCATIONS"], route_class=DishkaRoute
+    prefix="/locations",
+    tags=["LOCATIONS"],
+    route_class=DishkaRoute,
+    dependencies=[bearer_scheme],
 )
 
 

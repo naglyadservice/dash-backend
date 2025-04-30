@@ -10,8 +10,8 @@ class InvalidCredentialsError(AuthError):
     message: str = "Invalid credentials"
 
 
-class InvalidAuthSessionError(AuthError):
-    message: str = "Invalid session"
+class JWTTokenError(AuthError):
+    message: str
 
 
 class UserNotFoundError(AuthError):

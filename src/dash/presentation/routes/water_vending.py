@@ -2,6 +2,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
+from dash.presentation.bearer import bearer_scheme
 from dash.services.water_vending.dto import (
     ClearPaymentsRequest,
     ControllerID,
@@ -23,7 +24,10 @@ from dash.services.water_vending.dto import (
 from dash.services.water_vending.water_vending import WaterVendingService
 
 water_vending_router = APIRouter(
-    prefix="/water-vending", tags=["WATER-VENDING"], route_class=DishkaRoute
+    prefix="/water-vending",
+    tags=["WATER-VENDING"],
+    route_class=DishkaRoute,
+    dependencies=[bearer_scheme],
 )
 
 

@@ -32,6 +32,7 @@ dependencies = [
     "liqpay-python",
     "alembic-postgresql-enum>=1.7.0",
     "python-multipart>=0.0.20",
+    "python-jose>=3.4.0",
 ]
 
 [tool.ruff]

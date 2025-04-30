@@ -94,7 +94,7 @@ class UserService:
         await self.user_repository.commit()
 
     async def read_users(self) -> ReadUserListResponse:
-        user = await self.identity_provider.get_current_user()
+        user = await self.identity_provider.authorize()
 
         if user.role is UserRole.SUPERADMIN:
             users = await self.user_repository.get_list()

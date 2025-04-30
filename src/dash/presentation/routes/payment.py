@@ -2,6 +2,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
+from dash.presentation.bearer import bearer_scheme
 from dash.services.payment.dto import (
     GetPaymentStatsRequest,
     GetPaymentStatsResponse,
@@ -11,7 +12,10 @@ from dash.services.payment.dto import (
 from dash.services.payment.payment import PaymentService
 
 payment_router = APIRouter(
-    prefix="/payments", tags=["PAYMENTS"], route_class=DishkaRoute
+    prefix="/payments",
+    tags=["PAYMENTS"],
+    route_class=DishkaRoute,
+    dependencies=[bearer_scheme],
 )
 
 

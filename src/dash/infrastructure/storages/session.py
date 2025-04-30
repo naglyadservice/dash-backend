@@ -8,19 +8,12 @@ class SessionStorage:
         self.redis = redis
         self.session_key = "session:{}"
 
-    async def add(self, session_id: str, user_id: int) -> None:
+    async def add_blacklist(self, token: str) -> None:
         await self.redis.setex(
-            name=self.session_key.format(session_id),
+            name=self.session_key.format(token),
             time=timedelta(days=90),
-            value=user_id,
+            value=token,
         )
 
-    async def get(self, session_id: str | None) -> int | None:
-        if not session_id:
-            return None
-
-        user_id = await self.redis.get(self.session_key.format(session_id))
-        return int(user_id) if user_id else None
-
-    async def delete(self, session_id: str) -> None:
-        await self.redis.delete(self.session_key.format(session_id))
+    async def is_blacklisted(self, token: str) -> bool:
+        return await self.redis.get(self.session_key.format(token)) is not None

@@ -5,7 +5,6 @@ from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.user import UserRole
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.transaction.dto import (
     GetTransactionStatsRequest,
     GetTransactionStatsResponse,
@@ -31,7 +30,7 @@ class TransactionService:
     async def read_transactions(
         self, data: ReadTransactionListRequest
     ) -> ReadTransactionListResponse:
-        user = await self.identity_provider.get_current_user()
+        user = await self.identity_provider.authorize()
 
         if data.controller_id:
             controller = await self.controller_repository.get(data.controller_id)

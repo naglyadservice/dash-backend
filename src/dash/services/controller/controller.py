@@ -35,7 +35,7 @@ class ControllerService:
     async def read_controllers(
         self, data: ReadControllerListRequest
     ) -> ReadControllerResponse:
-        user = await self.identity_provider.get_current_user()
+        user = await self.identity_provider.authorize()
 
         if data.location_id:
             await self.identity_provider.ensure_location_admin(data.location_id)

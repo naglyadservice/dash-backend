@@ -30,7 +30,7 @@ class PaymentService:
     async def read_payments(
         self, data: ReadPaymentListRequest
     ) -> ReadPaymentListResponse:
-        user = await self.identity_provider.get_current_user()
+        user = await self.identity_provider.authorize()
 
         if data.controller_id:
             controller = await self.controller_repository.get(data.controller_id)

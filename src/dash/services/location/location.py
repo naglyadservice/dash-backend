@@ -56,7 +56,7 @@ class LocationService:
         return CreateLocationResponse(location_id=location.id, user=new_user)
 
     async def read_locations(self) -> ReadLocationListResponse:
-        user = await self.identity_provider.get_current_user()
+        user = await self.identity_provider.authorize()
 
         if user.role is UserRole.SUPERADMIN:
             locations = await self.location_repository.get_list()

@@ -62,6 +62,15 @@ class LiqpayConfig(BaseSettings, env_prefix="LIQPAY_"):
     redirect_url: str = Field(default=...)
 
 
+class JWTConfig(BaseSettings, env_prefix="JWT_"):
+    access_secret: str = Field(default=...)
+    access_algorithm: str = Field(default=...)
+    access_expire_minutes: int = Field(default=...)
+    refresh_secret: str = Field(default=...)
+    refresh_algorithm: str = Field(default=...)
+    refresh_expire_days: int = Field(default=...)
+
+
 LoggingLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
@@ -79,3 +88,4 @@ class Config(BaseSettings):
     monopay: MonopayConfig = MonopayConfig()
     liqpay: LiqpayConfig = LiqpayConfig()
     logging: LoggingConfig = LoggingConfig()
+    jwt: JWTConfig = JWTConfig()

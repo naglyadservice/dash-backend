@@ -1,5 +1,3 @@
-from typing import Any
-
 from dishka import AnyOf, AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
 from npc_iot import NpcClient as NpcIotClient
@@ -9,6 +7,7 @@ from dash.infrastructure.acquring.monopay import MonopayService
 from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
+from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.db.setup import (
     get_async_engine,
     get_async_session,
@@ -27,6 +26,7 @@ from dash.main.config import (
     AppConfig,
     Config,
     DbConfig,
+    JWTConfig,
     LiqpayConfig,
     MonopayConfig,
     MqttConfig,
@@ -49,7 +49,7 @@ def provide_configs(config: Config) -> Provider:
     provider.provide(lambda: config.mqtt, provides=MqttConfig)
     provider.provide(lambda: config.monopay, provides=MonopayConfig)
     provider.provide(lambda: config.liqpay, provides=LiqpayConfig)
-
+    provider.provide(lambda: config.jwt, provides=JWTConfig)
     return provider
 
 
@@ -101,6 +101,7 @@ def provide_infrastructure() -> Provider:
     provider.from_context(Request, scope=Scope.REQUEST)
 
     provider.provide(PasswordProcessor, scope=Scope.REQUEST)
+    provider.provide(JWTTokenProcessor, scope=Scope.REQUEST)
     provider.provide(AuthService, scope=Scope.REQUEST)
     provider.provide(IdProvider, scope=Scope.REQUEST)
 
