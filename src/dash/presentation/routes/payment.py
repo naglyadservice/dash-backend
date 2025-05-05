@@ -30,6 +30,6 @@ async def read_payments(
 @payment_router.get("/statistics")
 async def get_stats(
     payment_service: FromDishka[PaymentService],
-    data: GetPaymentStatsRequest,
+    data: GetPaymentStatsRequest = Depends(),
 ) -> GetPaymentStatsResponse:
     return await payment_service.get_stats(data)

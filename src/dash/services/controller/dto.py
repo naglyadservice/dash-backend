@@ -1,14 +1,13 @@
 from pydantic import BaseModel, ConfigDict
 
 from dash.models.controllers.controller import ControllerStatus, ControllerType
-from dash.services.common.pagination import Pagination
 
 
 class ControllerID(BaseModel):
     controller_id: int
 
 
-class ReadControllerListRequest(Pagination):
+class ReadControllerListRequest(BaseModel):
     type: ControllerType | None = None
     location_id: int | None = None
 

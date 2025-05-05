@@ -1,6 +1,6 @@
 from typing import Any, Sequence
 
-from sqlalchemy import ColumnElement, exists, func, or_, select
+from sqlalchemy import ColumnElement, exists, select
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.controllers.controller import Controller
@@ -38,7 +38,7 @@ class ControllerRepository(BaseRepository):
         data: ReadControllerListRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Controller], int]:
-        stmt = select(Controller).offset(data.offset).limit(data.limit)
+        stmt = select(Controller)
 
         if data.type is not None:
             stmt = stmt.where(Controller.type == data.type)
