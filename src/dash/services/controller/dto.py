@@ -15,7 +15,7 @@ class ReadControllerListRequest(BaseModel):
 class ControllerScheme(BaseModel):
     id: int
     device_id: str
-    location_id: int
+    location_id: int | None
     name: str
     type: ControllerType
     status: ControllerStatus
