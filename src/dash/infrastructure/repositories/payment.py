@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Any, Sequence
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
@@ -71,6 +72,7 @@ class PaymentRepository(BaseRepository):
 
     async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:
         date_expression = cast(Payment.created_at, Date).label("date")
+        now = datetime.now()
 
         stmt = (
             select(
@@ -103,8 +105,8 @@ class PaymentRepository(BaseRepository):
                 ).label("free"),
             )
             .where(
-                Payment.created_at >= data.from_date,
-                Payment.created_at <= data.to_date,
+                Payment.created_at >= now - timedelta(days=data.period),
+                Payment.created_at <= now,
                 Payment.status == "COMPLETED",
             )
             .group_by(date_expression)

@@ -57,8 +57,7 @@ class ReadTransactionListResponse(BaseModel):
 class GetTransactionStatsRequest(BaseModel):
     location_id: int | None = None
     controller_id: int | None = None
-    from_date: date
-    to_date: date
+    period: int
 
 
 class TransactionStatDTO(BaseModel):

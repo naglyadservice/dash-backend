@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Sequence
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
@@ -81,6 +81,7 @@ class TransactionRepository(BaseRepository):
     ) -> GetTransactionStatsResponse:
         date_expression = cast(Transaction.created_at, Date).label("date")
         water_vending_t = aliased(WaterVendingTransaction)
+        now = datetime.now()
 
         stmt = (
             select(
@@ -100,8 +101,8 @@ class TransactionRepository(BaseRepository):
             )
             .outerjoin(water_vending_t)
             .where(
-                Transaction.created_at >= data.from_date,
-                Transaction.created_at <= data.to_date,
+                Transaction.created_at >= now - timedelta(days=data.period),
+                Transaction.created_at <= now,
             )
             .group_by(date_expression)
             .order_by(date_expression)

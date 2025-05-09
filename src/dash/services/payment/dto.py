@@ -41,8 +41,7 @@ class ReadPaymentListResponse(BaseModel):
 class GetPaymentStatsRequest(BaseModel):
     location_id: int | None = None
     controller_id: int | None = None
-    from_date: date
-    to_date: date
+    period: int
 
 
 class PaymentStatDTO(BaseModel):
