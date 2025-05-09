@@ -4,7 +4,7 @@ from npc_iot.exception import DeviceResponceError
 from sqlalchemy.orm.attributes import flag_modified
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.client import NpcClient
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.payment import Payment, PaymentStatus, PaymentType
@@ -30,7 +30,7 @@ from dash.services.water_vending.dto import (
 class WaterVendingService:
     def __init__(
         self,
-        npc_client: NpcClient,
+        npc_client: WsmClient,
         controller_repository: ControllerRepository,
         identity_provider: IdProvider,
     ):

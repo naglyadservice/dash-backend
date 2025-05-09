@@ -7,13 +7,12 @@ from npc_iot.dispatcher import MessageHandler
 from npc_iot.response import ResponseWaiter
 
 from dash.main.config import MqttConfig
+from dash.presentation.callbacks_wsm.denomination import denomination_callback
+from dash.presentation.callbacks_wsm.sale import sale_callback
+from dash.presentation.callbacks_wsm.state_info import state_info_callback
 
-from .callbacks.denomination import denomination_callback
-from .callbacks.sale import sale_callback
-from .callbacks.state_info import state_info_callback
 
-
-class Dispatcher(_Dispatcher):
+class WsmDispatcher(_Dispatcher):
     def __init__(self, callback_kwargs: dict[str, Any] | None = None) -> None:
         super().__init__(callback_kwargs=callback_kwargs)
 
@@ -26,7 +25,7 @@ class Dispatcher(_Dispatcher):
         self.sale = MessageHandler(topic="/+/server/sale/set")
 
 
-class NpcClient(_NpcClient[Dispatcher]):
+class WsmClient(_NpcClient[WsmDispatcher]):
     async def set_config(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
     ) -> ResponseWaiter[dict[str, Any]]:
@@ -119,14 +118,14 @@ class NpcClient(_NpcClient[Dispatcher]):
 
 async def get_npc_client(
     config: MqttConfig, di_container: AsyncContainer
-) -> AsyncIterator[NpcClient]:
-    async with NpcClient(
+) -> AsyncIterator[WsmClient]:
+    async with WsmClient(
         host=config.host,
         port=config.port,
         username=config.username,
         password=config.password,
         topic_prefix="wsm",
-        dispatcher=Dispatcher(callback_kwargs={"di_container": di_container}),
+        dispatcher=WsmDispatcher(callback_kwargs={"di_container": di_container}),
     ) as client:
         client.dispatcher.state_info.register_callback(state_info_callback)
         client.dispatcher.sale.register_callback(sale_callback)  # type: ignore

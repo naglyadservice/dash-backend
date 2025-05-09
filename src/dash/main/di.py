@@ -13,7 +13,7 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.iot.client import NpcClient, get_npc_client
+from dash.infrastructure.iot.wsm.client import WsmClient, get_npc_client
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
@@ -106,7 +106,7 @@ def provide_infrastructure() -> Provider:
     provider.provide(IdProvider, scope=Scope.REQUEST)
 
     provider.provide(
-        get_npc_client, scope=Scope.APP, provides=AnyOf[NpcClient, NpcIotClient]
+        get_npc_client, scope=Scope.APP, provides=AnyOf[WsmClient, NpcIotClient]
     )
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)
