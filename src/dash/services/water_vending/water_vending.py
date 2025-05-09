@@ -62,7 +62,7 @@ class WaterVendingService:
             ttl=ttl,
         )
         try:
-            response = await waiter.wait(timeout=5)
+            response = await waiter.wait(timeout=2)
         except DeviceResponceError:
             raise ControllerResponseError
         except TimeoutError:
@@ -119,19 +119,25 @@ class WaterVendingService:
 
         await self.controller_repository.commit()
 
-    async def _get_config(self, device_id: str) -> dict[str, Any]:
-        return await self._send_message(
-            device_id=device_id,
-            topic="client/config/get",
-            payload={"fields": []},
-        )
+    async def _get_config(self, device_id: str) -> dict[str, Any] | None:
+        try:
+            return await self._send_message(
+                device_id=device_id,
+                topic="client/config/get",
+                payload={"fields": []},
+            )
+        except (DeviceResponceError, TimeoutError):
+            return None
 
-    async def _get_settings(self, device_id: str) -> dict[str, Any]:
-        return await self._send_message(
-            device_id=device_id,
-            topic="client/setting/get",
-            payload={"fields": []},
-        )
+    async def _get_settings(self, device_id: str) -> dict[str, Any] | None:
+        try:
+            return await self._send_message(
+                device_id=device_id,
+                topic="client/setting/get",
+                payload={"fields": []},
+            )
+        except (DeviceResponceError, TimeoutError):
+            return None
 
     async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
         controller = await self._get_controller(data.controller_id)

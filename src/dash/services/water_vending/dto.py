@@ -99,8 +99,8 @@ class WaterVendingControllerScheme(BaseModel):
     device_id: str
     name: str
     type: Literal[ControllerType.WATER_VENDING]
-    config: WaterVendingConfig
-    settings: WaterVendingSettings
+    config: WaterVendingConfig | None
+    settings: WaterVendingSettings | None
     state: WaterVendingState | None
 
 
