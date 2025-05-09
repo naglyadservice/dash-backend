@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.controller import ControllerType
+
 COIN_VALIDATOR_TYPE = Literal["protocol", "impulse"]
 
 
@@ -95,6 +97,8 @@ class WaterVendingState(BaseModel):
 class WaterVendingControllerScheme(BaseModel):
     id: int
     device_id: str
+    name: str
+    type: Literal[ControllerType.WATER_VENDING]
     config: WaterVendingConfig
     settings: WaterVendingSettings
     state: WaterVendingState | None
