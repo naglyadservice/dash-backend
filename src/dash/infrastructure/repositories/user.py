@@ -1,13 +1,14 @@
 from typing import Sequence
 
-from sqlalchemy import delete, exists, or_, select
+from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.company import Company
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
-from dash.models.user import User, UserRole
+from dash.models.user import User
 
 
 class UserRepository(BaseRepository):
@@ -39,16 +40,22 @@ class UserRepository(BaseRepository):
         if owner_id is not None:
             stmt = stmt.where(
                 LocationAdmin.location_id.in_(
-                    select(Location.id).where(Location.owner_id == owner_id)
+                    select(Location.id)
+                    .join(Company)
+                    .where(Company.owner_id == owner_id)
                 )
             )
 
         result = await self.session.scalars(stmt)
         return result.unique().all()
 
-    async def is_location_owner(self, user_id: int, location_id: int) -> bool:
+    async def is_company_owner(self, user_id: int, location_id: int) -> bool:
         stmt = select(
-            exists().where(Location.id == location_id, Location.owner_id == user_id)
+            exists().where(
+                Location.id == location_id,
+                Location.company_id == Company.id,
+                Company.owner_id == user_id,
+            )
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()

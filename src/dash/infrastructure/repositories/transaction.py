@@ -5,6 +5,7 @@ from sqlalchemy import ColumnElement, Date, cast, func, select
 from sqlalchemy.orm import aliased, selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.company import Company
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.transaction import Transaction
@@ -53,7 +54,7 @@ class TransactionRepository(BaseRepository):
         self, data: ReadTransactionListRequest, user_id: int
     ) -> tuple[Sequence[Transaction], int]:
         whereclause = Transaction.location_id.in_(
-            select(Location.id).where(Location.owner_id == user_id)
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
         )
         return await self._get_list(data, whereclause)
 

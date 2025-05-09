@@ -33,7 +33,16 @@ dependencies = [
     "alembic-postgresql-enum>=1.7.0",
     "python-multipart>=0.0.20",
     "python-jose>=3.4.0",
+    "httpx>=0.28.1",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest-asyncio>=0.25.3", "pytest>=8.3.4", "pytest-mock>=3.14.0"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+
 
 [tool.ruff]
 line-length = 88

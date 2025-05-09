@@ -1,0 +1,129 @@
+from typing import AsyncIterable
+from unittest.mock import Mock
+
+import pytest
+from dishka import AsyncContainer
+from dishka.integrations.fastapi import setup_dishka
+from fastapi import FastAPI, Request
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
+
+from dash.infrastructure.auth.token_processor import JWTTokenProcessor
+from dash.main.app import get_app
+from dash.main.di import setup_di
+from dash.models.base import Base
+from dash.models.user import User, UserRole
+from tests.environment import TestEnvironment
+
+
+@pytest.fixture(scope="function")
+async def create_tables(di_container: AsyncContainer):
+    engine = await di_container.get(AsyncEngine)
+
+    async with engine.connect() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
+        await conn.commit()
+
+    yield
+
+    async with engine.connect() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.commit()
+
+
+@pytest.fixture(scope="session")
+async def di_container() -> AsyncIterable[AsyncContainer]:
+    from dash.main.config import Config
+
+    container = setup_di(Config())
+    yield container
+    await container.close()
+
+
+@pytest.fixture(scope="function")
+async def request_di_container(
+    di_container: AsyncContainer,
+) -> AsyncIterable[AsyncContainer]:
+    mock_request = Mock(spec=Request)
+    mock_request.headers = {"Authorization": "Bearer test_token"}
+    async with di_container(context={Request: mock_request}) as request_container:
+        yield request_container
+
+
+@pytest.fixture(scope="session")
+async def app(di_container: AsyncContainer) -> FastAPI:
+    app = get_app()
+    setup_dishka(di_container, app)
+    return app
+
+
+@pytest.fixture(scope="session")
+async def client(app: FastAPI) -> AsyncIterable[AsyncClient]:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        yield ac
+
+
+@pytest.fixture
+async def test_env(request_di_container: AsyncContainer):
+    test_env = TestEnvironment()
+    await test_env.create_test_env(request_di_container)
+    yield test_env
+
+
+async def auth_user_factory(
+    role: UserRole, request_di_container: AsyncContainer, mocker: Mock
+):
+    db_session = await request_di_container.get(AsyncSession)
+    token_processor = await request_di_container.get(JWTTokenProcessor)
+
+    user = User(
+        name="Test Auth User",
+        email="test_auth_user@test.com",
+        password_hash="test",
+        role=role,
+    )
+    db_session.add(user)
+    await db_session.commit()
+
+    mocker.patch.object(token_processor, "validate_access_token", return_value=user.id)
+
+    return user
+
+
+@pytest.fixture
+async def superadmin(request_di_container: AsyncContainer, mocker: Mock):
+    return await auth_user_factory(UserRole.SUPERADMIN, request_di_container, mocker)
+
+
+@pytest.fixture
+async def company_owner(request_di_container: AsyncContainer, mocker: Mock):
+    return await auth_user_factory(UserRole.COMPANY_OWNER, request_di_container, mocker)
+
+
+@pytest.fixture
+async def location_admin(request_di_container: AsyncContainer, mocker: Mock):
+    return await auth_user_factory(
+        UserRole.LOCATION_ADMIN, request_di_container, mocker
+    )
+
+
+### Alternative way to mock auth ###
+
+# async def mock_auth(user_id: int, request_di_container: AsyncContainer, mocker: Mock):
+#     token_processor = await request_di_container.get(JWTTokenProcessor)
+#     mocker.patch.object(token_processor, "validate_access_token", return_value=user_id)
+
+# @pytest.fixture()
+# async def superadmin(request_di_container: AsyncContainer, test_env: TestEnvironment, mocker: Mock):
+#     await mock_auth(test_env.superadmin.id, request_di_container, mocker)
+
+# @pytest.fixture()
+# async def company_owner(request_di_container: AsyncContainer, test_env: TestEnvironment, mocker: Mock):
+#     await mock_auth(test_env.company_owner.id, request_di_container, mocker)
+
+# @pytest.fixture()
+# async def location_admin(request_di_container: AsyncContainer, test_env: TestEnvironment, mocker: Mock):
+#     await mock_auth(test_env.location_admin.id, request_di_container, mocker)

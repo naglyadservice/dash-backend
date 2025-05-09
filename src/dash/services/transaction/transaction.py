@@ -45,7 +45,7 @@ class TransactionService:
 
         if user.role is UserRole.SUPERADMIN:
             transactions, total = await self.transaction_repository.get_list_all(data)
-        elif user.role is UserRole.LOCATION_OWNER:
+        elif user.role is UserRole.COMPANY_OWNER:
             transactions, total = await self.transaction_repository.get_list_by_owner(
                 data, user.id
             )

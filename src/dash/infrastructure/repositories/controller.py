@@ -3,6 +3,7 @@ from typing import Any, Sequence
 from sqlalchemy import ColumnElement, exists, select
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
@@ -61,7 +62,7 @@ class ControllerRepository(BaseRepository):
         self, data: ReadControllerListRequest, user_id: int
     ) -> tuple[Sequence[Controller], int]:
         whereclause = Controller.location_id.in_(
-            select(Location.id).where(Location.owner_id == user_id)
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
         )
         return await self._get_list(data, whereclause)
 

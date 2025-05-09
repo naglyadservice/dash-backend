@@ -14,6 +14,7 @@ from dash.infrastructure.db.setup import (
     get_async_sessionmaker,
 )
 from dash.infrastructure.iot.wsm.client import WsmClient, get_npc_client
+from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
@@ -32,6 +33,7 @@ from dash.main.config import (
     MqttConfig,
     RedisConfig,
 )
+from dash.services.company.company import CompanyService
 from dash.services.controller.controller import ControllerService
 from dash.services.location.location import LocationService
 from dash.services.payment.payment import PaymentService
@@ -40,16 +42,18 @@ from dash.services.user.user import UserService
 from dash.services.water_vending.water_vending import WaterVendingService
 
 
-def provide_configs(config: Config) -> Provider:
+def provide_configs() -> Provider:
     provider = Provider(scope=Scope.APP)
 
-    provider.provide(lambda: config.db, provides=DbConfig)
-    provider.provide(lambda: config.redis, provides=RedisConfig)
-    provider.provide(lambda: config.app, provides=AppConfig)
-    provider.provide(lambda: config.mqtt, provides=MqttConfig)
-    provider.provide(lambda: config.monopay, provides=MonopayConfig)
-    provider.provide(lambda: config.liqpay, provides=LiqpayConfig)
-    provider.provide(lambda: config.jwt, provides=JWTConfig)
+    provider.from_context(Config, scope=Scope.APP)
+    provider.from_context(DbConfig, scope=Scope.APP)
+    provider.from_context(RedisConfig, scope=Scope.APP)
+    provider.from_context(AppConfig, scope=Scope.APP)
+    provider.from_context(MqttConfig, scope=Scope.APP)
+    provider.from_context(MonopayConfig, scope=Scope.APP)
+    provider.from_context(LiqpayConfig, scope=Scope.APP)
+    provider.from_context(JWTConfig, scope=Scope.APP)
+
     return provider
 
 
@@ -76,6 +80,7 @@ def provide_services() -> Provider:
         ControllerService,
         LocationService,
         UserService,
+        CompanyService,
     )
     return provider
 
@@ -91,6 +96,7 @@ def provide_gateways() -> Provider:
         AcquringStorage,
         LocationRepository,
         SessionStorage,
+        CompanyRepository,
     )
     return provider
 
@@ -114,11 +120,27 @@ def provide_infrastructure() -> Provider:
     return provider
 
 
-def setup_di(config: Config) -> AsyncContainer:
-    return make_async_container(
-        provide_configs(config),
+def get_providers() -> tuple[Provider, ...]:
+    return (
+        provide_configs(),
         provide_db(),
         provide_gateways(),
         provide_infrastructure(),
         provide_services(),
+    )
+
+
+def setup_di(config: Config) -> AsyncContainer:
+    return make_async_container(
+        *get_providers(),
+        context={
+            Config: config,
+            DbConfig: config.db,
+            RedisConfig: config.redis,
+            AppConfig: config.app,
+            MqttConfig: config.mqtt,
+            MonopayConfig: config.monopay,
+            LiqpayConfig: config.liqpay,
+            JWTConfig: config.jwt,
+        },
     )

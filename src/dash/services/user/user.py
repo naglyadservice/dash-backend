@@ -53,15 +53,13 @@ class UserService:
             password=password,
         )
 
-    async def create_location_owner(
-        self, data: CreateUserRequest
-    ) -> CreateUserResponse:
-        return await self._create_user(data, role=UserRole.LOCATION_OWNER)
+    async def create_company_owner(self, data: CreateUserRequest) -> CreateUserResponse:
+        return await self._create_user(data, role=UserRole.COMPANY_OWNER)
 
     async def add_location_admin(
         self, data: AddLocationAdminRequest
     ) -> AddLocationAdminResponse:
-        await self.identity_provider.ensure_location_owner(data.location_id)
+        await self.identity_provider.ensure_company_owner(data.location_id)
 
         new_user = None
         user_id = data.user_id
@@ -83,7 +81,7 @@ class UserService:
         return AddLocationAdminResponse(user=new_user)
 
     async def remove_location_admin(self, data: RemoveLocationAdminRequest) -> None:
-        await self.identity_provider.ensure_location_owner(data.location_id)
+        await self.identity_provider.ensure_company_owner(data.location_id)
 
         if not await self.user_repository.is_location_admin(
             data.user_id, data.location_id
@@ -98,7 +96,7 @@ class UserService:
 
         if user.role is UserRole.SUPERADMIN:
             users = await self.user_repository.get_list()
-        elif user.role is UserRole.LOCATION_OWNER:
+        elif user.role is UserRole.COMPANY_OWNER:
             users = await self.user_repository.get_list(user.id)
         else:
             raise AccessForbiddenError

@@ -54,7 +54,7 @@ class IdProvider:
         if self._user.role is not UserRole.SUPERADMIN:
             raise AccessForbiddenError
 
-    async def ensure_location_owner(self, location_id: int | None) -> None:
+    async def ensure_company_owner(self, location_id: int | None) -> None:
         await self.authorize()
         if self._user.role is UserRole.SUPERADMIN:
             return
@@ -62,8 +62,8 @@ class IdProvider:
         if not location_id:
             raise AccessForbiddenError
 
-        if self._user.role is UserRole.LOCATION_OWNER:
-            if not await self.user_repository.is_location_owner(
+        if self._user.role is UserRole.COMPANY_OWNER:
+            if not await self.user_repository.is_company_owner(
                 self._user.id, location_id
             ):
                 raise AccessForbiddenError
@@ -82,8 +82,8 @@ class IdProvider:
         if not location_id:
             raise AccessForbiddenError
 
-        if self._user.role is UserRole.LOCATION_OWNER:
-            if not await self.user_repository.is_location_owner(
+        if self._user.role is UserRole.COMPANY_OWNER:
+            if not await self.user_repository.is_company_owner(
                 self._user.id, location_id
             ):
                 raise AccessForbiddenError
