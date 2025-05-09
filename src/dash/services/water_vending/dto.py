@@ -70,8 +70,8 @@ class OperatingMode(StrEnum):
 class StateErrors(BaseModel):
     lowLevelSensor: bool
     ServerBlock: bool
-    pour: bool
-    reserv: bool
+    pour_1: bool
+    pour_2: bool
     coinValidator: bool
     billValidator: bool
     PayPass: bool
