@@ -126,7 +126,7 @@ class WaterVendingService:
                 topic="client/config/get",
                 payload={"fields": []},
             )
-        except (DeviceResponceError, TimeoutError):
+        except (ControllerResponseError, ControllerTimeoutError):
             return None
 
     async def _get_settings(self, device_id: str) -> dict[str, Any] | None:
@@ -136,7 +136,7 @@ class WaterVendingService:
                 topic="client/setting/get",
                 payload={"fields": []},
             )
-        except (DeviceResponceError, TimeoutError):
+        except (ControllerResponseError, ControllerTimeoutError):
             return None
 
     async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
