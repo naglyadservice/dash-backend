@@ -31,17 +31,19 @@ async def access_logger(request: Request, call_next) -> Response:
         client_port = request.client.port  # type: ignore
         http_method = request.method
         http_version = request.scope["http_version"]
-        # Recreate the Uvicorn access log format, but add all parameters as structured information
-        logger.info(
-            f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
-            http={
-                "url": str(request.url),
-                "status_code": status_code,
-                "method": http_method,
-            },
-            network={"client": {"ip": client_host, "port": client_port}},
-            duration=f"{process_time:.2f}ms",
-        )
+        # Recreate the Uvicorn access log format, but add all parameters as structured information, ignore health check
+        if url != "/api/health":
+            logger.info(
+                f"""{client_host}:{client_port} - "{http_method} {url} HTTP/{http_version}" {status_code}""",
+                http={
+                    "url": str(request.url),
+                    "status_code": status_code,
+                    "method": http_method,
+                },
+                network={"client": {"ip": client_host, "port": client_port}},
+                duration=f"{process_time:.2f}ms",
+            )
+
         response.headers["X-Process-Time"] = (
             f"{process_time / 10**3:.2f}"  # convert to seconds
         )
