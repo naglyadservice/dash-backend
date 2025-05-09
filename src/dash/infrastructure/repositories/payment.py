@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Any, Sequence
 
-from sqlalchemy import ColumnElement, Date, cast, func, select
+from sqlalchemy import ColumnElement, Date, cast, func, select, case
 
 from dash.infrastructure.repositories.base import BaseRepository
-from dash.models.base import Base
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
@@ -79,27 +78,27 @@ class PaymentRepository(BaseRepository):
                 date_expression,
                 func.sum(Payment.amount).label("total"),
                 func.sum(
-                    func.case(
+                    case(
                         (Payment.type == PaymentType.BILL, Payment.amount), else_=0
                     )
                 ).label("bill"),
                 func.sum(
-                    func.case(
+                    case(
                         (Payment.type == PaymentType.COIN, Payment.amount), else_=0
                     )
                 ).label("coin"),
                 func.sum(
-                    func.case(
+                    case(
                         (Payment.type == PaymentType.PAYPASS, Payment.amount), else_=0
                     )
                 ).label("paypass"),
                 func.sum(
-                    func.case(
+                    case(
                         (Payment.type == PaymentType.MONOPAY, Payment.amount), else_=0
                     )
                 ).label("qr"),
                 func.sum(
-                    func.case(
+                    case(
                         (Payment.type == PaymentType.FREE, Payment.amount), else_=0
                     )
                 ).label("free"),
