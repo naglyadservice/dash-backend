@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from dash.infrastructure.mqtt.client import NpcClient
+from dash.infrastructure.iot.client import NpcClient
 from dash.main.config import Config
 from dash.main.di import setup_di
 from dash.main.logging.access import access_logger

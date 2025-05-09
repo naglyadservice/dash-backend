@@ -13,7 +13,7 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.mqtt.client import NpcClient, get_npc_client
+from dash.infrastructure.iot.client import NpcClient, get_npc_client
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
