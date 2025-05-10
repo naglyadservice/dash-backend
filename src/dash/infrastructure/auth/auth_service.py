@@ -12,7 +12,7 @@ from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
-from dash.models.user import User, UserRole
+from dash.models.admin_user import AdminRole, AdminUser
 from dash.services.common.errors.user import EmailAlreadyTakenError
 
 
@@ -33,11 +33,11 @@ class AuthService:
         if await self.user_repository.exists(data.email):
             raise EmailAlreadyTakenError
 
-        user = User(
+        user = AdminUser(
             email=data.email,
             name=data.name,
             password_hash=self.password_processor.hash(data.password),
-            role=UserRole.USER,
+            role=AdminRole.USER,
         )
         self.user_repository.add(user)
         await self.user_repository.commit()

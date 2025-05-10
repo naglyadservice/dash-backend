@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel, EmailStr, model_validator
 
-from dash.models.user import UserRole
+from dash.models.admin_user import AdminRole
 from dash.services.common.errors.base import ValidationError
 
 
@@ -27,7 +27,7 @@ class UserDTO(BaseModel):
     id: int
     name: str
     email: EmailStr
-    role: UserRole
+    role: AdminRole
     locations: list[LocationDTO] | None
 
 

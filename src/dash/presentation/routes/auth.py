@@ -17,7 +17,7 @@ from dash.infrastructure.auth.dto import (
     RefreshTokenResponse,
 )
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.models.user import UserRole
+from dash.models.admin_user import AdminRole
 from dash.presentation.bearer import bearer_scheme
 
 auth_router = APIRouter(prefix="/auth", tags=["AUTH"], route_class=DishkaRoute)
@@ -50,7 +50,7 @@ class UserScheme:
     id: int
     email: str
     name: str
-    role: UserRole
+    role: AdminRole
 
 
 @auth_router.get(

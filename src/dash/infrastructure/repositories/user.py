@@ -5,37 +5,37 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.admin_user import AdminUser
 from dash.models.company import Company
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
-from dash.models.user import User
 
 
 class UserRepository(BaseRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get(self, user_id: int) -> User | None:
-        return await self.session.get(User, user_id)
+    async def get(self, user_id: int) -> AdminUser | None:
+        return await self.session.get(AdminUser, user_id)
 
     async def exists(self, email: str) -> bool:
-        stmt = select(exists().where(User.email == email))
+        stmt = select(exists().where(AdminUser.email == email))
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
     async def exists_by_id(self, user_id: int) -> bool:
-        stmt = select(exists().where(User.id == user_id))
+        stmt = select(exists().where(AdminUser.id == user_id))
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
-    async def get_by_email(self, email: str) -> User | None:
-        stmt = select(User).where(User.email == email)
+    async def get_by_email(self, email: str) -> AdminUser | None:
+        stmt = select(AdminUser).where(AdminUser.email == email)
         return await self.session.scalar(stmt)
 
-    async def get_list(self, owner_id: int | None = None) -> Sequence[User]:
-        stmt = select(User).options(
-            selectinload(User.owned_locations),
-            selectinload(User.administrated_locations),
+    async def get_list(self, owner_id: int | None = None) -> Sequence[AdminUser]:
+        stmt = select(AdminUser).options(
+            selectinload(AdminUser.owned_locations),
+            selectinload(AdminUser.administrated_locations),
         )
         if owner_id is not None:
             stmt = stmt.where(

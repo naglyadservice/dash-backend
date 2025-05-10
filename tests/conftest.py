@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.main.app import get_app
 from dash.main.di import setup_di
+from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.base import Base
-from dash.models.user import User, UserRole
 from tests.environment import TestEnvironment
 
 
@@ -74,12 +74,12 @@ async def test_env(request_di_container: AsyncContainer):
 
 
 async def auth_user_factory(
-    role: UserRole, request_di_container: AsyncContainer, mocker: Mock
+    role: AdminRole, request_di_container: AsyncContainer, mocker: Mock
 ):
     db_session = await request_di_container.get(AsyncSession)
     token_processor = await request_di_container.get(JWTTokenProcessor)
 
-    user = User(
+    user = AdminUser(
         name="Test Auth User",
         email="test_auth_user@test.com",
         password_hash="test",
@@ -95,18 +95,20 @@ async def auth_user_factory(
 
 @pytest.fixture
 async def superadmin(request_di_container: AsyncContainer, mocker: Mock):
-    return await auth_user_factory(UserRole.SUPERADMIN, request_di_container, mocker)
+    return await auth_user_factory(AdminRole.SUPERADMIN, request_di_container, mocker)
 
 
 @pytest.fixture
 async def company_owner(request_di_container: AsyncContainer, mocker: Mock):
-    return await auth_user_factory(UserRole.COMPANY_OWNER, request_di_container, mocker)
+    return await auth_user_factory(
+        AdminRole.COMPANY_OWNER, request_di_container, mocker
+    )
 
 
 @pytest.fixture
 async def location_admin(request_di_container: AsyncContainer, mocker: Mock):
     return await auth_user_factory(
-        UserRole.LOCATION_ADMIN, request_di_container, mocker
+        AdminRole.LOCATION_ADMIN, request_di_container, mocker
     )
 
 

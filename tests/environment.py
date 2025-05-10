@@ -1,9 +1,9 @@
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
 from dash.models.location import Location
-from dash.models.user import User, UserRole
 
 
 class TestEnvironment:
@@ -12,18 +12,18 @@ class TestEnvironment:
     async def create_test_env(self, request_di_container: AsyncContainer):
         db_session = await request_di_container.get(AsyncSession)
 
-        self.superadmin = User(
+        self.superadmin = AdminUser(
             name="Test Superadmin",
             email="test_superadmin@test.com",
             password_hash="test",
-            role=UserRole.SUPERADMIN,
+            role=AdminRole.SUPERADMIN,
         )
 
-        self.company_owner = User(
+        self.company_owner = AdminUser(
             name="Test Company Owner",
             email="test_company_owner@test.com",
             password_hash="test",
-            role=UserRole.COMPANY_OWNER,
+            role=AdminRole.COMPANY_OWNER,
         )
         db_session.add(self.company_owner)
         await db_session.flush()
@@ -41,11 +41,11 @@ class TestEnvironment:
             company_id=self.company.id,
         )
 
-        self.location_admin = User(
+        self.location_admin = AdminUser(
             name="Test Location Admin",
             email="test_location_admin@test.com",
             password_hash="test",
-            role=UserRole.LOCATION_ADMIN,
+            role=AdminRole.LOCATION_ADMIN,
         )
 
         db_session.add_all(

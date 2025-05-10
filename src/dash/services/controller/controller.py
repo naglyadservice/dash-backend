@@ -1,11 +1,11 @@
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
+from dash.models.admin_user import AdminRole
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
-from dash.models.user import UserRole
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.location import LocationNotFoundError
@@ -40,13 +40,13 @@ class ControllerService:
         if data.location_id:
             await self.identity_provider.ensure_location_admin(data.location_id)
 
-        if user.role is UserRole.SUPERADMIN:
+        if user.role is AdminRole.SUPERADMIN:
             controllers, total = await self.controller_repository.get_list_all(data)
-        elif user.role is UserRole.COMPANY_OWNER:
+        elif user.role is AdminRole.COMPANY_OWNER:
             controllers, total = await self.controller_repository.get_list_by_owner(
                 data, user.id
             )
-        elif user.role is UserRole.LOCATION_ADMIN:
+        elif user.role is AdminRole.LOCATION_ADMIN:
             controllers, total = await self.controller_repository.get_list_by_admin(
                 data, user.id
             )

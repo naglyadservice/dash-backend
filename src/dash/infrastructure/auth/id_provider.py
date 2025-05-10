@@ -4,7 +4,7 @@ from dash.infrastructure.auth.errors import JWTTokenError, UserNotFoundError
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
-from dash.models.user import User, UserRole
+from dash.models.admin_user import AdminRole, AdminUser
 from dash.services.common.errors.base import AccessDeniedError, AccessForbiddenError
 
 
@@ -21,7 +21,7 @@ class IdProvider:
         self.user_repository = user_repository
         self.token_processor = token_processor
 
-        self._user: User
+        self._user: AdminUser
 
     def _fetch_token(self, request: Request) -> str:
         authorization = request.headers.get("Authorization")
@@ -34,7 +34,7 @@ class IdProvider:
 
         return token
 
-    async def authorize(self) -> User:
+    async def authorize(self) -> AdminUser:
         if hasattr(self, "_user"):
             return self._user
 
@@ -51,45 +51,45 @@ class IdProvider:
 
     async def ensure_superadmin(self) -> None:
         await self.authorize()
-        if self._user.role is not UserRole.SUPERADMIN:
+        if self._user.role is not AdminRole.SUPERADMIN:
             raise AccessForbiddenError
 
     async def ensure_company_owner(self, location_id: int | None) -> None:
         await self.authorize()
-        if self._user.role is UserRole.SUPERADMIN:
+        if self._user.role is AdminRole.SUPERADMIN:
             return
 
         if not location_id:
             raise AccessForbiddenError
 
-        if self._user.role is UserRole.COMPANY_OWNER:
+        if self._user.role is AdminRole.COMPANY_OWNER:
             if not await self.user_repository.is_company_owner(
                 self._user.id, location_id
             ):
                 raise AccessForbiddenError
             return
 
-        if self._user.role is UserRole.LOCATION_ADMIN:
+        if self._user.role is AdminRole.LOCATION_ADMIN:
             raise AccessDeniedError
 
         raise AccessForbiddenError
 
     async def ensure_location_admin(self, location_id: int | None) -> None:
         await self.authorize()
-        if self._user.role is UserRole.SUPERADMIN:
+        if self._user.role is AdminRole.SUPERADMIN:
             return
 
         if not location_id:
             raise AccessForbiddenError
 
-        if self._user.role is UserRole.COMPANY_OWNER:
+        if self._user.role is AdminRole.COMPANY_OWNER:
             if not await self.user_repository.is_company_owner(
                 self._user.id, location_id
             ):
                 raise AccessForbiddenError
             return
 
-        if self._user.role is UserRole.LOCATION_ADMIN:
+        if self._user.role is AdminRole.LOCATION_ADMIN:
             if not await self.user_repository.is_location_admin(
                 self._user.id, location_id
             ):

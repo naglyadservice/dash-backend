@@ -2,8 +2,8 @@ from dash.infrastructure.auth.errors import UserNotFoundError
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.user import UserRepository
+from dash.models.admin_user import AdminRole
 from dash.models.company import Company
-from dash.models.user import UserRole
 from dash.services.common.errors.base import AccessDeniedError
 from dash.services.company.dto import (
     CompanyScheme,
@@ -53,9 +53,9 @@ class CompanyService:
     async def read_companies(self) -> ReadCompanyListResponse:
         user = await self.identity_provider.authorize()
 
-        if user.role is UserRole.SUPERADMIN:
+        if user.role is AdminRole.SUPERADMIN:
             companies = await self.company_repository.get_list_all()
-        elif user.role is UserRole.COMPANY_OWNER:
+        elif user.role is AdminRole.COMPANY_OWNER:
             companies = await self.company_repository.get_list_by_owner(user.id)
         else:
             raise AccessDeniedError

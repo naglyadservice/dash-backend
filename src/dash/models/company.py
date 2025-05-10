@@ -7,7 +7,7 @@ from dash.models.base import Base
 from dash.models.location import Location
 
 if TYPE_CHECKING:
-    from dash.models.user import User
+    from dash.models.admin_user import AdminUser
 
 
 class Company(Base):
@@ -18,4 +18,4 @@ class Company(Base):
     name: Mapped[str] = mapped_column()
 
     locations: Mapped[list["Location"]] = relationship(back_populates="company")
-    owner: Mapped["User"] = relationship(back_populates="companies", lazy="joined")
+    owner: Mapped["AdminUser"] = relationship(back_populates="companies", lazy="joined")

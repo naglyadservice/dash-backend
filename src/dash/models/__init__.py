@@ -1,3 +1,4 @@
+from .admin_user import AdminUser
 from .base import Base
 from .company import Company
 from .controllers import CarwashController, Controller, WaterVendingController
@@ -10,4 +11,3 @@ from .transactions import (
     VacuumTransaction,
     WaterVendingTransaction,
 )
-from .user import User

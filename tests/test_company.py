@@ -4,7 +4,7 @@ import pytest
 from dishka import AsyncContainer
 
 from dash.infrastructure.repositories.company import CompanyRepository
-from dash.models.user import User
+from dash.models.admin_user import AdminUser
 from dash.services.company.company import CompanyService
 from dash.services.company.dto import CreateCompanyRequest
 from dash.services.user.dto import CreateUserRequest
@@ -29,7 +29,7 @@ async def deps(request_di_container: AsyncContainer):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_create_company_with_new_owner(
-    deps: CompanyDependencies, superadmin: User
+    deps: CompanyDependencies, superadmin: AdminUser
 ):
     response = await deps.company_service.create_company(
         CreateCompanyRequest(
@@ -43,7 +43,7 @@ async def test_create_company_with_new_owner(
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_create_company_with_existing_owner(
-    deps: CompanyDependencies, test_env: TestEnvironment, superadmin: User
+    deps: CompanyDependencies, test_env: TestEnvironment, superadmin: AdminUser
 ):
     response = await deps.company_service.create_company(
         CreateCompanyRequest(name="test", owner_id=test_env.company_owner.id)
