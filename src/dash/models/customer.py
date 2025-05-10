@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, ForeignKey, Numeric, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, UniqueConstraint
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,7 +11,7 @@ class Customer(Base, TimestampMixin, AsyncAttrs):
     __tablename__ = "customers"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))
+    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"), index=True)
     email: Mapped[str | None] = mapped_column(index=True)
     name: Mapped[str | None] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()
@@ -34,4 +34,5 @@ class Customer(Base, TimestampMixin, AsyncAttrs):
         CheckConstraint(
             "email IS NOT NULL OR card_id IS NOT NULL", name="cc_customer_identity"
         ),
+        Index("ix_customer_company_id", company_id, id),
     )

@@ -1,6 +1,14 @@
 version = 1
-revision = 1
 requires-python = ">=3.12"
+
+[[package]]
+name = "adaptix"
+version = "3.0.0b11"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/58/ea/f55d4de521cb237b1dd9c4a21c6ae3885d21b4f90130d15fd88020d6d1ca/adaptix-3.0.0b11.tar.gz", hash = "sha256:3d3d660d97d9e1a85d133b181fdac8a200ff3185422fdf686601bc9ed0017162", size = 134021 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/76/70/b087e09db584c2718cfff4a354c98dfac1844e7e7d0c75dc38685823eec1/adaptix-3.0.0b11-py3-none-any.whl", hash = "sha256:5afa7197d1a084fc93da852bf58194de4a1c506caa3f5889c9953a27ce515bda", size = 179291 },
+]
 
 [[package]]
 name = "aiohappyeyeballs"
@@ -255,6 +263,7 @@ name = "dash"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "adaptix" },
     { name = "aiohttp" },
     { name = "alembic" },
     { name = "alembic-postgresql-enum" },
@@ -287,6 +296,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "adaptix", specifier = ">=3.0.0b11" },
     { name = "aiohttp", specifier = ">=3.11.14" },
     { name = "alembic", specifier = ">=1.14.1" },
     { name = "alembic-postgresql-enum", specifier = ">=1.7.0" },
@@ -312,7 +322,6 @@ requires-dist = [
     { name = "structlog", specifier = ">=25.2.0" },
     { name = "uvicorn", specifier = ">=0.34.0" },
 ]
-provides-extras = ["dev"]
 
 [[package]]
 name = "dishka"
