@@ -1,7 +1,7 @@
 from typing import Any, Sequence
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, exists, select
+from sqlalchemy import ColumnElement, select
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.company import Company
@@ -13,23 +13,23 @@ from dash.services.controller.dto import ReadControllerListRequest
 
 
 class ControllerRepository(BaseRepository):
-    async def exists(self, controller_id: UUID) -> bool:
-        stmt = select(exists().where(Controller.id == controller_id))
+    async def get(self, company_id: UUID, controller_id: UUID) -> Controller | None:
+        stmt = select(Controller).where(
+            Controller.id == controller_id,
+            Controller.company_id == company_id,
+        )
         result = await self.session.execute(stmt)
-        return result.scalar_one()
+        return result.scalar_one_or_none()
 
-    async def get(self, controller_id: UUID) -> Controller | None:
-        return await self.session.get(Controller, controller_id)
-
-    async def get_vending_by_device_id(
+    async def get_wsm_by_device_id(
         self, device_id: str
     ) -> WaterVendingController | None:
         stmt = select(WaterVendingController).where(
-            WaterVendingController.device_id == device_id
+            WaterVendingController.device_id == device_id,
         )
         return await self.session.scalar(stmt)
 
-    async def get_vending(self, controller_id: UUID) -> WaterVendingController | None:
+    async def get_wsm(self, controller_id: UUID) -> WaterVendingController | None:
         stmt = select(WaterVendingController).where(
             WaterVendingController.id == controller_id
         )

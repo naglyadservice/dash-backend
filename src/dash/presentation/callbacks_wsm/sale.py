@@ -22,7 +22,7 @@ async def sale_callback(
         transaction_repository = await container.get(TransactionRepository)
         npc_client = await container.get(NpcClient)
 
-        controller = await controller_repository.get_vending_by_device_id(device_id)
+        controller = await controller_repository.get_wsm_by_device_id(device_id)
 
         if controller is None:
             return

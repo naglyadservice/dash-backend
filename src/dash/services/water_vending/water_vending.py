@@ -40,7 +40,7 @@ class WaterVendingService:
         self.identity_provider = identity_provider
 
     async def _get_controller(self, controller_id: UUID) -> WaterVendingController:
-        controller = await self.controller_repository.get_vending(controller_id)
+        controller = await self.controller_repository.get_wsm(controller_id)
 
         if not controller:
             raise ControllerNotFoundError

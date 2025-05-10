@@ -115,6 +115,17 @@ class WsmClient(_NpcClient[WsmDispatcher]):
             ttl=ttl,
         )
 
+    async def respond_payment_cart(
+        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+    ) -> ResponseWaiter[dict[str, Any]]:
+        return await self._send_message(
+            device_id=device_id,
+            topic="client/payment/card",
+            qos=1,
+            payload=payload,
+            ttl=ttl,
+        )
+
 
 async def get_npc_client(
     config: MqttConfig, di_container: AsyncContainer

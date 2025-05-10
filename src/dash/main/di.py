@@ -16,6 +16,7 @@ from dash.infrastructure.db.setup import (
 from dash.infrastructure.iot.wsm.client import WsmClient, get_npc_client
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
@@ -91,6 +92,7 @@ def provide_gateways() -> Provider:
     provider.provide_all(
         UserRepository,
         ControllerRepository,
+        CustomerRepository,
         TransactionRepository,
         PaymentRepository,
         AcquringStorage,

@@ -11,7 +11,7 @@ async def state_info_callback(
     async with di_container() as container:
         controller_repository = await container.get(ControllerRepository)
 
-        controller = await controller_repository.get_vending_by_device_id(device_id)
+        controller = await controller_repository.get_wsm_by_device_id(device_id)
 
         if controller is None:
             return
