@@ -6,7 +6,7 @@ from adaptix import Retort
 from dishka import AsyncContainer
 
 from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.infrastructure.repositories.payment import PaymentRepository
+from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 
 retort = Retort()
@@ -24,13 +24,15 @@ async def payment_card_get_callback(
 ) -> None:
     payload = retort.load(data, PaymentCardGetRequest)
     async with di_container() as container:
-        payment_repository = await container.get(PaymentRepository)
+        customer_repository = await container.get(CustomerRepository)
         controller_repository = await container.get(ControllerRepository)
 
         controller = await controller_repository.get_vending_by_device_id(device_id)
 
         if controller is None:
             return
+
+        customer_repository.get_by_cart(company_id=controller.id)
 
         if data.get("bill"):
             amount = data["bill"]

@@ -15,7 +15,9 @@ class Customer(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str | None] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()
     card_id: Mapped[str | None] = mapped_column()
-    balance: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=Decimal("0.00"))
+    balance: Mapped[Decimal] = mapped_column(
+        Numeric(10, 2, asdecimal=True), default=Decimal("0.00")
+    )
 
     __table_args__ = (
         UniqueConstraint(
