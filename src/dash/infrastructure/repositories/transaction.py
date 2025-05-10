@@ -70,7 +70,7 @@ class TransactionRepository(BaseRepository):
         return await self._get_list(data, whereclause)
 
     async def exists(
-        self, transaction_id: int, created: datetime
+        self, transaction_id: UUID, created: datetime
     ) -> Transaction | None:
         stmt = select(Transaction).where(
             Transaction.controller_transaction_id == transaction_id,

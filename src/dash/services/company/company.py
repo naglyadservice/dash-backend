@@ -4,7 +4,7 @@ from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.models.admin_user import AdminRole
 from dash.models.company import Company
-from dash.services.common.errors.base import AccessDeniedError
+from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.company.dto import (
     CompanyScheme,
     CreateCompanyRequest,
@@ -58,7 +58,7 @@ class CompanyService:
         elif user.role is AdminRole.COMPANY_OWNER:
             companies = await self.company_repository.get_list_by_owner(user.id)
         else:
-            raise AccessDeniedError
+            raise AccessForbiddenError
 
         return ReadCompanyListResponse(
             companies=[

@@ -5,6 +5,7 @@ from dishka import AsyncContainer
 
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.models.admin_user import AdminUser
+from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.company.company import CompanyService
 from dash.services.company.dto import CreateCompanyRequest
 from dash.services.user.dto import CreateUserRequest
@@ -27,35 +28,81 @@ async def deps(request_di_container: AsyncContainer):
     )
 
 
+@pytest.mark.parametrize(
+    "user, error",
+    [
+        ("superadmin", None),
+        ("company_owner", AccessForbiddenError()),
+        ("location_admin", AccessForbiddenError()),
+    ],
+    indirect=["user"],
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_create_company_with_new_owner(
-    deps: CompanyDependencies, superadmin: AdminUser
+    deps: CompanyDependencies, user: AdminUser, error: Exception
 ):
-    response = await deps.company_service.create_company(
-        CreateCompanyRequest(
-            name="test",
-            new_owner=CreateUserRequest(email="test@test.com", name="Test User"),
+    try:
+        response = await deps.company_service.create_company(
+            CreateCompanyRequest(
+                name="test",
+                new_owner=CreateUserRequest(email="test@test.com", name="Test User"),
+            )
         )
-    )
-    company = await deps.company_repository.get(response.company_id)
-    assert company is not None and company.name == "test" and company.owner is not None
+    except Exception as e:
+        assert error == e
+    else:
+        company = await deps.company_repository.get(response.company_id)
+        assert (
+            company is not None and company.name == "test" and company.owner is not None
+        )
 
 
+@pytest.mark.parametrize(
+    "user, error",
+    [
+        ("superadmin", None),
+        ("company_owner", AccessForbiddenError()),
+        ("location_admin", AccessForbiddenError()),
+    ],
+    indirect=["user"],
+)
 @pytest.mark.asyncio(loop_scope="session")
 async def test_create_company_with_existing_owner(
-    deps: CompanyDependencies, test_env: TestEnvironment, superadmin: AdminUser
+    deps: CompanyDependencies,
+    user: AdminUser,
+    error: Exception,
+    test_env: TestEnvironment,
 ):
-    response = await deps.company_service.create_company(
-        CreateCompanyRequest(name="test", owner_id=test_env.company_owner.id)
-    )
-    company = await deps.company_repository.get(response.company_id)
-    assert company is not None and company.name == "test" and company.owner is not None
+    try:
+        response = await deps.company_service.create_company(
+            CreateCompanyRequest(name="test", owner_id=test_env.company_owner.id)
+        )
+    except Exception as e:
+        assert error == e
+    else:
+        company = await deps.company_repository.get(response.company_id)
+        assert (
+            company is not None and company.name == "test" and company.owner is not None
+        )
 
 
-### We can use test_env users as auth users and test methods that require auth, but i found it's harder to test cuz we need to write more code.
-### May be better to test permissions in separate test module? May be you'll find some better way to handle it? ###
-
-# @pytest.mark.asyncio(loop_scope="session")
-# async def test_read_companies(deps: CompanyDependencies, company_owner: User):
-#     response = await deps.company_service.read_companies()
-#     assert len(response.companies) == 1
+@pytest.mark.parametrize(
+    "user, result, error",
+    [
+        ("superadmin", 2, None),
+        ("company_owner", 1, None),
+        ("company_owner_1", 1, None),
+        ("location_admin", None, AccessForbiddenError()),
+    ],
+    indirect=["user"],
+)
+@pytest.mark.asyncio(loop_scope="session")
+async def test_read_companies(
+    deps: CompanyDependencies, user: AdminUser, result: int, error: Exception
+):
+    try:
+        response = await deps.company_service.read_companies()
+    except Exception as e:
+        assert error == e
+    else:
+        assert len(response.companies) == result

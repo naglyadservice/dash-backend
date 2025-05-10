@@ -94,38 +94,26 @@ async def auth_user_factory(
 
 
 @pytest.fixture
-async def superadmin(request_di_container: AsyncContainer, mocker: Mock):
-    return await auth_user_factory(AdminRole.SUPERADMIN, request_di_container, mocker)
+async def user(
+    request,
+    request_di_container: AsyncContainer,
+    test_env: TestEnvironment,
+    mocker: Mock,
+) -> AdminUser:
+    token_processor = await request_di_container.get(JWTTokenProcessor)
 
+    if request.param == "superadmin":
+        user = test_env.superadmin
+    elif request.param == "company_owner":
+        user = test_env.company_owner
+    elif request.param == "company_owner_1":
+        user = test_env.company_owner_1
+    elif request.param == "location_admin":
+        user = test_env.location_admin
+    elif request.param == "location_admin_1":
+        user = test_env.location_admin_1
+    else:
+        raise ValueError(f"Invalid role: {request.param}")
 
-@pytest.fixture
-async def company_owner(request_di_container: AsyncContainer, mocker: Mock):
-    return await auth_user_factory(
-        AdminRole.COMPANY_OWNER, request_di_container, mocker
-    )
-
-
-@pytest.fixture
-async def location_admin(request_di_container: AsyncContainer, mocker: Mock):
-    return await auth_user_factory(
-        AdminRole.LOCATION_ADMIN, request_di_container, mocker
-    )
-
-
-### Alternative way to mock auth ###
-
-# async def mock_auth(user_id: int, request_di_container: AsyncContainer, mocker: Mock):
-#     token_processor = await request_di_container.get(JWTTokenProcessor)
-#     mocker.patch.object(token_processor, "validate_access_token", return_value=user_id)
-
-# @pytest.fixture()
-# async def superadmin(request_di_container: AsyncContainer, test_env: TestEnvironment, mocker: Mock):
-#     await mock_auth(test_env.superadmin.id, request_di_container, mocker)
-
-# @pytest.fixture()
-# async def company_owner(request_di_container: AsyncContainer, test_env: TestEnvironment, mocker: Mock):
-#     await mock_auth(test_env.company_owner.id, request_di_container, mocker)
-
-# @pytest.fixture()
-# async def location_admin(request_di_container: AsyncContainer, test_env: TestEnvironment, mocker: Mock):
-#     await mock_auth(test_env.location_admin.id, request_di_container, mocker)
+    mocker.patch.object(token_processor, "validate_access_token", return_value=user.id)
+    return user
