@@ -1,9 +1,16 @@
 from enum import StrEnum
-from typing import Any
+from typing import (
+    TYPE_CHECKING,
+    Any,
+)
 from uuid import UUID
 
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey, select
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+if TYPE_CHECKING:
+    from dash.models.location import Location
 
 from dash.models.base import Base, TimestampMixin, UUIDMixin
 
@@ -39,4 +46,26 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     settings: Mapped[dict[str, Any] | None] = mapped_column()
     config: Mapped[dict[str, Any] | None] = mapped_column()
 
+    location: Mapped["Location | None"] = relationship()
+
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "controller"}
+
+    @hybrid_property
+    def company_id(self) -> int | None:
+        if self.location:
+            return self.location.company_id
+        return None
+
+    @company_id.expression
+    def company_id(self):
+        # This expression allows you to use Controller.company_id in queries
+        # It creates a subquery to get the company_id from the related location.
+        # This requires that Location model is imported.
+        # Ensure Location is imported for this expression to work (not just in TYPE_CHECKING)
+        from dash.models.location import Location
+
+        return (
+            select(Location.company_id)
+            .where(Location.id == self.location_id)
+            .label("company_id")
+        )
