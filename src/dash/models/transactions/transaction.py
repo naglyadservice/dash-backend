@@ -21,7 +21,7 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     controller_id: Mapped[UUID] = mapped_column(
         ForeignKey("controllers.id", ondelete="SET NULL")
     )
-    location_id: Mapped[int | None] = mapped_column(
+    location_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL")
     )
     coin_amount: Mapped[int] = mapped_column()

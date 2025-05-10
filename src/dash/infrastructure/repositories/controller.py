@@ -13,7 +13,7 @@ from dash.services.controller.dto import ReadControllerListRequest
 
 
 class ControllerRepository(BaseRepository):
-    async def exists(self, controller_id: int) -> bool:
+    async def exists(self, controller_id: UUID) -> bool:
         stmt = select(exists().where(Controller.id == controller_id))
         result = await self.session.execute(stmt)
         return result.scalar_one()
@@ -60,7 +60,7 @@ class ControllerRepository(BaseRepository):
         return await self._get_list(data)
 
     async def get_list_by_owner(
-        self, data: ReadControllerListRequest, user_id: int
+        self, data: ReadControllerListRequest, user_id: UUID
     ) -> tuple[Sequence[Controller], int]:
         whereclause = Controller.location_id.in_(
             select(Location.id).join(Company).where(Company.owner_id == user_id)
@@ -68,7 +68,7 @@ class ControllerRepository(BaseRepository):
         return await self._get_list(data, whereclause)
 
     async def get_list_by_admin(
-        self, data: ReadControllerListRequest, user_id: int
+        self, data: ReadControllerListRequest, user_id: UUID
     ) -> tuple[Sequence[Controller], int]:
         whereclause = Controller.location_id.in_(
             select(Location.id)

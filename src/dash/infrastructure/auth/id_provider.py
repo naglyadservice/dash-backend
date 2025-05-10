@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import Request
 
 from dash.infrastructure.auth.errors import JWTTokenError, UserNotFoundError
@@ -54,7 +56,7 @@ class IdProvider:
         if self._user.role is not AdminRole.SUPERADMIN:
             raise AccessForbiddenError
 
-    async def ensure_company_owner(self, location_id: int | None) -> None:
+    async def ensure_company_owner(self, location_id: UUID | None) -> None:
         await self.authorize()
         if self._user.role is AdminRole.SUPERADMIN:
             return
@@ -74,7 +76,7 @@ class IdProvider:
 
         raise AccessForbiddenError
 
-    async def ensure_location_admin(self, location_id: int | None) -> None:
+    async def ensure_location_admin(self, location_id: UUID | None) -> None:
         await self.authorize()
         if self._user.role is AdminRole.SUPERADMIN:
             return

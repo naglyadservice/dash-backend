@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Any, Sequence
+from uuid import UUID
 
 from sqlalchemy import ColumnElement, Date, case, cast, func, select
 
@@ -53,7 +54,7 @@ class PaymentRepository(BaseRepository):
         return await self._get_list(data)
 
     async def get_list_by_owner(
-        self, data: ReadPaymentListRequest, user_id: int
+        self, data: ReadPaymentListRequest, user_id: UUID
     ) -> tuple[Sequence[Payment], int]:
         whereclause = Payment.location_id.in_(
             select(Location.id).join(Company).where(Company.owner_id == user_id)
@@ -61,7 +62,7 @@ class PaymentRepository(BaseRepository):
         return await self._get_list(data, whereclause)
 
     async def get_list_by_admin(
-        self, data: ReadPaymentListRequest, user_id: int
+        self, data: ReadPaymentListRequest, user_id: UUID
     ) -> tuple[Sequence[Payment], int]:
         whereclause = Payment.location_id.in_(
             select(Location.id)

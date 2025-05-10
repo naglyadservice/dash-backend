@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from jose import ExpiredSignatureError, JWTError, jwt
 
@@ -28,7 +29,7 @@ class JWTTokenProcessor:
         token: str,
         secret: str,
         algorithm: str,
-    ) -> int:
+    ) -> UUID:
         try:
             payload = jwt.decode(token=token, key=secret, algorithms=[algorithm])
         except ExpiredSignatureError:
@@ -36,11 +37,11 @@ class JWTTokenProcessor:
         except JWTError:
             raise JWTTokenError("Invalid token")
         try:
-            return int(payload["sub"])
+            return UUID(payload["sub"])
         except (ValueError, KeyError):
             raise JWTTokenError("Invalid token")
 
-    def create_access_token(self, user_id: int) -> str:
+    def create_access_token(self, user_id: UUID) -> str:
         return self._create_token(
             sub=str(user_id),
             expire_delta=timedelta(minutes=self.config.access_expire_minutes),
@@ -48,7 +49,7 @@ class JWTTokenProcessor:
             secret=self.config.access_secret,
         )
 
-    def create_refresh_token(self, user_id: int) -> str:
+    def create_refresh_token(self, user_id: UUID) -> str:
         return self._create_token(
             sub=str(user_id),
             expire_delta=timedelta(days=self.config.refresh_expire_days),
@@ -56,14 +57,14 @@ class JWTTokenProcessor:
             secret=self.config.refresh_secret,
         )
 
-    def validate_access_token(self, token: str) -> int:
+    def validate_access_token(self, token: str) -> UUID:
         return self._decode_token(
             token=token,
             secret=self.config.access_secret,
             algorithm=self.config.access_algorithm,
         )
 
-    def validate_refresh_token(self, token: str) -> int:
+    def validate_refresh_token(self, token: str) -> UUID:
         return self._decode_token(
             token=token,
             secret=self.config.refresh_secret,

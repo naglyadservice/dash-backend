@@ -13,11 +13,9 @@ class CustomerRepository(BaseRepository):
         self.session = session
 
     async def get(self, company_id: UUID, customer_id: UUID) -> Customer | None:
-        stmt = (
-            select(Customer).where(
-                Customer.id == customer_id,
-                Customer.company_id == company_id,
-            )
+        stmt = select(Customer).where(
+            Customer.id == customer_id,
+            Customer.company_id == company_id,
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()
@@ -46,7 +44,7 @@ class CustomerRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
-    async def exists_by_id(self, company_id: UUID, user_id: int) -> bool:
+    async def exists_by_id(self, company_id: UUID, user_id: UUID) -> bool:
         stmt = select(
             exists().where(
                 Customer.id == user_id,

@@ -1,4 +1,5 @@
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, model_validator
 
@@ -8,7 +9,7 @@ from dash.services.user.dto import CreateUserRequest, CreateUserResponse
 
 class CreateCompanyRequest(BaseModel):
     name: str
-    owner_id: int | None = None
+    owner_id: UUID | None = None
     new_owner: CreateUserRequest | None = None
 
     @model_validator(mode="before")
@@ -23,18 +24,18 @@ class CreateCompanyRequest(BaseModel):
 
 
 class CreateCompanyResponse(BaseModel):
-    company_id: int
+    company_id: UUID
     created_owner: CreateUserResponse | None
 
 
 class CompanyOwnerDTO(BaseModel):
-    id: int
+    id: UUID
     name: str
     email: str
 
 
 class CompanyScheme(BaseModel):
-    id: int
+    id: UUID
     name: str
     owner: CompanyOwnerDTO
 

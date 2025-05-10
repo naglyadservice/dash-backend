@@ -10,8 +10,8 @@ from dash.services.common.pagination import Pagination
 
 
 class PaymentScheme(BaseModel):
-    id: int
-    controller_id: int
+    id: UUID
+    controller_id: UUID
     amount: int
     status: PaymentStatus
     type: PaymentType
@@ -23,7 +23,7 @@ class PaymentScheme(BaseModel):
 
 class ReadPaymentListRequest(Pagination):
     controller_id: UUID | None = None
-    location_id: int | None = None
+    location_id: UUID | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -41,7 +41,7 @@ class ReadPaymentListResponse(BaseModel):
 
 
 class GetPaymentStatsRequest(BaseModel):
-    location_id: int | None = None
+    location_id: UUID | None = None
     controller_id: UUID | None = None
     period: int
 

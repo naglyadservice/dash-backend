@@ -1,5 +1,6 @@
 from enum import StrEnum
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
@@ -22,7 +23,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "controllers"
 
     device_id: Mapped[str] = mapped_column(unique=True)
-    location_id: Mapped[int | None] = mapped_column(ForeignKey("locations.id"))
+    location_id: Mapped[UUID | None] = mapped_column(ForeignKey("locations.id"))
     type: Mapped[ControllerType] = mapped_column()
     name: Mapped[str | None] = mapped_column()
     version: Mapped[str] = mapped_column()

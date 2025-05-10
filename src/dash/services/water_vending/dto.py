@@ -96,7 +96,7 @@ class WaterVendingState(BaseModel):
 
 
 class WaterVendingControllerScheme(BaseModel):
-    id: int
+    id: UUID
     device_id: str
     name: str
     type: Literal[ControllerType.WATER_VENDING]

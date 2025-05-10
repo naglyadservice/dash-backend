@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
@@ -45,7 +46,7 @@ async def login(
 
 @dataclass
 class UserScheme:
-    id: int
+    id: UUID
     email: str
     name: str
     role: AdminRole
