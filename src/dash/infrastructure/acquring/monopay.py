@@ -3,6 +3,7 @@ import hashlib
 import json
 from datetime import datetime
 from typing import Literal
+from uuid import UUID
 
 import aiohttp
 import ecdsa
@@ -27,7 +28,7 @@ class ProcessWebhookRequest(BaseModel):
 
 
 class CreateInvoiceRequest(BaseModel):
-    controller_id: int
+    controller_id: UUID
     amount: int
 
     @field_validator("amount")
@@ -145,7 +146,6 @@ class MonopayService:
             status=PaymentStatus.CREATED,
             amount=data.amount,
             type=PaymentType.MONOPAY,
-            created_at=datetime.now(),
         )
         self.payment_repository.add(payment)
         await self.payment_repository.commit()

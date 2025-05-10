@@ -44,7 +44,7 @@ async def sale_callback(
             qr_amount=data["add_QR"],
             paypass_amount=data["add_PP"],
             type=TransactionType.WATER_VENDING.value,
-            created_at=datetime.fromisoformat(data["created"]),
+            created_at_controller=datetime.fromisoformat(data["created"]),
             out_liters_1=data["OutLiters_1"],
             out_liters_2=data["OutLiters_2"],
             sale_type=data["saleType"],

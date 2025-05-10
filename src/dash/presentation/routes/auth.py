@@ -8,8 +8,6 @@ from dash.infrastructure.auth.auth_service import (
     AuthService,
     LoginRequest,
     LoginResponse,
-    RegisterUserRequest,
-    RegisterUserResponse,
 )
 from dash.infrastructure.auth.dto import (
     LogoutRequest,
@@ -23,15 +21,15 @@ from dash.presentation.bearer import bearer_scheme
 auth_router = APIRouter(prefix="/auth", tags=["AUTH"], route_class=DishkaRoute)
 
 
-@auth_router.post(
-    "/register",
-    status_code=201,
-    responses={409: {"description": "Email already registered"}},
-)
-async def register(
-    data: RegisterUserRequest, auth_service: FromDishka[AuthService]
-) -> RegisterUserResponse:
-    return await auth_service.register(data)
+# @auth_router.post(
+#     "/register",
+#     status_code=201,
+#     responses={409: {"description": "Email already registered"}},
+# )
+# async def register(
+#     data: RegisterUserRequest, auth_service: FromDishka[AuthService]
+# ) -> RegisterUserResponse:
+#     return await auth_service.register(data)
 
 
 @auth_router.post(

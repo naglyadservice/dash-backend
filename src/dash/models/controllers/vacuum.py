@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -7,7 +9,7 @@ from dash.models.controllers.controller import Controller, ControllerType
 class VacuumController(Controller):
     __tablename__ = "vacuum_controllers"
 
-    controller_id: Mapped[int] = mapped_column(
+    controller_id: Mapped[UUID] = mapped_column(
         ForeignKey("controllers.id"), primary_key=True
     )
 

@@ -14,8 +14,10 @@ class CustomerRepository(BaseRepository):
 
     async def get(self, company_id: UUID, customer_id: UUID) -> Customer | None:
         stmt = (
-            select(Customer).where(Customer.id == customer_id),
-            Customer.company_id == company_id,
+            select(Customer).where(
+                Customer.id == customer_id,
+                Customer.company_id == company_id,
+            )
         )
         result = await self.session.execute(stmt)
         return result.scalar_one()
@@ -27,9 +29,9 @@ class CustomerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
-    async def get_by_cart(self, company_id: UUID, cart_id: str) -> Customer | None:
+    async def get_by_card_id(self, company_id: UUID, card_id: str) -> Customer | None:
         stmt = select(Customer).where(
-            Customer.cart_id == cart_id,
+            Customer.card_id == card_id,
             Customer.company_id == company_id,
         )
         return await self.session.scalar(stmt)

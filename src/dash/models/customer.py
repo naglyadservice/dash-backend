@@ -1,17 +1,16 @@
 from decimal import Decimal
+from uuid import UUID
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, UniqueConstraint
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import Mapped, mapped_column
 
-from dash.models.base import Base, TimestampMixin
+from dash.models.base import Base, TimestampMixin, UUIDMixin
 
 
-class Customer(Base, TimestampMixin, AsyncAttrs):
+class Customer(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "customers"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"), index=True)
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"))
     email: Mapped[str | None] = mapped_column(index=True)
     name: Mapped[str | None] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()
@@ -20,19 +19,17 @@ class Customer(Base, TimestampMixin, AsyncAttrs):
 
     __table_args__ = (
         UniqueConstraint(
-            company_id,
-            email,
+            "company_id",
+            "email",
             name="uix_customer_company_email",
-            postgresql_where=email.isnot(None),
         ),
         UniqueConstraint(
-            company_id,
-            card_id,
+            "company_id",
+            "card_id",
             name="uix_customer_company_card_id",
-            postgresql_where=card_id.isnot(None),
         ),
         CheckConstraint(
             "email IS NOT NULL OR card_id IS NOT NULL", name="cc_customer_identity"
         ),
-        Index("ix_customer_company_id", company_id, id),
+        Index("ix_customer_company_id", "company_id", "id"),
     )

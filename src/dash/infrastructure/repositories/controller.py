@@ -1,4 +1,5 @@
 from typing import Any, Sequence
+from uuid import UUID
 
 from sqlalchemy import ColumnElement, exists, select
 
@@ -17,7 +18,7 @@ class ControllerRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
-    async def get(self, controller_id: int) -> Controller | None:
+    async def get(self, controller_id: UUID) -> Controller | None:
         return await self.session.get(Controller, controller_id)
 
     async def get_vending_by_device_id(
@@ -28,7 +29,7 @@ class ControllerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
-    async def get_vending(self, controller_id: int) -> WaterVendingController | None:
+    async def get_vending(self, controller_id: UUID) -> WaterVendingController | None:
         stmt = select(WaterVendingController).where(
             WaterVendingController.id == controller_id
         )

@@ -1,10 +1,11 @@
+from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 from dash.models.controllers.controller import ControllerStatus, ControllerType
 
 
 class ControllerID(BaseModel):
-    controller_id: int
+    controller_id: UUID
 
 
 class ReadControllerListRequest(BaseModel):

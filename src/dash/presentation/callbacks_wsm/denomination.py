@@ -37,7 +37,7 @@ async def denomination_callback(
             amount=amount,
             status=PaymentStatus.COMPLETED,
             type=type,
-            created_at=datetime.fromisoformat(data["time"]),
+            created_at_controller=datetime.fromisoformat(data["time"]),
         )
 
         payment_repository.add(payment)

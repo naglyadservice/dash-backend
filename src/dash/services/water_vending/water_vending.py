@@ -1,4 +1,5 @@
 from typing import Any, Literal
+from uuid import UUID
 
 from npc_iot.exception import DeviceResponceError
 from sqlalchemy.orm.attributes import flag_modified
@@ -38,7 +39,7 @@ class WaterVendingService:
         self.controller_repository = controller_repository
         self.identity_provider = identity_provider
 
-    async def _get_controller(self, controller_id: int) -> WaterVendingController:
+    async def _get_controller(self, controller_id: UUID) -> WaterVendingController:
         controller = await self.controller_repository.get_vending(controller_id)
 
         if not controller:

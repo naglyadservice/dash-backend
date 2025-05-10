@@ -1,12 +1,12 @@
 import enum
 from datetime import datetime
 from typing import Annotated, Any, TypeAlias
-from uuid import UUID
 
 from sqlalchemy import ARRAY, BigInteger, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import ENUM, JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, registry
+from uuid_utils.compat import UUID, uuid7
 
 Int16: TypeAlias = Annotated[int, 16]
 Int64: TypeAlias = Annotated[int, 64]
@@ -36,13 +36,17 @@ class Base(DeclarativeBase):
         return self.__repr__()
 
 
-class TimestampMixin:
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=True, onupdate=func.now()
-    )
+class UUIDMixin:
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid7)
+
+
+class CreatedAtMixin:
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
         default=func.now(),
     )
+
+
+class TimestampMixin(CreatedAtMixin):
+    updated_at: Mapped[datetime] = mapped_column(nullable=True, onupdate=func.now())

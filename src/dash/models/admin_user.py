@@ -1,11 +1,8 @@
-from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, func
-from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from dash.models.base import Base
+from dash.models.base import Base, TimestampMixin, UUIDMixin
 from dash.models.company import Company
 from dash.models.location import Location
 
@@ -18,17 +15,13 @@ class AdminRole(str, Enum):
     LOCATION_ADMIN = "LOCATION_ADMIN"
 
 
-class AdminUser(Base, AsyncAttrs):
+class AdminUser(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "admin_users"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     email: Mapped[str] = mapped_column()
     name: Mapped[str] = mapped_column()
     password_hash: Mapped[str] = mapped_column()
     role: Mapped[AdminRole] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now()
-    )
 
     companies: Mapped[list["Company"]] = relationship(back_populates="owner")
     administrated_locations: Mapped[list["Location"]] = relationship(

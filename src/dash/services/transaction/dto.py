@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -21,7 +22,7 @@ class TransactionBase(BaseModel):
     qr_amount: int
     paypass_amount: int
     created_at: datetime
-    received_at: datetime
+    created_at_controller: datetime
 
 
 class WaterVendingTransactionScheme(TransactionBase):
@@ -36,7 +37,7 @@ TRANSACTION_SCHEME_TYPE = WaterVendingTransactionScheme
 
 
 class ReadTransactionListRequest(Pagination):
-    controller_id: int | None = None
+    controller_id: UUID | None = None
     location_id: int | None = None
 
     @model_validator(mode="before")
@@ -56,7 +57,7 @@ class ReadTransactionListResponse(BaseModel):
 
 class GetTransactionStatsRequest(BaseModel):
     location_id: int | None = None
-    controller_id: int | None = None
+    controller_id: UUID | None = None
     period: int
 
 

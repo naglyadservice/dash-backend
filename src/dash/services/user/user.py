@@ -30,7 +30,7 @@ class UserService:
         self.password_processor = password_processor
 
     async def _create_user(
-        self, data: CreateUserRequest, role: AdminRole = AdminRole.USER
+        self, data: CreateUserRequest, role: AdminRole
     ) -> CreateUserResponse:
         if await self.user_repository.exists(data.email):
             raise EmailAlreadyTakenError

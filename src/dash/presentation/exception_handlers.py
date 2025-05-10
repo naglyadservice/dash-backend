@@ -4,7 +4,6 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.types import ExceptionHandler
 
-from dash.infrastructure.auth.auth_service import EmailAlreadyTakenError
 from dash.infrastructure.auth.errors import AuthError
 from dash.services.common.errors.base import (
     AccessDeniedError,
@@ -26,10 +25,10 @@ def register_handler(app: FastAPI, error_type: type[Exception], handler):
     app.add_exception_handler(error_type, cast(ExceptionHandler, handler))
 
 
-def email_already_taken_error_handler(
-    request: Request, exc: EmailAlreadyTakenError
-) -> JSONResponse:
-    return build_response(409, exc.message)
+# def email_already_taken_error_handler(
+#     request: Request, exc: EmailAlreadyTakenError
+# ) -> JSONResponse:
+#     return build_response(409, exc.message)
 
 
 def authentication_error_handler(request: Request, exc: AuthError) -> JSONResponse:
@@ -70,7 +69,7 @@ def validation_error_handler(request: Request, exc: ValidationError) -> JSONResp
 
 def setup_exception_handlers(app: FastAPI) -> None:
     exc_handler_list: list[tuple[type[Exception], function]] = [
-        (EmailAlreadyTakenError, email_already_taken_error_handler),
+        # (EmailAlreadyTakenError, email_already_taken_error_handler),
         (AuthError, authentication_error_handler),
         (EntityNotFoundError, not_found_error_handler),
         (ControllerResponseError, controller_response_error_handler),

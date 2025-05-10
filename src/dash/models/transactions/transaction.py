@@ -1,10 +1,11 @@
 from datetime import datetime
 from enum import StrEnum
+from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, func
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
-from dash.models.base import Base
+from dash.models.base import Base, CreatedAtMixin, UUIDMixin
 
 
 class TransactionType(StrEnum):
@@ -13,12 +14,11 @@ class TransactionType(StrEnum):
     VACUUM = "VACUUM_TRANSACTION"
 
 
-class Transaction(Base):
+class Transaction(Base, UUIDMixin, CreatedAtMixin):
     __tablename__ = "transactions"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     controller_transaction_id: Mapped[int] = mapped_column()
-    controller_id: Mapped[int] = mapped_column(
+    controller_id: Mapped[UUID] = mapped_column(
         ForeignKey("controllers.id", ondelete="SET NULL")
     )
     location_id: Mapped[int | None] = mapped_column(
@@ -31,9 +31,6 @@ class Transaction(Base):
     qr_amount: Mapped[int] = mapped_column()
     paypass_amount: Mapped[int] = mapped_column()
     type: Mapped[TransactionType] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    received_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now()
-    )
+    created_at_controller: Mapped[datetime] = mapped_column()
 
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "transaction"}

@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -15,12 +16,13 @@ class PaymentScheme(BaseModel):
     status: PaymentStatus
     type: PaymentType
     created_at: datetime
+    created_at_controller: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ReadPaymentListRequest(Pagination):
-    controller_id: int | None = None
+    controller_id: UUID | None = None
     location_id: int | None = None
 
     @model_validator(mode="before")
@@ -40,7 +42,7 @@ class ReadPaymentListResponse(BaseModel):
 
 class GetPaymentStatsRequest(BaseModel):
     location_id: int | None = None
-    controller_id: int | None = None
+    controller_id: UUID | None = None
     period: int
 
 

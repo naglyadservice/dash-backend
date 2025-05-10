@@ -1,3 +1,4 @@
+from uuid import UUID
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
@@ -43,7 +44,7 @@ async def read_controller(
 async def set_config(
     water_vending_service: FromDishka[WaterVendingService],
     data: WaterVendingConfig,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await water_vending_service.set_config(
         SetWaterVendingConfigRequest(controller_id=controller_id, config=data)
@@ -54,7 +55,7 @@ async def set_config(
 async def set_settings(
     water_vending_service: FromDishka[WaterVendingService],
     data: WaterVendingSettings,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await water_vending_service.set_settings(
         SetWaterVendingSettingsRequest(controller_id=controller_id, settings=data)
@@ -65,7 +66,7 @@ async def set_settings(
 async def send_action(
     water_vending_service: FromDishka[WaterVendingService],
     data: WaterVendingActionDTO,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await water_vending_service.send_action(
         SendActionRequest(controller_id=controller_id, actions=data)
@@ -84,7 +85,7 @@ async def reboot_controller(
 async def send_qr_payment(
     water_vending_service: FromDishka[WaterVendingService],
     data: QRPaymentDTO,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await water_vending_service.send_qr_payment(
         SendQRPaymentRequest(controller_id=controller_id, payment=data)
@@ -95,7 +96,7 @@ async def send_qr_payment(
 async def send_free_payment(
     water_vending_service: FromDishka[WaterVendingService],
     data: FreePaymentDTO,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await water_vending_service.send_free_payment(
         SendFreePaymentRequest(controller_id=controller_id, payment=data)
@@ -106,7 +107,7 @@ async def send_free_payment(
 async def clear_payments(
     water_vending_service: FromDishka[WaterVendingService],
     data: PaymentClearOptionsDTO,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await water_vending_service.clear_payments(
         ClearPaymentsRequest(controller_id=controller_id, options=data)
