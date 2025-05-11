@@ -126,6 +126,15 @@ class WsmClient(_NpcClient[WsmDispatcher]):
             ttl=ttl,
         )
 
+    async def sale_ack(self, device_id: str, transaction_id: int) -> None:
+        await self._send_message(
+            device_id=device_id,
+            topic="client/sale/ack",
+            payload={"id": transaction_id, "code": 0},
+            qos=1,
+            ttl=None,
+        )
+
 
 async def get_npc_client(
     config: MqttConfig, di_container: AsyncContainer

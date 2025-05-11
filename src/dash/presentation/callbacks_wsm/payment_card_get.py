@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 
-from adaptix import Retort
+from adaptix import Retort, name_mapping
 from dishka import FromDishka
 
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 
-from .di_injector import inject, parse_paylaad, request_scope
+from .di_injector import datetime_recipe, inject, parse_paylaad, request_scope
 
 retort = Retort()
 
@@ -16,10 +16,21 @@ retort = Retort()
 class PaymentCardGetRequest:
     request_id: int
     created: str
-    cardUID: str  # noqa: N815
+    card_uid: str
 
 
-@parse_paylaad
+payment_cart_get_retort = Retort(
+    recipe=[
+        *datetime_recipe,
+        name_mapping(
+            PaymentCardGetRequest,
+            map={"card_uid": "cardUID"},
+        ),
+    ]
+)
+
+
+@parse_paylaad(retort=payment_cart_get_retort)
 @request_scope
 @inject
 async def payment_card_get_callback(
@@ -35,7 +46,7 @@ async def payment_card_get_callback(
         return
 
     customer = await customer_repository.get_by_card_id(
-        company_id=controller.id, card_id=data.cardUID
+        company_id=controller.id, card_id=data.card_uid
     )
 
     if customer is None:
@@ -45,7 +56,7 @@ async def payment_card_get_callback(
         device_id=device_id,
         payload={
             "request_id": data.request_id,
-            "cardUID": data.cardUID,
+            "cardUID": data.card_uid,
             "balance": int(customer.balance * 100),  # Баланс карты в копейках
             "tariffPerLiter1": 160,  # Тариф 1 для этой карты (в копейках за литр)
             "tariffPerLiter2": 200,  # Тариф 2 для этой карты (в копейках за литр)

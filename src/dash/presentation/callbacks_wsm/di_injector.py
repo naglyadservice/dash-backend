@@ -1,17 +1,27 @@
 import functools
 import inspect
 from collections.abc import Callable
+from datetime import datetime
 from inspect import Parameter
 from typing import Awaitable, ParamSpec, TypeVar, get_type_hints
 
-from adaptix import Retort
+from adaptix import Retort, dumper, loader
 from dishka import AsyncContainer, Scope
 from dishka.integrations.base import wrap_injection
 
 T = TypeVar("T")
 P = ParamSpec("P")
 
-retort = Retort()
+datetime_recipe = (
+    loader(datetime, lambda s: datetime.strptime(s, "%d.%m.%YT%H:%M:%S")),  # noqa: DTZ007
+    dumper(datetime, lambda dt: dt.strftime("%d.%m.%YT%H:%M:%S")),
+)
+
+default_retort = Retort(
+    recipe=[
+        *datetime_recipe,
+    ]
+)
 
 
 def get_arg_type(func, position):
@@ -22,17 +32,24 @@ def get_arg_type(func, position):
     return hints.get(second_param)
 
 
-def parse_paylaad(func):
-    async def wrapper(*args, **kwargs):
-        tp = get_arg_type(func, 1)
+def parse_paylaad(retort: Retort | None = None):
+    if retort is None:
+        retort = default_retort
 
-        data = retort.load(args[1], tp)
-        args = list(args)
-        args[1] = data
+    def _parse_paylaad(func):
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            tp = get_arg_type(func, 1)
 
-        return await func(*args, **kwargs)
+            data = retort.load(args[1], tp)
+            args = list(args)
+            args[1] = data
 
-    return wrapper
+            return await func(*args, **kwargs)
+
+        return wrapper
+
+    return _parse_paylaad
 
 
 def request_scope(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
