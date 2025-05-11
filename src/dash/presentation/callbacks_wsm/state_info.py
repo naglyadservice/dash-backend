@@ -1,5 +1,6 @@
 from typing import Any
 
+from ddtrace.trace import tracer
 from dishka import FromDishka
 
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -7,6 +8,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from .di_injector import inject, request_scope
 
 
+@tracer.wrap()
 @request_scope
 @inject
 async def state_info_callback(

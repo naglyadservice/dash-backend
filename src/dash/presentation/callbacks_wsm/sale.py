@@ -1,12 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
+from typing import cast
 
 import structlog
 from adaptix import Retort, dumper, loader, name_mapping
+from ddtrace.trace import tracer
 from dishka import FromDishka
 
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WaterVendingTransaction
@@ -59,6 +63,7 @@ sale_callabck_retort = Retort(
 )
 
 
+@tracer.wrap()
 @parse_paylaad(retort=sale_callabck_retort)
 @request_scope
 @inject
@@ -67,13 +72,24 @@ async def sale_callback(
     data: SaleCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
+    customer_repository: FromDishka[CustomerRepository],
     wsm_client: FromDishka[WsmClient],
 ) -> None:
-    logger.info("Sale received", data=data)
-
     controller = await controller_repository.get_wsm_by_device_id(device_id)
 
     if controller is None:
+        logger.info(
+            "Ignoring sale from controller, company_id not found", device_id=device_id
+        )
+        return
+
+    company_id = controller.company_id
+    if company_id is None:
+        logger.info(
+            "Ignoring sale from controller, company_id is None",
+            device_id=device_id,
+            controller_id=controller.id,
+        )
         return
 
     transaction = WaterVendingTransaction(
@@ -95,9 +111,33 @@ async def sale_callback(
 
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
+    if data.sale_type == "card":
+        customer = await customer_repository.get_by_card_id(
+            company_id=company_id,
+            card_id=cast(str, data.card_uid),
+        )
+        if customer is None:
+            logger.error(
+                "Customer not found",
+                device_id=device_id,
+                controller_id=controller.id,
+                company_id=company_id,
+                card_id=data.card_uid,
+            )
+            return
+
+        customer.balance = Decimal(cast(int, data.card_balance_out)) / 100
+
     await transaction_repository.commit()
 
     await wsm_client.sale_ack(device_id, data.id)
+
     logger.info(
-        "Sale ack sent", controller_transaction_id=data.id, was_inserted=was_inserted
+        "Sale ack sent",
+        device_id=device_id,
+        controller_id=controller.id,
+        company_id=company_id,
+        card_id=data.card_uid,
+        controller_transaction_id=data.id,
+        was_inserted=was_inserted,
     )

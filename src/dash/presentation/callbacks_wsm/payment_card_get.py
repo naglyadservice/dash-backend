@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from adaptix import Retort, name_mapping
+from ddtrace.trace import tracer
 from dishka import FromDishka
 
 from dash.infrastructure.iot.wsm.client import WsmClient
@@ -30,6 +31,7 @@ payment_cart_get_retort = Retort(
 )
 
 
+@tracer.wrap()
 @parse_paylaad(retort=payment_cart_get_retort)
 @request_scope
 @inject

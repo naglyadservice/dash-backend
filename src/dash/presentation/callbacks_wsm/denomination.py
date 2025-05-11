@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 
 from adaptix import Retort, name_mapping
+from ddtrace.trace import tracer
 from dishka import FromDishka
 
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -30,6 +31,7 @@ denomination_callback_retort = Retort(
 )
 
 
+@tracer.wrap()
 @parse_paylaad(retort=denomination_callback_retort)
 @request_scope
 @inject
