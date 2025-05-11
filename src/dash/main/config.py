@@ -51,6 +51,8 @@ class AppConfig(BaseSettings):
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000)
     allowed_origins: list[str] = Field(default=...)
+    proxy_headers: bool = Field(default=False)
+    forwarded_allow_ips: str = Field(default="127.0.0.1")
     enable_datadog: bool = Field(default=False)
 
 

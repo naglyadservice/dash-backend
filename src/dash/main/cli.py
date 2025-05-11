@@ -42,6 +42,8 @@ def run(ctx: click.Context):
         host=config.app.host,
         port=config.app.port,
         loop="uvloop",
+        proxy_headers=config.app.proxy_headers,
+        forwarded_allow_ips=config.app.forwarded_allow_ips,
         access_log=False,
         log_config=None,
     )
