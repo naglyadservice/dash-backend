@@ -3,9 +3,11 @@ from typing import Any, Sequence
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import aliased, selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.base import Base
 from dash.models.company import Company
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
@@ -19,7 +21,42 @@ from dash.services.transaction.dto import (
 )
 
 
+def parse_model(model: Base) -> dict[str, Any]:
+    return {
+        col.name: getattr(model, col.name)
+        for col in model.__table__.columns
+        if hasattr(model, col.name)
+    }
+
+
 class TransactionRepository(BaseRepository):
+    async def insert_with_conflict_ignore(self, model: Base) -> bool:
+        base_cols = {
+            c.name: getattr(model, c.name)
+            for c in Transaction.__table__.columns
+            if hasattr(model, c.name)
+        }
+        insert_tx = (
+            insert(Transaction)
+            .values(**base_cols)
+            .on_conflict_do_nothing(
+                constraint="uix_transaction_controller_transaction_id"
+            )
+            .returning(Transaction.id)
+        )
+        result = await self.session.execute(insert_tx)
+        inserted_id = result.scalar_one_or_none()
+        if not inserted_id:
+            return False
+
+        child_cols = {
+            c.name: getattr(model, c.name)
+            for c in WaterVendingTransaction.__table__.columns
+            if hasattr(model, c.name)
+        }
+        await self.session.execute(insert(WaterVendingTransaction).values(**child_cols))
+        return True
+
     async def _get_list(
         self,
         data: ReadTransactionListRequest,
@@ -68,15 +105,6 @@ class TransactionRepository(BaseRepository):
             .where(LocationAdmin.user_id == user_id)
         )
         return await self._get_list(data, whereclause)
-
-    async def exists(
-        self, transaction_id: int, created: datetime
-    ) -> Transaction | None:
-        stmt = select(Transaction).where(
-            Transaction.controller_transaction_id == transaction_id,
-            Transaction.created_at == created,
-        )
-        return await self.session.scalar(stmt)
 
     async def get_stats(
         self, data: GetTransactionStatsRequest

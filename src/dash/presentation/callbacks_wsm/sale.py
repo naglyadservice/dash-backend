@@ -76,13 +76,6 @@ async def sale_callback(
     if controller is None:
         return
 
-    if await transaction_repository.exists(
-        transaction_id=data.id, created=data.created
-    ):
-        await wsm_client.sale_ack(device_id, data.id)
-        logger.info("Sale ack sent on duplicate", transaction_id=data.id)
-        return
-
     transaction = WaterVendingTransaction(
         controller_transaction_id=data.id,
         controller_id=controller.id,
@@ -100,8 +93,11 @@ async def sale_callback(
         sale_type=data.sale_type,
     )
 
-    transaction_repository.add(transaction)
+    was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
+
     await transaction_repository.commit()
 
     await wsm_client.sale_ack(device_id, data.id)
-    logger.info("Sale ack sent", transaction_id=data.id)
+    logger.info(
+        "Sale ack sent", controller_transaction_id=data.id, was_inserted=was_inserted
+    )

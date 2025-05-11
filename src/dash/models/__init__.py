@@ -9,6 +9,7 @@ from .payment import Payment
 from .transactions import (
     CarwashTransaction,
     Transaction,
+    TransactionType,
     VacuumTransaction,
     WaterVendingTransaction,
 )
@@ -25,6 +26,7 @@ __all__ = [
     "LocationAdmin",
     "Payment",
     "Transaction",
+    "TransactionType",
     "VacuumTransaction",
     "WaterVendingController",
     "WaterVendingTransaction",

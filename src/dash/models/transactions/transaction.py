@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from dash.models.base import Base, CreatedAtMixin, UUIDMixin
@@ -34,3 +34,12 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     created_at_controller: Mapped[datetime] = mapped_column()
 
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "transaction"}
+
+    __table_args__ = (
+        UniqueConstraint(
+            controller_transaction_id,
+            controller_id,
+            created_at_controller,
+            name="uix_transaction_controller_transaction_id",
+        ),
+    )
