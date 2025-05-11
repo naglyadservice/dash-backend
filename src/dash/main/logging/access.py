@@ -16,7 +16,7 @@ def _get_client_ip(request: Request) -> str:
         # The header can contain multiple IPs. The first one is the original client.
         return x_forwarded_for.split(",")[0].strip()
     # Fall back to the default if the header is missing.
-    return request.client.host
+    return request.client.host  # type: ignore
 
 
 async def access_logs_middleware(request: Request, call_next) -> Response:

@@ -13,11 +13,15 @@ from dash.services.controller.dto import ReadControllerListRequest
 
 
 class ControllerRepository(BaseRepository):
-    async def get(self, company_id: UUID, controller_id: UUID) -> Controller | None:
+    async def get(
+        self, controller_id: UUID, company_id: UUID | None = None
+    ) -> Controller | None:
         stmt = select(Controller).where(
             Controller.id == controller_id,
-            Controller.company_id == company_id,
         )
+        if company_id:
+            stmt = stmt.where(Controller.company_id == company_id)
+
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
