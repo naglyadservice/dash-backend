@@ -1,13 +1,48 @@
 import logging
 import sys
+from datetime import timedelta
 from typing import Literal
 from uuid import UUID
 
+import ddtrace
 import orjson
 import structlog
+from ddtrace.trace import tracer
 from structlog.types import EventDict, Processor
 
-from dash.main.config import LoggingLevel
+LoggingLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+
+
+def _serializer(*args, **kwargs):
+    return orjson.dumps(*args, **kwargs).decode()
+
+
+# https://github.com/hynek/structlog/issues/35#issuecomment-591321744
+def rename_event_key(_, __, event_dict: EventDict) -> EventDict:
+    """
+    Log entries keep the text message in the `event` field, but Datadog
+    uses the `message` field. This processor moves the value from one field to
+    the other.
+    See https://github.com/hynek/structlog/issues/35#issuecomment-591321744
+    """
+    event_dict["message"] = event_dict.pop("event")
+    return event_dict
+
+
+def tracer_injection(_, __, event_dict: EventDict) -> EventDict:
+    span = tracer.current_span()
+    trace_id, span_id = (span.trace_id, span.span_id) if span else (None, None)
+
+    # add ids to structlog event dictionary
+    event_dict["dd.trace_id"] = str(trace_id or 0)
+    event_dict["dd.span_id"] = str(span_id or 0)
+
+    # add the env, service, and version configured for the tracer
+    event_dict["dd.env"] = ddtrace.config.env or ""
+    event_dict["dd.service"] = ddtrace.config.service or ""
+    event_dict["dd.version"] = ddtrace.config.version or ""
+
+    return event_dict
 
 
 def convert_uuid_keys(_, __, event_dict: EventDict) -> EventDict:
@@ -23,6 +58,39 @@ def drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
     return event_dict
 
 
+def convert_timedelta(_, __, event_dict: EventDict) -> EventDict:
+    return {
+        k: human_readable_timedelta(v) if isinstance(v, timedelta) else v
+        for k, v in event_dict.items()
+    }
+
+
+def human_readable_timedelta(td: timedelta) -> str:
+    """
+    Convert a timedelta to a human-readable string like "2 days, 3 hours, 5 minutes".
+    """
+    # Total seconds in the interval
+    total_seconds = int(td.total_seconds())
+    if total_seconds == 0:
+        return "0 seconds"
+
+    periods = [
+        ("day", 60 * 60 * 24),
+        ("hour", 60 * 60),
+        ("min", 60),
+        ("sec", 1),
+    ]
+
+    parts = []
+    for name, seconds_per_unit in periods:
+        value, total_seconds = divmod(total_seconds, seconds_per_unit)
+        if value:
+            unit = name if value == 1 else name + "s"
+            parts.append(f"{value} {unit}")
+
+    return ", ".join(parts)
+
+
 def configure_logging(
     level: LoggingLevel = "INFO", json_logs: bool = False, colorize: bool = False
 ) -> None:
@@ -35,6 +103,7 @@ def configure_logging(
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.stdlib.ExtraAdder(),
         drop_color_message_key,
+        tracer_injection,
         timestamper,
         structlog.processors.StackInfoRenderer(),
     ]
@@ -42,12 +111,14 @@ def configure_logging(
     if json_logs:
         # We rename the `event` key to `message` only in JSON logs, as Datadog looks for the
         # `message` key but the pretty ConsoleRenderer looks for `event`
-        # shared_processors.append(rename_event_key)
+        shared_processors.append(rename_event_key)
         # Format the exception only for JSON logs, as we want to pretty-print them when
         # using the ConsoleRenderer
         shared_processors.append(structlog.processors.format_exc_info)
+        shared_processors.append(convert_timedelta)
     else:
         shared_processors.append(convert_uuid_keys)
+        shared_processors.append(convert_timedelta)
 
     structlog.configure(
         processors=shared_processors
@@ -61,7 +132,7 @@ def configure_logging(
 
     log_renderer: structlog.types.Processor
     if json_logs:
-        log_renderer = structlog.processors.JSONRenderer(serializer=orjson.dumps)
+        log_renderer = structlog.processors.JSONRenderer(serializer=_serializer)
     else:
         log_renderer = structlog.dev.ConsoleRenderer(
             colors=colorize, exception_formatter=structlog.dev.plain_traceback
