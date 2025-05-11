@@ -43,7 +43,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     settings: Mapped[dict[str, Any] | None] = mapped_column()
     config: Mapped[dict[str, Any] | None] = mapped_column()
 
-    location: Mapped["Location | None"] = relationship()
+    location: Mapped["Location | None"] = relationship(lazy="joined")
 
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "controller"}
 

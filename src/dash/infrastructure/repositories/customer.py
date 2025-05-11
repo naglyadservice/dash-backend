@@ -12,11 +12,8 @@ class CustomerRepository(BaseRepository):
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def get(self, company_id: UUID, customer_id: UUID) -> Customer | None:
-        stmt = select(Customer).where(
-            Customer.id == customer_id,
-            Customer.company_id == company_id,
-        )
+    async def get(self, customer_id: UUID) -> Customer | None:
+        stmt = select(Customer).where(Customer.id == customer_id)
         result = await self.session.execute(stmt)
         return result.scalar_one()
 

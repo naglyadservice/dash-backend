@@ -1,6 +1,9 @@
+from decimal import Decimal
+
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from dash.models import Customer
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
 from dash.models.controllers.controller import ControllerStatus, ControllerType
@@ -97,6 +100,14 @@ class TestEnvironment:
             status=ControllerStatus.ACTIVE,
         )
 
+        self.customer = Customer(
+            company_id=self.company_1.id,
+            email="test_customer@test.com",
+            name="Test Customer",
+            card_id="test_card_id",
+            balance=Decimal("100.00"),
+        )
+
         db_session.add_all(
             (
                 self.superadmin,
@@ -107,6 +118,7 @@ class TestEnvironment:
                 LocationAdmin(
                     location_id=self.location_2.id, user_id=self.location_admin_2.id
                 ),
+                self.customer,
             )
         )
         await db_session.commit()
