@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -9,19 +10,20 @@ from dash.services.common.pagination import Pagination
 
 
 class PaymentScheme(BaseModel):
-    id: int
-    controller_id: int
+    id: UUID
+    controller_id: UUID
     amount: int
     status: PaymentStatus
     type: PaymentType
     created_at: datetime
+    created_at_controller: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ReadPaymentListRequest(Pagination):
-    controller_id: int | None = None
-    location_id: int | None = None
+    controller_id: UUID | None = None
+    location_id: UUID | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -39,8 +41,8 @@ class ReadPaymentListResponse(BaseModel):
 
 
 class GetPaymentStatsRequest(BaseModel):
-    location_id: int | None = None
-    controller_id: int | None = None
+    location_id: UUID | None = None
+    controller_id: UUID | None = None
     period: int
 
 

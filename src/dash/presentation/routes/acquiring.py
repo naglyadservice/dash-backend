@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Form, HTTPException, Request
@@ -22,7 +24,7 @@ acquiring_router = APIRouter(
 
 
 class MonopayInvoiceRequest(BaseModel):
-    controller_id: int
+    controller_id: UUID
     amount: int
 
 

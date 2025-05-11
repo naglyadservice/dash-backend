@@ -1,7 +1,6 @@
 import base64
 import json
 import uuid
-from datetime import datetime
 
 from fastapi import HTTPException
 from liqpay.liqpay3 import LiqPay
@@ -17,7 +16,7 @@ from dash.services.water_vending.water_vending import WaterVendingService
 
 
 class CreateLiqpayInvoiceRequest(BaseModel):
-    controller_id: int
+    controller_id: uuid.UUID
     amount: int
 
 
@@ -86,7 +85,6 @@ class LiqpayService:
             status=PaymentStatus.CREATED,
             amount=data.amount,
             type=PaymentType.LIQPAY,
-            created_at=datetime.now(),
         )
         self.payment_repository.add(payment)
         await self.payment_repository.commit()

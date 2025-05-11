@@ -1,10 +1,14 @@
 from datetime import datetime, timedelta
-from typing import Any, Sequence
+from typing import Any, Sequence, Type
+from uuid import UUID
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import aliased, selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.base import Base
+from dash.models.company import Company
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.transaction import Transaction
@@ -17,7 +21,42 @@ from dash.services.transaction.dto import (
 )
 
 
+def parse_model(instance: Base, model: Type[Base]) -> dict[str, Any]:
+    return {
+        c.name: getattr(instance, c.name)
+        for c in model.__table__.columns
+        if hasattr(instance, c.name) and getattr(instance, c.name) is not None
+    }
+
+
 class TransactionRepository(BaseRepository):
+    async def insert_with_conflict_ignore(self, model: Base) -> bool:
+        base_cols = parse_model(model, Transaction)
+        insert_tx = (
+            insert(Transaction)
+            .values(
+                **base_cols,
+            )
+            .on_conflict_do_nothing(
+                constraint="uix_transaction_controller_transaction_id"
+            )
+            .returning(Transaction.id)
+        )
+        result = await self.session.execute(insert_tx)
+        inserted_id = result.scalar_one_or_none()
+        if not inserted_id:
+            return False
+
+        child_cols = parse_model(model, WaterVendingTransaction)
+
+        await self.session.execute(
+            insert(WaterVendingTransaction).values(
+                transaction_id=inserted_id,
+                **child_cols,
+            )
+        )
+        return True
+
     async def _get_list(
         self,
         data: ReadTransactionListRequest,
@@ -50,15 +89,15 @@ class TransactionRepository(BaseRepository):
         return await self._get_list(data)
 
     async def get_list_by_owner(
-        self, data: ReadTransactionListRequest, user_id: int
+        self, data: ReadTransactionListRequest, user_id: UUID
     ) -> tuple[Sequence[Transaction], int]:
         whereclause = Transaction.location_id.in_(
-            select(Location.id).where(Location.owner_id == user_id)
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
         )
         return await self._get_list(data, whereclause)
 
     async def get_list_by_admin(
-        self, data: ReadTransactionListRequest, user_id: int
+        self, data: ReadTransactionListRequest, user_id: UUID
     ) -> tuple[Sequence[Transaction], int]:
         whereclause = Transaction.location_id.in_(
             select(Location.id)
@@ -66,15 +105,6 @@ class TransactionRepository(BaseRepository):
             .where(LocationAdmin.user_id == user_id)
         )
         return await self._get_list(data, whereclause)
-
-    async def exists(
-        self, transaction_id: int, created: datetime
-    ) -> Transaction | None:
-        stmt = select(Transaction).where(
-            Transaction.controller_transaction_id == transaction_id,
-            Transaction.created_at == created,
-        )
-        return await self.session.scalar(stmt)
 
     async def get_stats(
         self, data: GetTransactionStatsRequest

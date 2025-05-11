@@ -2,7 +2,7 @@ from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
-from dash.models.user import UserRole
+from dash.models.admin_user import AdminRole
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.payment.dto import (
@@ -43,13 +43,13 @@ class PaymentService:
                 location_id=data.location_id
             )
 
-        if user.role is UserRole.SUPERADMIN:
+        if user.role is AdminRole.SUPERADMIN:
             payments, total = await self.payment_repository.get_list_all(data)
-        elif user.role is UserRole.LOCATION_OWNER:
+        elif user.role is AdminRole.COMPANY_OWNER:
             payments, total = await self.payment_repository.get_list_by_owner(
                 data, user.id
             )
-        elif user.role is UserRole.LOCATION_ADMIN:
+        elif user.role is AdminRole.LOCATION_ADMIN:
             payments, total = await self.payment_repository.get_list_by_admin(
                 data, user.id
             )

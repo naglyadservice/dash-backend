@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
@@ -9,11 +10,11 @@ from dash.services.common.pagination import Pagination
 
 
 class TransactionBase(BaseModel):
-    id: int
+    id: UUID
     type: TransactionType
-    controller_transaction_id: int
-    controller_id: int
-    location_id: int | None
+    controller_transaction_id: UUID
+    controller_id: UUID
+    location_id: UUID | None
     coin_amount: int
     bill_amount: int
     prev_amount: int
@@ -21,7 +22,7 @@ class TransactionBase(BaseModel):
     qr_amount: int
     paypass_amount: int
     created_at: datetime
-    received_at: datetime
+    created_at_controller: datetime
 
 
 class WaterVendingTransactionScheme(TransactionBase):
@@ -36,8 +37,8 @@ TRANSACTION_SCHEME_TYPE = WaterVendingTransactionScheme
 
 
 class ReadTransactionListRequest(Pagination):
-    controller_id: int | None = None
-    location_id: int | None = None
+    controller_id: UUID | None = None
+    location_id: UUID | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -55,8 +56,8 @@ class ReadTransactionListResponse(BaseModel):
 
 
 class GetTransactionStatsRequest(BaseModel):
-    location_id: int | None = None
-    controller_id: int | None = None
+    location_id: UUID | None = None
+    controller_id: UUID | None = None
     period: int
 
 

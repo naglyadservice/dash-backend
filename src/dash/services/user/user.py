@@ -3,8 +3,8 @@ import secrets
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.repositories.user import UserRepository
+from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.location_admin import LocationAdmin
-from dash.models.user import User, UserRole
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.user import EmailAlreadyTakenError, UserNotFoundError
 from dash.services.user.dto import (
@@ -30,14 +30,14 @@ class UserService:
         self.password_processor = password_processor
 
     async def _create_user(
-        self, data: CreateUserRequest, role: UserRole = UserRole.USER
+        self, data: CreateUserRequest, role: AdminRole
     ) -> CreateUserResponse:
         if await self.user_repository.exists(data.email):
             raise EmailAlreadyTakenError
 
         password = secrets.token_urlsafe(16)
 
-        user = User(
+        user = AdminUser(
             name=data.name,
             email=data.email,
             role=role,
@@ -53,15 +53,13 @@ class UserService:
             password=password,
         )
 
-    async def create_location_owner(
-        self, data: CreateUserRequest
-    ) -> CreateUserResponse:
-        return await self._create_user(data, role=UserRole.LOCATION_OWNER)
+    async def create_company_owner(self, data: CreateUserRequest) -> CreateUserResponse:
+        return await self._create_user(data, role=AdminRole.COMPANY_OWNER)
 
     async def add_location_admin(
         self, data: AddLocationAdminRequest
     ) -> AddLocationAdminResponse:
-        await self.identity_provider.ensure_location_owner(data.location_id)
+        await self.identity_provider.ensure_company_owner(data.location_id)
 
         new_user = None
         user_id = data.user_id
@@ -70,7 +68,7 @@ class UserService:
             if not await self.user_repository.exists_by_id(user_id):
                 raise UserNotFoundError
         if data.user is not None:
-            new_user = await self._create_user(data.user, role=UserRole.LOCATION_ADMIN)
+            new_user = await self._create_user(data.user, role=AdminRole.LOCATION_ADMIN)
             user_id = new_user.id
 
         admin = LocationAdmin(
@@ -83,7 +81,7 @@ class UserService:
         return AddLocationAdminResponse(user=new_user)
 
     async def remove_location_admin(self, data: RemoveLocationAdminRequest) -> None:
-        await self.identity_provider.ensure_location_owner(data.location_id)
+        await self.identity_provider.ensure_company_owner(data.location_id)
 
         if not await self.user_repository.is_location_admin(
             data.user_id, data.location_id
@@ -96,9 +94,9 @@ class UserService:
     async def read_users(self) -> ReadUserListResponse:
         user = await self.identity_provider.authorize()
 
-        if user.role is UserRole.SUPERADMIN:
+        if user.role is AdminRole.SUPERADMIN:
             users = await self.user_repository.get_list()
-        elif user.role is UserRole.LOCATION_OWNER:
+        elif user.role is AdminRole.COMPANY_OWNER:
             users = await self.user_repository.get_list(user.id)
         else:
             raise AccessForbiddenError

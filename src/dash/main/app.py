@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 
-import uvicorn
 from dishka import AsyncContainer
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import FastAPI
@@ -10,8 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.main.config import Config
 from dash.main.di import setup_di
-from dash.main.logging.access import access_logger
-from dash.main.logging.setup import configure_logging
+from dash.main.logging.access import access_logs_middleware
 from dash.presentation.exception_handlers import setup_exception_handlers
 from dash.presentation.routes.root import root_router
 
@@ -39,31 +37,9 @@ def get_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allow_headers=["*"],
     )
-    app.add_middleware(BaseHTTPMiddleware, dispatch=access_logger)
+    app.add_middleware(BaseHTTPMiddleware, dispatch=access_logs_middleware)
 
     setup_exception_handlers(app)
     setup_dishka(container=setup_di(config), app=app)
 
     return app
-
-
-def run() -> None:
-    config = Config()
-    configure_logging(
-        level=config.logging.level,
-        json_logs=config.logging.json_mode,
-        colorize=config.logging.colorize,
-    )
-
-    uvicorn.run(
-        "dash.main.app:get_app",
-        factory=True,
-        host=config.app.host,
-        port=config.app.port,
-        reload=config.app.reload,
-        access_log=False,
-    )
-
-
-if __name__ == "__main__":
-    run()

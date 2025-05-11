@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
@@ -45,7 +47,7 @@ async def add_controller(
 async def add_controller_location(
     controller_service: FromDishka[ControllerService],
     data: LocationID,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     return await controller_service.add_location(
         AddControllerLocationRequest(
@@ -58,7 +60,7 @@ async def add_controller_location(
 async def add_monopay_credentials(
     controller_service: FromDishka[ControllerService],
     data: MonopayCredentialsDTO,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     await controller_service.add_monopay_credentials(
         AddMonopayCredentialsRequest(controller_id=controller_id, monopay=data)
@@ -69,7 +71,7 @@ async def add_monopay_credentials(
 async def add_liqpay_credentials(
     controller_service: FromDishka[ControllerService],
     data: LiqpayCredentialsDTO,
-    controller_id: int,
+    controller_id: UUID,
 ) -> None:
     await controller_service.add_liqpay_credentials(
         AddLiqpayCredentialsRequest(controller_id=controller_id, liqpay=data)

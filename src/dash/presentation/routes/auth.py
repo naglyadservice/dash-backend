@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
@@ -8,8 +9,6 @@ from dash.infrastructure.auth.auth_service import (
     AuthService,
     LoginRequest,
     LoginResponse,
-    RegisterUserRequest,
-    RegisterUserResponse,
 )
 from dash.infrastructure.auth.dto import (
     LogoutRequest,
@@ -17,21 +16,21 @@ from dash.infrastructure.auth.dto import (
     RefreshTokenResponse,
 )
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.models.user import UserRole
+from dash.models.admin_user import AdminRole
 from dash.presentation.bearer import bearer_scheme
 
 auth_router = APIRouter(prefix="/auth", tags=["AUTH"], route_class=DishkaRoute)
 
 
-@auth_router.post(
-    "/register",
-    status_code=201,
-    responses={409: {"description": "Email already registered"}},
-)
-async def register(
-    data: RegisterUserRequest, auth_service: FromDishka[AuthService]
-) -> RegisterUserResponse:
-    return await auth_service.register(data)
+# @auth_router.post(
+#     "/register",
+#     status_code=201,
+#     responses={409: {"description": "Email already registered"}},
+# )
+# async def register(
+#     data: RegisterUserRequest, auth_service: FromDishka[AuthService]
+# ) -> RegisterUserResponse:
+#     return await auth_service.register(data)
 
 
 @auth_router.post(
@@ -47,10 +46,10 @@ async def login(
 
 @dataclass
 class UserScheme:
-    id: int
+    id: UUID
     email: str
     name: str
-    role: UserRole
+    role: AdminRole
 
 
 @auth_router.get(

@@ -1,21 +1,23 @@
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict
 
 from dash.models.controllers.controller import ControllerStatus, ControllerType
 
 
 class ControllerID(BaseModel):
-    controller_id: int
+    controller_id: UUID
 
 
 class ReadControllerListRequest(BaseModel):
     type: ControllerType | None = None
-    location_id: int | None = None
+    location_id: UUID | None = None
 
 
 class ControllerScheme(BaseModel):
-    id: int
+    id: UUID
     device_id: str
-    location_id: int | None
+    location_id: UUID | None
     name: str
     type: ControllerType
     status: ControllerStatus
@@ -37,7 +39,7 @@ class AddControllerRequest(BaseModel):
 
 
 class AddControllerResponse(BaseModel):
-    id: int
+    id: UUID
 
 
 class MonopayCredentialsDTO(BaseModel):
@@ -60,7 +62,7 @@ class AddLiqpayCredentialsRequest(ControllerID):
 
 
 class LocationID(BaseModel):
-    location_id: int
+    location_id: UUID
 
 
 class AddControllerLocationRequest(ControllerID, LocationID):

@@ -1,8 +1,9 @@
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, model_validator
 
-from dash.models.user import UserRole
+from dash.models.admin_user import AdminRole
 from dash.services.common.errors.base import ValidationError
 
 
@@ -12,22 +13,22 @@ class CreateUserRequest(BaseModel):
 
 
 class CreateUserResponse(BaseModel):
-    id: int
+    id: UUID
     email: str
     name: str
     password: str
 
 
 class LocationDTO(BaseModel):
-    id: int
+    id: UUID
     name: str
 
 
 class UserDTO(BaseModel):
-    id: int
+    id: UUID
     name: str
     email: EmailStr
-    role: UserRole
+    role: AdminRole
     locations: list[LocationDTO] | None
 
 
@@ -36,8 +37,8 @@ class ReadUserListResponse(BaseModel):
 
 
 class AddLocationAdminRequest(BaseModel):
-    location_id: int
-    user_id: int | None
+    location_id: UUID
+    user_id: UUID | None
     user: CreateUserRequest | None
 
     @model_validator(mode="before")
@@ -53,5 +54,5 @@ class AddLocationAdminResponse(BaseModel):
 
 
 class RemoveLocationAdminRequest(BaseModel):
-    location_id: int
-    user_id: int
+    location_id: UUID
+    user_id: UUID

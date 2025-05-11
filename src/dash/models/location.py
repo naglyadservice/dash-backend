@@ -1,22 +1,20 @@
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from dash.models.base import Base
+from dash.models.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
-    from dash.models.user import User
+    from dash.models.company import Company
 
 
-class Location(Base):
+class Location(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "locations"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"))
     name: Mapped[str] = mapped_column()
     address: Mapped[str | None] = mapped_column()
 
-    owner: Mapped["User"] = relationship(
-        lazy="joined", back_populates="owned_locations"
-    )
+    company: Mapped["Company"] = relationship(back_populates="locations", lazy="joined")

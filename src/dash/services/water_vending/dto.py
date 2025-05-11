@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -10,7 +11,7 @@ COIN_VALIDATOR_TYPE = Literal["protocol", "impulse"]
 
 
 class ControllerID(BaseModel):
-    controller_id: int
+    controller_id: UUID
 
 
 class WaterVendingConfig(BaseModel):
@@ -95,7 +96,7 @@ class WaterVendingState(BaseModel):
 
 
 class WaterVendingControllerScheme(BaseModel):
-    id: int
+    id: UUID
     device_id: str
     name: str
     type: Literal[ControllerType.WATER_VENDING]

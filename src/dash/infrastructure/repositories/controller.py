@@ -1,8 +1,10 @@
 from typing import Any, Sequence
+from uuid import UUID
 
-from sqlalchemy import ColumnElement, exists, select
+from sqlalchemy import ColumnElement, select
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
@@ -11,23 +13,27 @@ from dash.services.controller.dto import ReadControllerListRequest
 
 
 class ControllerRepository(BaseRepository):
-    async def exists(self, controller_id: int) -> bool:
-        stmt = select(exists().where(Controller.id == controller_id))
+    async def get(
+        self, controller_id: UUID, company_id: UUID | None = None
+    ) -> Controller | None:
+        stmt = select(Controller).where(
+            Controller.id == controller_id,
+        )
+        if company_id:
+            stmt = stmt.where(Controller.company_id == company_id)
+
         result = await self.session.execute(stmt)
-        return result.scalar_one()
+        return result.scalar_one_or_none()
 
-    async def get(self, controller_id: int) -> Controller | None:
-        return await self.session.get(Controller, controller_id)
-
-    async def get_vending_by_device_id(
+    async def get_wsm_by_device_id(
         self, device_id: str
     ) -> WaterVendingController | None:
         stmt = select(WaterVendingController).where(
-            WaterVendingController.device_id == device_id
+            WaterVendingController.device_id == device_id,
         )
         return await self.session.scalar(stmt)
 
-    async def get_vending(self, controller_id: int) -> WaterVendingController | None:
+    async def get_wsm(self, controller_id: UUID) -> WaterVendingController | None:
         stmt = select(WaterVendingController).where(
             WaterVendingController.id == controller_id
         )
@@ -58,15 +64,15 @@ class ControllerRepository(BaseRepository):
         return await self._get_list(data)
 
     async def get_list_by_owner(
-        self, data: ReadControllerListRequest, user_id: int
+        self, data: ReadControllerListRequest, user_id: UUID
     ) -> tuple[Sequence[Controller], int]:
         whereclause = Controller.location_id.in_(
-            select(Location.id).where(Location.owner_id == user_id)
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
         )
         return await self._get_list(data, whereclause)
 
     async def get_list_by_admin(
-        self, data: ReadControllerListRequest, user_id: int
+        self, data: ReadControllerListRequest, user_id: UUID
     ) -> tuple[Sequence[Controller], int]:
         whereclause = Controller.location_id.in_(
             select(Location.id)

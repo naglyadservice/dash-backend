@@ -3,7 +3,6 @@ from typing import Literal
 from pydantic import Field
 from pydantic_settings import BaseSettings as _BaseSettings
 from pydantic_settings import SettingsConfigDict
-from sqlalchemy import URL
 
 
 class BaseSettings(_BaseSettings):
@@ -20,6 +19,9 @@ class DbConfig(BaseSettings, env_prefix="POSTGRES_"):
     db: str = Field(default=...)
 
     def build_dsn(self) -> str:
+        # import here to avoid import sqlalchemy before datadog integration
+        from sqlalchemy import URL
+
         url = URL.create(
             drivername="postgresql+asyncpg",
             username=self.user,
@@ -48,8 +50,10 @@ class MqttConfig(BaseSettings, env_prefix="MQTT_"):
 class AppConfig(BaseSettings):
     host: str = Field(default="127.0.0.1")
     port: int = Field(default=8000)
-    reload: bool = Field(default=True)
     allowed_origins: list[str] = Field(default=...)
+    proxy_headers: bool = Field(default=False)
+    forwarded_allow_ips: str = Field(default="127.0.0.1")
+    enable_datadog: bool = Field(default=False)
 
 
 class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):

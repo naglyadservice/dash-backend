@@ -1,15 +1,9 @@
-from typing import Any, AsyncIterator
+from typing import Any
 
-from dishka import AsyncContainer
 from npc_iot import Dispatcher as _Dispatcher
 from npc_iot import NpcClient as _NpcClient
 from npc_iot.dispatcher import MessageHandler
 from npc_iot.response import ResponseWaiter
-
-from dash.main.config import MqttConfig
-from dash.presentation.callbacks_wsm.denomination import denomination_callback
-from dash.presentation.callbacks_wsm.sale import sale_callback
-from dash.presentation.callbacks_wsm.state_info import state_info_callback
 
 
 class WsmDispatcher(_Dispatcher):
@@ -23,6 +17,7 @@ class WsmDispatcher(_Dispatcher):
         self.action_ack = MessageHandler(topic="/+/server/action/ack", is_ack=True)
         self.payment_ack = MessageHandler(topic="/+/server/payment/ack", is_ack=True)
         self.sale = MessageHandler(topic="/+/server/sale/set")
+        self.payment_card_get = MessageHandler(topic="/+/server/payment/card/get")
 
 
 class WsmClient(_NpcClient[WsmDispatcher]):
@@ -115,19 +110,22 @@ class WsmClient(_NpcClient[WsmDispatcher]):
             ttl=ttl,
         )
 
+    async def respond_payment_cart(
+        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+    ) -> ResponseWaiter[dict[str, Any]]:
+        return await self._send_message(
+            device_id=device_id,
+            topic="client/payment/card",
+            qos=1,
+            payload=payload,
+            ttl=ttl,
+        )
 
-async def get_npc_client(
-    config: MqttConfig, di_container: AsyncContainer
-) -> AsyncIterator[WsmClient]:
-    async with WsmClient(
-        host=config.host,
-        port=config.port,
-        username=config.username,
-        password=config.password,
-        topic_prefix="wsm",
-        dispatcher=WsmDispatcher(callback_kwargs={"di_container": di_container}),
-    ) as client:
-        client.dispatcher.state_info.register_callback(state_info_callback)
-        client.dispatcher.sale.register_callback(sale_callback)  # type: ignore
-        client.dispatcher.denomination.register_callback(denomination_callback)  # type: ignore
-        yield client
+    async def sale_ack(self, device_id: str, transaction_id: int) -> None:
+        await self._send_message(
+            device_id=device_id,
+            topic="client/sale/ack",
+            payload={"id": transaction_id, "code": 0},
+            qos=1,
+            ttl=None,
+        )

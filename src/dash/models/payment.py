@@ -1,10 +1,11 @@
 from datetime import datetime
 from enum import StrEnum
+from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, func
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
-from dash.models.base import Base
+from dash.models.base import Base, TimestampMixin, UUIDMixin
 
 
 class PaymentStatus(StrEnum):
@@ -26,24 +27,18 @@ class PaymentType(StrEnum):
     FREE = "FREE"
 
 
-class Payment(Base):
+class Payment(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "payments"
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     invoice_id: Mapped[str | None] = mapped_column(unique=True)
-    controller_id: Mapped[int] = mapped_column(
+    controller_id: Mapped[UUID] = mapped_column(
         ForeignKey("controllers.id", ondelete="SET NULL")
     )
-    location_id: Mapped[int | None] = mapped_column(
+    location_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL")
     )
     amount: Mapped[int] = mapped_column()
     status: Mapped[PaymentStatus] = mapped_column()
     type: Mapped[PaymentType] = mapped_column()
     failure_reason: Mapped[str | None] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now()
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now()
-    )
+    created_at_controller: Mapped[datetime | None] = mapped_column()
