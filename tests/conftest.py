@@ -104,14 +104,14 @@ async def user(
 
     if request.param == "superadmin":
         user = test_env.superadmin
-    elif request.param == "company_owner":
-        user = test_env.company_owner
     elif request.param == "company_owner_1":
         user = test_env.company_owner_1
-    elif request.param == "location_admin":
-        user = test_env.location_admin
+    elif request.param == "company_owner_2":
+        user = test_env.company_owner_2
     elif request.param == "location_admin_1":
         user = test_env.location_admin_1
+    elif request.param == "location_admin_2":
+        user = test_env.location_admin_2
     else:
         raise ValueError(f"Invalid role: {request.param}")
 

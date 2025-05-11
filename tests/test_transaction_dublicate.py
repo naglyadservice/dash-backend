@@ -13,8 +13,8 @@ pytestmark = pytest.mark.usefixtures("create_tables")
 def create_transaction(test_env: TestEnvironment):
     return WaterVendingTransaction(
         controller_transaction_id=123,
-        controller_id=test_env.controller.id,
-        location_id=test_env.location.id,
+        controller_id=test_env.controller_1.id,
+        location_id=test_env.location_1.id,
         coin_amount=100,
         bill_amount=200,
         prev_amount=300,

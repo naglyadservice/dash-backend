@@ -4,9 +4,7 @@ import pytest
 from dishka import AsyncContainer
 
 from dash.infrastructure.repositories.company import CompanyRepository
-from dash.presentation.callbacks_wsm.payment_card_get import (
-    payment_card_get_callback,
-)
+from dash.presentation.callbacks_wsm.payment_card_get import payment_card_get_callback
 from dash.services.company.company import CompanyService
 
 pytestmark = pytest.mark.usefixtures("create_tables")

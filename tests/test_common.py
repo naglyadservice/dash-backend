@@ -11,10 +11,10 @@ from tests.environment import TestEnvironment
 async def test_hybrid_property(
     create_tables, request_di_container: AsyncContainer, test_env: TestEnvironment
 ):
-    assert test_env.controller.company_id == test_env.company.id
+    assert test_env.controller_1.company_id == test_env.company_1.id
 
     # Test in sql expression
     db_session = await request_di_container.get(AsyncSession)
-    stmt = select(Controller).where(Controller.company_id == test_env.company.id)
+    stmt = select(Controller).where(Controller.company_id == test_env.company_1.id)
     result = await db_session.scalar(stmt)
-    assert result == test_env.controller
+    assert result == test_env.controller_1

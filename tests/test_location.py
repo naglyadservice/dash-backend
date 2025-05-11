@@ -31,8 +31,8 @@ async def deps(request_di_container: AsyncContainer):
     "user, error",
     [
         ("superadmin", None),
-        ("company_owner", AccessForbiddenError()),
-        ("location_admin", AccessForbiddenError()),
+        ("company_owner_1", AccessForbiddenError()),
+        ("location_admin_1", AccessForbiddenError()),
     ],
     indirect=["user"],
 )
@@ -48,7 +48,7 @@ async def test_create_location(
             CreateLocationRequest(
                 name="test",
                 address="test",
-                company_id=test_env.company.id,
+                company_id=test_env.company_1.id,
             )
         )
     except Exception as e:
@@ -66,10 +66,10 @@ async def test_create_location(
     "user, result",
     [
         ("superadmin", 2),
-        ("company_owner", 1),
         ("company_owner_1", 1),
-        ("location_admin", 1),
+        ("company_owner_2", 1),
         ("location_admin_1", 1),
+        ("location_admin_2", 1),
     ],
     indirect=["user"],
 )

@@ -32,8 +32,8 @@ async def deps(request_di_container: AsyncContainer):
     "user, error",
     [
         ("superadmin", None),
-        ("company_owner", AccessForbiddenError()),
-        ("location_admin", AccessForbiddenError()),
+        ("company_owner_1", AccessForbiddenError()),
+        ("location_admin_1", AccessForbiddenError()),
     ],
     indirect=["user"],
 )
@@ -61,8 +61,8 @@ async def test_create_company_with_new_owner(
     "user, error",
     [
         ("superadmin", None),
-        ("company_owner", AccessForbiddenError()),
-        ("location_admin", AccessForbiddenError()),
+        ("company_owner_1", AccessForbiddenError()),
+        ("location_admin_1", AccessForbiddenError()),
     ],
     indirect=["user"],
 )
@@ -75,7 +75,7 @@ async def test_create_company_with_existing_owner(
 ):
     try:
         response = await deps.company_service.create_company(
-            CreateCompanyRequest(name="test", owner_id=test_env.company_owner.id)
+            CreateCompanyRequest(name="test", owner_id=test_env.company_owner_1.id)
         )
     except Exception as e:
         assert error == e
@@ -90,9 +90,9 @@ async def test_create_company_with_existing_owner(
     "user, result, error",
     [
         ("superadmin", 2, None),
-        ("company_owner", 1, None),
         ("company_owner_1", 1, None),
-        ("location_admin", None, AccessForbiddenError()),
+        ("company_owner_2", 1, None),
+        ("location_admin_1", None, AccessForbiddenError()),
     ],
     indirect=["user"],
 )
