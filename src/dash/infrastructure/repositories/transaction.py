@@ -35,7 +35,6 @@ class TransactionRepository(BaseRepository):
         insert_tx = (
             insert(Transaction)
             .values(
-                # id=uuid7(),
                 **base_cols,
             )
             .on_conflict_do_nothing(
@@ -52,7 +51,6 @@ class TransactionRepository(BaseRepository):
 
         await self.session.execute(
             insert(WaterVendingTransaction).values(
-                # id=uuid7(),
                 transaction_id=inserted_id,
                 **child_cols,
             )
