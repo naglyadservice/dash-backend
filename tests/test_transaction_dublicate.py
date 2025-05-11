@@ -10,11 +10,11 @@ from tests.environment import TestEnvironment
 pytestmark = pytest.mark.usefixtures("create_tables")
 
 
-def create_transaction():
+def create_transaction(test_env: TestEnvironment):
     return WaterVendingTransaction(
         controller_transaction_id=123,
-        controller_id=1,
-        location_id=1,
+        controller_id=test_env.controller.id,
+        location_id=test_env.location.id,
         coin_amount=100,
         bill_amount=200,
         prev_amount=300,
@@ -35,10 +35,10 @@ async def test_transaction_dublicate(
 ):
     transaction_repository = await request_di_container.get(TransactionRepository)
 
-    transaction = create_transaction()
+    transaction = create_transaction(test_env)
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
     assert was_inserted
 
-    transaction = create_transaction()
+    transaction = create_transaction(test_env)
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
     assert not was_inserted

@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Any, Sequence
+from typing import Any, Sequence, Type
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
@@ -21,24 +21,23 @@ from dash.services.transaction.dto import (
 )
 
 
-def parse_model(model: Base) -> dict[str, Any]:
+def parse_model(instance: Base, model: Type[Base]) -> dict[str, Any]:
     return {
-        col.name: getattr(model, col.name)
-        for col in model.__table__.columns
-        if hasattr(model, col.name)
+        c.name: getattr(instance, c.name)
+        for c in model.__table__.columns
+        if hasattr(instance, c.name) and getattr(instance, c.name) is not None
     }
 
 
 class TransactionRepository(BaseRepository):
     async def insert_with_conflict_ignore(self, model: Base) -> bool:
-        base_cols = {
-            c.name: getattr(model, c.name)
-            for c in Transaction.__table__.columns
-            if hasattr(model, c.name)
-        }
+        base_cols = parse_model(model, Transaction)
         insert_tx = (
             insert(Transaction)
-            .values(**base_cols)
+            .values(
+                # id=uuid7(),
+                **base_cols,
+            )
             .on_conflict_do_nothing(
                 constraint="uix_transaction_controller_transaction_id"
             )
@@ -49,12 +48,15 @@ class TransactionRepository(BaseRepository):
         if not inserted_id:
             return False
 
-        child_cols = {
-            c.name: getattr(model, c.name)
-            for c in WaterVendingTransaction.__table__.columns
-            if hasattr(model, c.name)
-        }
-        await self.session.execute(insert(WaterVendingTransaction).values(**child_cols))
+        child_cols = parse_model(model, WaterVendingTransaction)
+
+        await self.session.execute(
+            insert(WaterVendingTransaction).values(
+                # id=uuid7(),
+                transaction_id=inserted_id,
+                **child_cols,
+            )
+        )
         return True
 
     async def _get_list(
