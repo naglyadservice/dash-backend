@@ -3,7 +3,6 @@ from dataclasses import dataclass
 import pytest
 from dishka import AsyncContainer
 
-from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.presentation.callbacks_wsm.payment_card_get import (
     payment_card_get_callback,
@@ -29,7 +28,6 @@ async def deps(request_di_container: AsyncContainer):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_payment_card_get_callback(di_container: AsyncContainer):
-    wsm_client = await di_container.get(WsmClient)
     await payment_card_get_callback(
         "test_device_id",
         {"request_id": 1, "created": "test_created", "cardUID": "test_card_uid"},

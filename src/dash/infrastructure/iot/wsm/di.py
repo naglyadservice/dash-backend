@@ -4,6 +4,7 @@ from dishka import AsyncContainer
 
 from dash.main.config import MqttConfig
 from dash.presentation.callbacks_wsm.denomination import denomination_callback
+from dash.presentation.callbacks_wsm.payment_card_get import payment_card_get_callback
 from dash.presentation.callbacks_wsm.sale import sale_callback
 from dash.presentation.callbacks_wsm.state_info import state_info_callback
 
@@ -24,4 +25,5 @@ async def get_npc_client(
         client.dispatcher.state_info.register_callback(state_info_callback)  # type: ignore
         client.dispatcher.sale.register_callback(sale_callback)  # type: ignore
         client.dispatcher.denomination.register_callback(denomination_callback)  # type: ignore
+        client.dispatcher.payment_card_get.register_callback(payment_card_get_callback)  # type: ignore
         yield client

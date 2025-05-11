@@ -17,6 +17,7 @@ class WsmDispatcher(_Dispatcher):
         self.action_ack = MessageHandler(topic="/+/server/action/ack", is_ack=True)
         self.payment_ack = MessageHandler(topic="/+/server/payment/ack", is_ack=True)
         self.sale = MessageHandler(topic="/+/server/sale/set")
+        self.payment_card_get = MessageHandler(topic="/+/server/payment/card/get")
 
 
 class WsmClient(_NpcClient[WsmDispatcher]):
