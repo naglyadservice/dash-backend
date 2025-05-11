@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 
@@ -7,29 +6,13 @@ from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dash.infrastructure.iot.wsm.client import WsmClient
-from dash.infrastructure.repositories.company import CompanyRepository
 from dash.presentation.callbacks_wsm.sale import (
     SaleCallbackPayload,
     sale_callabck_retort,
 )
-from dash.services.company.company import CompanyService
 from tests.environment import TestEnvironment
 
 pytestmark = pytest.mark.usefixtures("create_tables")
-
-
-@dataclass
-class CompanyDependencies:
-    company_service: CompanyService
-    company_repository: CompanyRepository
-
-
-@pytest.fixture
-async def deps(request_di_container: AsyncContainer):
-    return CompanyDependencies(
-        company_service=await request_di_container.get(CompanyService),
-        company_repository=await request_di_container.get(CompanyRepository),
-    )
 
 
 @pytest.mark.asyncio(loop_scope="session")
