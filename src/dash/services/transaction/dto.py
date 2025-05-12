@@ -12,7 +12,7 @@ from dash.services.common.pagination import Pagination
 class TransactionBase(BaseModel):
     id: UUID
     type: TransactionType
-    controller_transaction_id: UUID
+    controller_transaction_id: int
     controller_id: UUID
     location_id: UUID | None
     coin_amount: int
