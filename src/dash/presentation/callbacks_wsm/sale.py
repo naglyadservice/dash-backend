@@ -116,7 +116,10 @@ async def sale_callback(
             card_id=cast(str, data.card_uid),
         )
         if customer is not None:
-            customer.balance = Decimal(cast(int, data.card_balance_out)) / 100
+            card_balance_in = cast(int, data.card_balance_in)
+            card_balance_out = cast(int, data.card_balance_out)
+
+            customer.balance -= Decimal(card_balance_in - card_balance_out) / 100
         else:
             logger.error(
                 "Customer not found",
