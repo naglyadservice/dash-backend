@@ -106,8 +106,8 @@ async def payment_card_get_callback(
             "request_id": data.request_id,
             "cardUID": data.card_uid,
             "balance": int(customer.balance * 100),  # Баланс карты в копейках
-            "tariffPerLiter1": tariffPerLiter1,  # Тариф 1 для этой карты (в копейках за литр)
-            "tariffPerLiter2": tariffPerLiter2,  # Тариф 2 для этой карты (в копейках за литр)
+            "tariffPerLiter_1": tariffPerLiter1,  # Тариф 1 для этой карты (в копейках за литр)
+            "tariffPerLiter_2": tariffPerLiter2,  # Тариф 2 для этой карты (в копейках за литр)
             # "replenishmentRatio": 100,  # Коэффициент пополнения (например, 110 = 10% бонус)
             "code": 0,
         },
