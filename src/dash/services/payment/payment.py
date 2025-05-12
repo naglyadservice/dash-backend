@@ -65,6 +65,8 @@ class PaymentService:
         )
 
     async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:
+        location_id = None
+
         if data.location_id:
             location_id = data.location_id
 
@@ -74,5 +76,8 @@ class PaymentService:
                 raise ControllerNotFoundError
             location_id = controller.location_id
 
-        await self.identity_provider.ensure_location_admin(location_id)
+        if location_id is not None:
+            # TODO: MAKE NORMAL AUTH !!!
+            await self.identity_provider.ensure_location_admin(location_id)
+
         return await self.payment_repository.get_stats(data)
