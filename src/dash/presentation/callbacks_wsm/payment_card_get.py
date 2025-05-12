@@ -50,19 +50,27 @@ async def payment_card_get_callback(
 
     if controller is None:
         logger.info(
-            "Ignoring payment from controller, controller not found by device_id",
+            "Ignoring card_request from controller, controller not found by device_id",
             device_id=device_id,
             card_id=data.card_uid,
         )
         return
 
+    if controller.company_id is None:
+        logger.info(
+            "Ignoring card_request from controller, company_id is None",
+            device_id=device_id,
+            controller_id=controller.id,
+        )
+        return
+
     customer = await customer_repository.get_by_card_id(
-        company_id=controller.id, card_id=data.card_uid
+        company_id=controller.company_id, card_id=data.card_uid
     )
 
     if customer is None:
         logger.info(
-            "Ignoring payment from controller, customer not found by card_id",
+            "Ignoring card_request from controller, customer not found by card_id",
             device_id=device_id,
             card_id=data.card_uid,
         )
