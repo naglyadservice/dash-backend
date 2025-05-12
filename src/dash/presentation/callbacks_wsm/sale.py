@@ -123,6 +123,7 @@ async def sale_callback(
                 company_id=company_id,
                 card_id=data.card_uid,
             )
+            await wsm_client.sale_ack(device_id, data.id)
             return
 
         customer.balance = Decimal(cast(int, data.card_balance_out)) / 100
