@@ -85,14 +85,29 @@ async def payment_card_get_callback(
         )
         return
 
+    # TODO: FIIIIIXX THIS
+    tariffPerLiter1 = 100
+    tariffPerLiter2 = 150
+
+    try:
+        tariffPerLiter1 = controller.settings["tariffPerLiter_1"]
+        tariffPerLiter2 = controller.settings["tariffPerLiter_2"]
+    except Exception as e:
+        logger.info(
+            "Fail to get tariffPerLiter_1 or tariffPerLiter_2",
+            device_id=device_id,
+            card_id=data.card_uid,
+            error=e,
+        )
+
     await wsm_client.respond_payment_cart(
         device_id=device_id,
         payload={
             "request_id": data.request_id,
             "cardUID": data.card_uid,
             "balance": int(customer.balance * 100),  # Баланс карты в копейках
-            # "tariffPerLiter1": 160,  # Тариф 1 для этой карты (в копейках за литр)
-            # "tariffPerLiter2": 200,  # Тариф 2 для этой карты (в копейках за литр)
+            "tariffPerLiter1": tariffPerLiter1,  # Тариф 1 для этой карты (в копейках за литр)
+            "tariffPerLiter2": tariffPerLiter2,  # Тариф 2 для этой карты (в копейках за литр)
             "replenishmentRatio": 100,  # Коэффициент пополнения (например, 110 = 10% бонус)
             "code": 0,
         },
