@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import cast
 
 import structlog
-from adaptix import Retort, dumper, loader, name_mapping
+from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
@@ -15,7 +15,7 @@ from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WaterVendingTransaction
 
-from .di_injector import inject, parse_paylaad, request_scope
+from .di_injector import datetime_recipe, inject, parse_paylaad, request_scope
 
 logger = structlog.get_logger()
 
@@ -40,8 +40,7 @@ class SaleCallbackPayload:
 
 sale_callabck_retort = Retort(
     recipe=[
-        loader(datetime, lambda s: datetime.strptime(s, "%d.%m.%YT%H:%M:%S")),  # noqa: DTZ007
-        dumper(datetime, lambda dt: dt.strftime("%d.%m.%YT%H:%M:%S")),
+        *datetime_recipe,
         name_mapping(
             SaleCallbackPayload,
             map={
