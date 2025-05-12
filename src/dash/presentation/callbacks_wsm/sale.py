@@ -115,7 +115,9 @@ async def sale_callback(
             company_id=company_id,
             card_id=cast(str, data.card_uid),
         )
-        if customer is None:
+        if customer is not None:
+            customer.balance = Decimal(cast(int, data.card_balance_out)) / 100
+        else:
             logger.error(
                 "Customer not found",
                 device_id=device_id,
@@ -123,10 +125,6 @@ async def sale_callback(
                 company_id=company_id,
                 card_id=data.card_uid,
             )
-            await wsm_client.sale_ack(device_id, data.id)
-            return
-
-        customer.balance = Decimal(cast(int, data.card_balance_out)) / 100
 
     await transaction_repository.commit()
 
