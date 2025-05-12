@@ -54,6 +54,9 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
+        await wsm_client.respond_payment_cart(
+            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
+        )
         return
 
     if controller.company_id is None:
@@ -61,6 +64,9 @@ async def payment_card_get_callback(
             "Ignoring card_request from controller, company_id is None",
             device_id=device_id,
             controller_id=controller.id,
+        )
+        await wsm_client.respond_payment_cart(
+            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
 
@@ -74,6 +80,9 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
+        await wsm_client.respond_payment_cart(
+            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
+        )
         return
 
     await wsm_client.respond_payment_cart(
@@ -85,5 +94,6 @@ async def payment_card_get_callback(
             # "tariffPerLiter1": 160,  # Тариф 1 для этой карты (в копейках за литр)
             # "tariffPerLiter2": 200,  # Тариф 2 для этой карты (в копейках за литр)
             "replenishmentRatio": 100,  # Коэффициент пополнения (например, 110 = 10% бонус)
+            "code": 0,
         },
     )
