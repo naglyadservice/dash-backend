@@ -8,11 +8,12 @@ from dash.models.payment import PaymentStatus, PaymentType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 
+
 class BasePaymentFilters(BaseModel):
     controller_id: UUID | None = None
     location_id: UUID | None = None
     company_id: UUID | None = None
-    
+
     @model_validator(mode="before")
     @classmethod
     def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -22,12 +23,13 @@ class BasePaymentFilters(BaseModel):
             values.get("company_id"),
         ]
         active_filters = [f for f in filters if f is not None]
-        
+
         if len(active_filters) > 1:
             raise ValidationError(
                 "Only one filter can be used at a time. Please use either 'controller_id', 'location_id', or 'company_id'"
             )
         return values
+
 
 class PaymentScheme(BaseModel):
     id: UUID

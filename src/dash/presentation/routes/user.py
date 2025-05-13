@@ -44,4 +44,3 @@ async def delete_user(
     user_service: FromDishka[UserService], data: DeleteUserRequest = Depends()
 ) -> None:
     return await user_service.delete_user(data)
-

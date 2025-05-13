@@ -29,6 +29,7 @@ async def create_location(
 
 @location_router.get("")
 async def read_locations(
-    location_service: FromDishka[LocationService], data: ReadLocationListRequest = Depends()
+    location_service: FromDishka[LocationService],
+    data: ReadLocationListRequest = Depends(),
 ) -> ReadLocationListResponse:
     return await location_service.read_locations(data)

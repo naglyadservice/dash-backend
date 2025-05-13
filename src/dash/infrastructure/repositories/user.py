@@ -76,3 +76,6 @@ class UserRepository(BaseRepository):
             LocationAdmin.user_id == user_id, LocationAdmin.location_id == location_id
         )
         await self.session.execute(stmt)
+
+    async def delete_user(self, user: AdminUser) -> None:
+        await self.session.delete(user)

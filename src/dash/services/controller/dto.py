@@ -15,7 +15,7 @@ class ControllerID(BaseModel):
 class BaseControllerFilters(BaseModel):
     location_id: UUID | None = None
     company_id: UUID | None = None
-    
+
     @model_validator(mode="before")
     @classmethod
     def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -24,7 +24,7 @@ class BaseControllerFilters(BaseModel):
             values.get("company_id"),
         ]
         active_filters = [f for f in filters if f is not None]
-        
+
         if len(active_filters) > 1:
             raise ValidationError(
                 "Only one filter can be used at a time. Please use either 'location_id', or 'company_id'"

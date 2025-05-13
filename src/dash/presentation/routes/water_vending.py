@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from uuid import UUID
 
 from dishka import FromDishka
@@ -74,12 +75,20 @@ async def send_action(
     )
 
 
+@dataclass
+class DelayDTO:
+    delay: int
+
+
 @water_vending_router.post("/{controller_id}/reboot", status_code=204)
 async def reboot_controller(
     water_vending_service: FromDishka[WaterVendingService],
-    data: RebootControllerRequest,
+    data: DelayDTO,
+    controller_id: UUID,
 ) -> None:
-    return await water_vending_service.reboot_controller(data)
+    return await water_vending_service.reboot_controller(
+        RebootControllerRequest(controller_id=controller_id, delay=data.delay)
+    )
 
 
 @water_vending_router.post("/{controller_id}/payments/qr", status_code=204)

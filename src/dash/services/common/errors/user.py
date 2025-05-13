@@ -9,5 +9,20 @@ class UserNotFoundError(EntityNotFoundError):
 
 
 @dataclass
-class EmailAlreadyTakenError(ApplicationError):
+class ConflictError(ApplicationError):
+    message: str = "Conflict error"
+
+
+@dataclass
+class EmailAlreadyTakenError(ConflictError):
     message: str = "Email already taken"
+
+
+@dataclass
+class CardIdAlreadyTakenError(ConflictError):
+    message: str = "Card ID already taken"
+
+
+@dataclass
+class CustomerNotFoundError(EntityNotFoundError):
+    message: str = "Customer not found"

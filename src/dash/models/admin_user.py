@@ -1,4 +1,5 @@
 from enum import Enum
+from uuid import UUID
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +23,7 @@ class AdminUser(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column()
     password_hash: Mapped[str] = mapped_column()
     role: Mapped[AdminRole] = mapped_column()
+    company_id: Mapped[UUID | None] = mapped_column()
 
     companies: Mapped[list["Company"]] = relationship(back_populates="owner")
     administrated_locations: Mapped[list["Location"]] = relationship(

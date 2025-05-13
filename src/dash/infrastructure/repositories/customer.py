@@ -51,8 +51,21 @@ class CustomerRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
+    async def exists_by_card_id(self, company_id: UUID, card_id: str) -> bool:
+        stmt = select(
+            exists().where(
+                Customer.card_id == card_id,
+                Customer.company_id == company_id,
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
     async def get_list(self, company_id: UUID) -> Sequence[Customer]:
         stmt = select(Customer).where(Customer.company_id == company_id)
 
         result = await self.session.scalars(stmt)
         return result.unique().all()
+
+    async def delete(self, customer: Customer) -> None:
+        await self.session.delete(customer)

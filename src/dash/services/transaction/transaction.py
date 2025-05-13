@@ -54,7 +54,9 @@ class TransactionService:
 
         if data.controller_id:
             controller = await self.controller_repository.get(data.controller_id)
-            await self.identity_provider.ensure_location_admin(controller and controller.location_id)
+            await self.identity_provider.ensure_location_admin(
+                controller and controller.location_id
+            )
             transactions, total = await self.transaction_repository.get_list_all(data)
 
         elif data.location_id:
