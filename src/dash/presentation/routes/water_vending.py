@@ -77,7 +77,7 @@ async def send_action(
 @water_vending_router.post("/{controller_id}/reboot", status_code=204)
 async def reboot_controller(
     water_vending_service: FromDishka[WaterVendingService],
-    data: RebootControllerRequest = Depends(),
+    data: RebootControllerRequest,
 ) -> None:
     return await water_vending_service.reboot_controller(data)
 
