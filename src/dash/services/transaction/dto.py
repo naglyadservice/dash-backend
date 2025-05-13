@@ -56,6 +56,7 @@ class ReadTransactionListResponse(BaseModel):
 
 
 class GetTransactionStatsRequest(BaseModel):
+    company_id: UUID | None = None
     location_id: UUID | None = None
     controller_id: UUID | None = None
     period: int

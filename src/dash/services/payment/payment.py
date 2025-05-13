@@ -65,19 +65,24 @@ class PaymentService:
         )
 
     async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:
-        location_id = None
+        user = await self.identity_provider.authorize()
 
-        if data.location_id:
-            location_id = data.location_id
+        if data.company_id:
+            await self.identity_provider.ensure_company_owner(data.company_id)
 
-        if data.controller_id:
+        elif data.location_id:
+            await self.identity_provider.ensure_location_admin(data.location_id)
+
+        elif data.controller_id:
             controller = await self.controller_repository.get(data.controller_id)
             if not controller:
                 raise ControllerNotFoundError
-            location_id = controller.location_id
+            await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        if location_id is not None:
-            # TODO: MAKE NORMAL AUTH !!!
-            await self.identity_provider.ensure_location_admin(location_id)
+        else:
+            if user.role is AdminRole.COMPANY_OWNER:
+                return await self.payment_repository.get_stats_by_owner(data, user.id)
+            if user.role is AdminRole.LOCATION_ADMIN:
+                return await self.payment_repository.get_stats_by_admin(data, user.id)
 
         return await self.payment_repository.get_stats(data)

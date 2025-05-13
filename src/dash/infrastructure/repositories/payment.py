@@ -71,7 +71,11 @@ class PaymentRepository(BaseRepository):
         )
         return await self._get_list(data, whereclause)
 
-    async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:
+    async def _get_stats(
+        self,
+        data: GetPaymentStatsRequest,
+        whereclause: ColumnElement[Any] | None = None,
+    ) -> GetPaymentStatsResponse:
         date_expression = cast(Payment.created_at, Date).label("date")
         now = datetime.now()
 
@@ -104,6 +108,9 @@ class PaymentRepository(BaseRepository):
             .order_by(date_expression)
         )
 
+        if whereclause is not None:
+            stmt = stmt.where(whereclause)
+
         if data.location_id:
             stmt = stmt.join(Controller).where(
                 Controller.location_id == data.location_id
@@ -118,3 +125,22 @@ class PaymentRepository(BaseRepository):
         return GetPaymentStatsResponse(
             statistics=[PaymentStatDTO.model_validate(row) for row in rows]
         )
+
+    async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:
+        return await self._get_stats(data)
+
+    async def get_stats_by_owner(
+        self, data: GetPaymentStatsRequest, user_id: UUID
+    ) -> GetPaymentStatsResponse:
+        whereclause = Payment.location_id.in_(
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
+        )
+        return await self._get_stats(data, whereclause)
+
+    async def get_stats_by_admin(
+        self, data: GetPaymentStatsRequest, user_id: UUID
+    ) -> GetPaymentStatsResponse:
+        whereclause = Payment.location_id.in_(
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
+        )
+        return await self._get_stats(data, whereclause)

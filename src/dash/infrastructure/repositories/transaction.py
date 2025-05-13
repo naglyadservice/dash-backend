@@ -106,8 +106,10 @@ class TransactionRepository(BaseRepository):
         )
         return await self._get_list(data, whereclause)
 
-    async def get_stats(
-        self, data: GetTransactionStatsRequest
+    async def _get_stats(
+        self,
+        data: GetTransactionStatsRequest,
+        whereclause: ColumnElement[Any] | None = None,
     ) -> GetTransactionStatsResponse:
         date_expression = cast(Transaction.created_at, Date).label("date")
         water_vending_t = aliased(WaterVendingTransaction)
@@ -144,9 +146,33 @@ class TransactionRepository(BaseRepository):
         if data.controller_id:
             stmt = stmt.where(Transaction.controller_id == data.controller_id)
 
+        if whereclause is not None:
+            stmt = stmt.where(whereclause)
+
         result = await self.session.execute(stmt)
         rows = result.mappings().fetchall()
 
         return GetTransactionStatsResponse(
             statistics=[TransactionStatDTO.model_validate(row) for row in rows]
         )
+
+    async def get_stats(
+        self, data: GetTransactionStatsRequest
+    ) -> GetTransactionStatsResponse:
+        return await self._get_stats(data)
+
+    async def get_stats_by_owner(
+        self, data: GetTransactionStatsRequest, user_id: UUID
+    ) -> GetTransactionStatsResponse:
+        whereclause = Transaction.location_id.in_(
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
+        )
+        return await self._get_stats(data, whereclause)
+
+    async def get_stats_by_admin(
+        self, data: GetTransactionStatsRequest, user_id: UUID
+    ) -> GetTransactionStatsResponse:
+        whereclause = Transaction.location_id.in_(
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
+        )
+        return await self._get_stats(data, whereclause)
