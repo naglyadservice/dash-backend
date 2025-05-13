@@ -9,6 +9,27 @@ from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 
 
+class BaseTransactionFilters(BaseModel):
+    controller_id: UUID | None = None
+    location_id: UUID | None = None
+    company_id: UUID | None = None
+    
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        filters = [
+            values.get("controller_id"),
+            values.get("location_id"),
+            values.get("company_id"),
+        ]
+        active_filters = [f for f in filters if f is not None]
+        
+        if len(active_filters) > 1:
+            raise ValidationError(
+                "Only one filter can be used at a time. Please use either 'controller_id', 'location_id', or 'company_id'"
+            )
+        return values
+
 class TransactionBase(BaseModel):
     id: UUID
     type: TransactionType
@@ -36,19 +57,8 @@ class WaterVendingTransactionScheme(TransactionBase):
 TRANSACTION_SCHEME_TYPE = WaterVendingTransactionScheme
 
 
-class ReadTransactionListRequest(Pagination):
-    company_id: UUID | None = None
-    controller_id: UUID | None = None
-    location_id: UUID | None = None
-
-    @model_validator(mode="before")
-    @classmethod
-    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if any([values["controller_id"], values["location_id"], values["company_id"]]):
-            raise ValidationError(
-                "Filters 'controller_id', 'location_id' and 'company_id' cannot be used together"
-            )
-        return values
+class ReadTransactionListRequest(Pagination, BaseTransactionFilters):
+    pass
 
 
 class ReadTransactionListResponse(BaseModel):
@@ -56,10 +66,7 @@ class ReadTransactionListResponse(BaseModel):
     total: int
 
 
-class GetTransactionStatsRequest(BaseModel):
-    company_id: UUID | None = None
-    location_id: UUID | None = None
-    controller_id: UUID | None = None
+class GetTransactionStatsRequest(BaseTransactionFilters):
     period: int
 
 

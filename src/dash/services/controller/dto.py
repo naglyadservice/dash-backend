@@ -1,20 +1,39 @@
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.models.controllers.controller import ControllerStatus, ControllerType
+from dash.services.common.errors.base import ValidationError
+from dash.services.common.pagination import Pagination
 
 
 class ControllerID(BaseModel):
     controller_id: UUID
 
 
-class ReadControllerListRequest(BaseModel):
-    type: ControllerType | None = None
+class BaseControllerFilters(BaseModel):
     location_id: UUID | None = None
     company_id: UUID | None = None
-    offset: int = 0
-    limit: int = 10
+    
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        filters = [
+            values.get("location_id"),
+            values.get("company_id"),
+        ]
+        active_filters = [f for f in filters if f is not None]
+        
+        if len(active_filters) > 1:
+            raise ValidationError(
+                "Only one filter can be used at a time. Please use either 'location_id', or 'company_id'"
+            )
+        return values
+
+
+class ReadControllerListRequest(Pagination, BaseControllerFilters):
+    type: ControllerType | None = None
 
 
 class ControllerScheme(BaseModel):

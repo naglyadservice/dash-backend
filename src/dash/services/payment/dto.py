@@ -8,6 +8,26 @@ from dash.models.payment import PaymentStatus, PaymentType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 
+class BasePaymentFilters(BaseModel):
+    controller_id: UUID | None = None
+    location_id: UUID | None = None
+    company_id: UUID | None = None
+    
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        filters = [
+            values.get("controller_id"),
+            values.get("location_id"),
+            values.get("company_id"),
+        ]
+        active_filters = [f for f in filters if f is not None]
+        
+        if len(active_filters) > 1:
+            raise ValidationError(
+                "Only one filter can be used at a time. Please use either 'controller_id', 'location_id', or 'company_id'"
+            )
+        return values
 
 class PaymentScheme(BaseModel):
     id: UUID
@@ -21,25 +41,8 @@ class PaymentScheme(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ReadPaymentListRequest(Pagination):
-    company_id: UUID | None = None
-    controller_id: UUID | None = None
-    location_id: UUID | None = None
-
-    @model_validator(mode="before")
-    @classmethod
-    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if any(
-            [
-                values.get("controller_id"),
-                values.get("location_id"),
-                values.get("company_id"),
-            ]
-        ):
-            raise ValidationError(
-                "Filters 'controller_id', 'location_id' and 'company_id' cannot be used together"
-            )
-        return values
+class ReadPaymentListRequest(Pagination, BasePaymentFilters):
+    pass
 
 
 class ReadPaymentListResponse(BaseModel):
@@ -47,10 +50,7 @@ class ReadPaymentListResponse(BaseModel):
     total: int
 
 
-class GetPaymentStatsRequest(BaseModel):
-    company_id: UUID | None = None
-    location_id: UUID | None = None
-    controller_id: UUID | None = None
+class GetPaymentStatsRequest(BasePaymentFilters):
     period: int
 
 
