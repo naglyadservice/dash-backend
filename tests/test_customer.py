@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 
 import pytest
 from dishka import AsyncContainer
@@ -50,6 +51,11 @@ async def test_create_customer(
             email="test@test.com",
             card_id="test",
             balance=100,
+            birth_date=date(2000, 1, 1),
+            phone_number="1234567890",
+            discount_percent=10,
+            tariff_per_liter_1=100,
+            tariff_per_liter_2=100,
         )
     )
     assert await deps.customer_repository.exists_by_id(

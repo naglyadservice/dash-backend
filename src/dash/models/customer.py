@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
@@ -18,6 +19,15 @@ class Customer(Base, UUIDMixin, TimestampMixin):
     balance: Mapped[Decimal] = mapped_column(
         Numeric(10, 2, asdecimal=True), default=Decimal("0.00")
     )
+    tariff_per_liter_1: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2, asdecimal=True)
+    )
+    tariff_per_liter_2: Mapped[Decimal | None] = mapped_column(
+        Numeric(10, 2, asdecimal=True)
+    )
+    birth_date: Mapped[date | None] = mapped_column()
+    phone_number: Mapped[str | None] = mapped_column()
+    discount_percent: Mapped[int | None] = mapped_column()
 
     __table_args__ = (
         UniqueConstraint(

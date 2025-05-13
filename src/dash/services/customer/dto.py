@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr
@@ -5,12 +6,21 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from dash.services.common.pagination import Pagination
 
 
-class CreateCustomerRequest(BaseModel):
-    company_id: UUID
+class BaseCustomer(BaseModel):
     name: str
-    email: EmailStr | None
-    card_id: str | None
+    company_id: UUID
+    card_id: str
     balance: float
+    email: EmailStr | None
+    birth_date: date | None
+    phone_number: str | None
+    discount_percent: int | None
+    tariff_per_liter_1: float | None
+    tariff_per_liter_2: float | None
+
+
+class CreateCustomerRequest(BaseCustomer):
+    pass
 
 
 class CreateCustomerResponse(BaseModel):
@@ -22,6 +32,11 @@ class EditCustomerDTO(BaseModel):
     email: EmailStr | None = None
     card_id: str | None = None
     balance: float | None = None
+    birth_date: date | None = None
+    phone_number: str | None = None
+    discount_percent: int | None = None
+    tariff_per_liter_1: float | None = None
+    tariff_per_liter_2: float | None = None
 
 
 class EditCustomerRequest(BaseModel):
@@ -33,12 +48,8 @@ class DeleteCustomerRequest(BaseModel):
     id: UUID
 
 
-class CustomerScheme(BaseModel):
+class CustomerScheme(BaseCustomer):
     id: UUID
-    name: str | None
-    email: EmailStr | None
-    card_id: str | None
-    balance: float
 
     model_config = ConfigDict(from_attributes=True)
 

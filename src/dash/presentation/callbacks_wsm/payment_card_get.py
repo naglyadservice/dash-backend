@@ -24,7 +24,7 @@ class PaymentCardGetRequest:
     card_uid: str
 
 
-payment_cart_get_retort = Retort(
+payment_card_get_retort = Retort(
     recipe=[
         *datetime_recipe,
         name_mapping(
@@ -36,7 +36,7 @@ payment_cart_get_retort = Retort(
 
 
 @tracer.wrap()
-@parse_paylaad(retort=payment_cart_get_retort)
+@parse_paylaad(retort=payment_card_get_retort)
 @request_scope
 @inject
 async def payment_card_get_callback(
@@ -54,7 +54,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
-        await wsm_client.respond_payment_cart(
+        await wsm_client.respond_payment_card(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -65,7 +65,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             controller_id=controller.id,
         )
-        await wsm_client.respond_payment_cart(
+        await wsm_client.respond_payment_card(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -80,35 +80,35 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
-        await wsm_client.respond_payment_cart(
+        await wsm_client.respond_payment_card(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
 
-    # TODO: FIIIIIXX THIS
-    tariffPerLiter1 = 100
-    tariffPerLiter2 = 150
+    tariff_per_liter_1 = customer.tariff_per_liter_1 or (
+        controller.settings and controller.settings.get("tariffPerLiter_1")
+    )
+    tariff_per_liter_2 = customer.tariff_per_liter_2 or (
+        controller.settings and controller.settings.get("tariffPerLiter_2")
+    )
 
-    try:
-        tariffPerLiter1 = controller.settings["tariffPerLiter_1"]  # type: ignore
-        tariffPerLiter2 = controller.settings["tariffPerLiter_2"]  # type: ignore
-    except Exception as e:
+    if not tariff_per_liter_1 or not tariff_per_liter_2:
         logger.info(
-            "Fail to get tariffPerLiter_1 or tariffPerLiter_2",
+            "Ignoring card_request from controller, tariffPerLiter is not found",
             device_id=device_id,
             card_id=data.card_uid,
-            error=e,
         )
+        return
 
-    await wsm_client.respond_payment_cart(
+    await wsm_client.respond_payment_card(
         device_id=device_id,
         payload={
             "request_id": data.request_id,
             "cardUID": data.card_uid,
-            "balance": int(customer.balance * 100),  # Баланс карты в копейках
-            "tariffPerLiter_1": tariffPerLiter1,  # Тариф 1 для этой карты (в копейках за литр)
-            "tariffPerLiter_2": tariffPerLiter2,  # Тариф 2 для этой карты (в копейках за литр)
-            # "replenishmentRatio": 100,  # Коэффициент пополнения (например, 110 = 10% бонус)
+            "balance": int(customer.balance * 100),
+            "tariffPerLiter_1": tariff_per_liter_1,
+            "tariffPerLiter_2": tariff_per_liter_2,
+            "replenishmentRatio": 100 + (customer.discount_percent or 0),
             "code": 0,
         },
     )
