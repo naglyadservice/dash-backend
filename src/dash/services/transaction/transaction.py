@@ -54,14 +54,14 @@ class TransactionService:
 
         if data.controller_id:
             controller = await self.controller_repository.get(data.controller_id)
-            if not controller:
-                raise ControllerNotFoundError
-            await self.identity_provider.ensure_location_admin(controller.location_id)
+            await self.identity_provider.ensure_location_admin(controller and controller.location_id)
+            transactions, total = await self.transaction_repository.get_list_all(data)
 
         elif data.location_id:
             await self.identity_provider.ensure_location_admin(
                 location_id=data.location_id
             )
+            transactions, total = await self.transaction_repository.get_list_all(data)
         else:
             transactions, total = await self._get_transactions_by_role(data, user)
 
