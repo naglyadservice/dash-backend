@@ -1,9 +1,11 @@
+from typing import Sequence
+
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
-from dash.models.admin_user import AdminRole
+from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.controllers.carwash import CarwashController
-from dash.models.controllers.controller import ControllerType
+from dash.models.controllers.controller import Controller, ControllerType
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.errors.base import AccessForbiddenError
@@ -32,6 +34,19 @@ class ControllerService:
         self.controller_repository = controller_repository
         self.location_repository = location_repository
 
+    async def _get_controllers_by_role(
+        self, data: ReadControllerListRequest, user: AdminUser
+    ) -> tuple[Sequence[Controller], int]:
+        match user.role:
+            case AdminRole.SUPERADMIN:
+                return await self.controller_repository.get_list_all(data)
+            case AdminRole.COMPANY_OWNER:
+                return await self.controller_repository.get_list_by_owner(data, user.id)
+            case AdminRole.LOCATION_ADMIN:
+                return await self.controller_repository.get_list_by_admin(data, user.id)
+            case _:
+                raise AccessForbiddenError
+
     async def read_controllers(
         self, data: ReadControllerListRequest
     ) -> ReadControllerResponse:
@@ -39,19 +54,17 @@ class ControllerService:
 
         if data.location_id:
             await self.identity_provider.ensure_location_admin(data.location_id)
-
-        if user.role is AdminRole.SUPERADMIN:
-            controllers, total = await self.controller_repository.get_list_all(data)
-        elif user.role is AdminRole.COMPANY_OWNER:
-            controllers, total = await self.controller_repository.get_list_by_owner(
-                data, user.id
-            )
-        elif user.role is AdminRole.LOCATION_ADMIN:
             controllers, total = await self.controller_repository.get_list_by_admin(
                 data, user.id
             )
+
+        elif data.company_id:
+            await self.identity_provider.ensure_company_owner(data.company_id)
+            controllers, total = await self.controller_repository.get_list_by_owner(
+                data, user.id
+            )
         else:
-            raise AccessForbiddenError
+            controllers, total = await self._get_controllers_by_role(data, user)
 
         return ReadControllerResponse(
             controllers=[

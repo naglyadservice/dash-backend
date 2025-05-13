@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
 
-from adaptix import Retort, name_mapping
+from adaptix import Retort
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
@@ -15,20 +14,12 @@ from .di_injector import datetime_recipe, inject, parse_paylaad, request_scope
 
 @dataclass
 class DenominationCallbackPayload:
-    created: str
+    created: datetime
     coin: str
     bill: int
 
 
-denomination_callback_retort = Retort(
-    recipe=[
-        *datetime_recipe,
-        name_mapping(
-            DenominationCallbackPayload,
-            map={"card_uid": "cardUID"},
-        ),
-    ]
-)
+denomination_callback_retort = Retort(recipe=[*datetime_recipe])
 
 
 @tracer.wrap()
@@ -37,7 +28,7 @@ denomination_callback_retort = Retort(
 @inject
 async def denomination_callback(
     device_id: str,
-    data: dict[str, Any],
+    data: DenominationCallbackPayload,
     payment_repository: FromDishka[PaymentRepository],
     controller_repository: FromDishka[ControllerRepository],
 ) -> None:
@@ -46,12 +37,12 @@ async def denomination_callback(
     if controller is None:
         return
 
-    if data.get("bill"):
-        amount = data["bill"]
+    if data.bill:
+        amount = data.bill
         type = PaymentType.BILL
 
-    elif data.get("coin"):
-        amount = data["coin"]
+    elif data.coin:
+        amount = data.coin
         type = PaymentType.COIN
 
     else:
@@ -63,7 +54,7 @@ async def denomination_callback(
         amount=amount,
         status=PaymentStatus.COMPLETED,
         type=type,
-        created_at_controller=datetime.fromisoformat(data["time"]),
+        created_at_controller=data.created,
     )
 
     payment_repository.add(payment)

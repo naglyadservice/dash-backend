@@ -28,25 +28,30 @@ class PaymentRepository(BaseRepository):
         data: ReadPaymentListRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Payment], int]:
-        stmt = (
-            select(Payment)
-            .order_by(Payment.created_at.desc())
-            .offset(data.offset)
-            .limit(data.limit)
-        )
-        if data.controller_id is not None:
+        stmt = select(Payment)
+
+        if data.company_id is not None:
+            stmt = stmt.join(Location).where(Location.company_id == data.company_id)
+
+        elif data.controller_id is not None:
             stmt = stmt.where(Payment.controller_id == data.controller_id)
 
         elif data.location_id is not None:
-            stmt = stmt.join(Controller).where(
-                Controller.location_id == data.location_id
-            )
+            stmt = stmt.where(Payment.location_id == data.location_id)
 
-        if whereclause is not None:
+        elif whereclause is not None:
             stmt = stmt.where(whereclause)
 
-        result = await self.session.scalars(stmt)
-        return result.all(), await self._get_count(stmt)
+        paginated_stmt = (
+            stmt.order_by(Payment.created_at.desc())
+            .offset(data.offset)
+            .limit(data.limit)
+        )
+
+        paginated = (await self.session.scalars(paginated_stmt)).unique().all()
+        total = await self._get_count(stmt)
+
+        return paginated, total
 
     async def get_list_all(
         self, data: ReadPaymentListRequest
@@ -65,9 +70,7 @@ class PaymentRepository(BaseRepository):
         self, data: ReadPaymentListRequest, user_id: UUID
     ) -> tuple[Sequence[Payment], int]:
         whereclause = Payment.location_id.in_(
-            select(Location.id)
-            .outerjoin(LocationAdmin)
-            .where(LocationAdmin.user_id == user_id)
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_list(data, whereclause)
 
@@ -108,16 +111,19 @@ class PaymentRepository(BaseRepository):
             .order_by(date_expression)
         )
 
-        if whereclause is not None:
-            stmt = stmt.where(whereclause)
+        if data.company_id:
+            stmt = stmt.join(Controller).where(Controller.company_id == data.company_id)
 
-        if data.location_id:
+        elif data.location_id:
             stmt = stmt.join(Controller).where(
                 Controller.location_id == data.location_id
             )
 
-        if data.controller_id:
+        elif data.controller_id:
             stmt = stmt.where(Payment.controller_id == data.controller_id)
+
+        elif whereclause is not None:
+            stmt = stmt.where(whereclause)
 
         result = await self.session.execute(stmt)
         rows = result.mappings().fetchall()

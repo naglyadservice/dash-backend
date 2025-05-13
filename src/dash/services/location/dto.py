@@ -2,6 +2,8 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from dash.services.common.pagination import Pagination
+
 
 class CreateLocationRequest(BaseModel):
     company_id: UUID
@@ -36,5 +38,10 @@ class LocationScheme(BaseModel):
     company: CompanyDTO
 
 
+class ReadLocationListRequest(Pagination):
+    company_id: UUID | None = None
+
+
 class ReadLocationListResponse(BaseModel):
     locations: list[LocationScheme]
+    total: int

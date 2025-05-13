@@ -37,15 +37,16 @@ TRANSACTION_SCHEME_TYPE = WaterVendingTransactionScheme
 
 
 class ReadTransactionListRequest(Pagination):
+    company_id: UUID | None = None
     controller_id: UUID | None = None
     location_id: UUID | None = None
 
     @model_validator(mode="before")
     @classmethod
     def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values["controller_id"] and values["location_id"]:
+        if any([values["controller_id"], values["location_id"], values["company_id"]]):
             raise ValidationError(
-                "Filters 'controller_id' and 'location_id' cannot be used together"
+                "Filters 'controller_id', 'location_id' and 'company_id' cannot be used together"
             )
         return values
 

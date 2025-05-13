@@ -5,12 +5,13 @@ from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.models.admin_user import AdminRole
 from dash.models.location import Location
-from dash.services.common.errors.base import AccessDeniedError
+from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.company import CompanyNotFoundError
 from dash.services.location.dto import (
     CreateLocationRequest,
     CreateLocationResponse,
     LocationScheme,
+    ReadLocationListRequest,
     ReadLocationListResponse,
 )
 
@@ -48,21 +49,34 @@ class LocationService:
 
         return CreateLocationResponse(location_id=location.id)
 
-    async def read_locations(self) -> ReadLocationListResponse:
+    async def read_locations(
+        self, data: ReadLocationListRequest
+    ) -> ReadLocationListResponse:
         user = await self.identity_provider.authorize()
 
-        if user.role is AdminRole.SUPERADMIN:
-            locations = await self.location_repository.get_list_all()
-        elif user.role is AdminRole.COMPANY_OWNER:
-            locations = await self.location_repository.get_list_by_owner(user.id)
-        elif user.role is AdminRole.LOCATION_ADMIN:
-            locations = await self.location_repository.get_list_by_admin(user.id)
+        if data.company_id is not None:
+            await self.identity_provider.ensure_company_owner(data.company_id)
+            locations, total = await self.location_repository.get_list_all(data)
+
         else:
-            raise AccessDeniedError
+            match user.role:
+                case AdminRole.SUPERADMIN:
+                    locations, total = await self.location_repository.get_list_all(data)
+                case AdminRole.COMPANY_OWNER:
+                    locations, total = await self.location_repository.get_list_by_owner(
+                        data, user.id
+                    )
+                case AdminRole.LOCATION_ADMIN:
+                    locations, total = await self.location_repository.get_list_by_admin(
+                        data, user.id
+                    )
+                case _:
+                    raise AccessForbiddenError
 
         return ReadLocationListResponse(
             locations=[
                 LocationScheme.model_validate(location, from_attributes=True)
                 for location in locations
-            ]
+            ],
+            total=total,
         )

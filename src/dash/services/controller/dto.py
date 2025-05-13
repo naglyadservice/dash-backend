@@ -12,6 +12,9 @@ class ControllerID(BaseModel):
 class ReadControllerListRequest(BaseModel):
     type: ControllerType | None = None
     location_id: UUID | None = None
+    company_id: UUID | None = None
+    offset: int = 0
+    limit: int = 10
 
 
 class ControllerScheme(BaseModel):

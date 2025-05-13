@@ -6,7 +6,7 @@ from dishka import AsyncContainer
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminUser
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.location.dto import CreateLocationRequest
+from dash.services.location.dto import CreateLocationRequest, ReadLocationListRequest
 from dash.services.location.location import LocationService
 from tests.environment import TestEnvironment
 
@@ -75,5 +75,5 @@ async def test_create_location(
 )
 @pytest.mark.asyncio(loop_scope="session")
 async def test_read_locations(deps: LocationDependencies, user: AdminUser, result: int):
-    response = await deps.location_service.read_locations()
+    response = await deps.location_service.read_locations(ReadLocationListRequest())
     assert len(response.locations) == result

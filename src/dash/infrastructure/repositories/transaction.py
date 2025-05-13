@@ -9,6 +9,7 @@ from sqlalchemy.orm import aliased, selectin_polymorphic
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.base import Base
 from dash.models.company import Company
+from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.transaction import Transaction
@@ -71,17 +72,29 @@ class TransactionRepository(BaseRepository):
             .limit(data.limit)
             .options(loader_opt)
         )
-        if whereclause is not None:
-            stmt = stmt.where(whereclause)
 
-        if data.controller_id is not None:
+        if data.company_id is not None:
+            stmt = stmt.join(Controller).where(Location.company_id == data.company_id)
+
+        elif data.controller_id is not None:
             stmt = stmt.where(Transaction.controller_id == data.controller_id)
 
         elif data.location_id is not None:
             stmt = stmt.where(Transaction.location_id == data.location_id)
 
-        result = await self.session.scalars(stmt)
-        return result.unique().all(), await self._get_count(stmt)
+        elif whereclause is not None:
+            stmt = stmt.where(whereclause)
+
+        paginated_stmt = (
+            stmt.order_by(Transaction.created_at.desc())
+            .offset(data.offset)
+            .limit(data.limit)
+        )
+
+        paginated = (await self.session.scalars(paginated_stmt)).unique().all()
+        total = await self._get_count(stmt)
+
+        return paginated, total
 
     async def get_list_all(
         self, data: ReadTransactionListRequest
@@ -100,9 +113,7 @@ class TransactionRepository(BaseRepository):
         self, data: ReadTransactionListRequest, user_id: UUID
     ) -> tuple[Sequence[Transaction], int]:
         whereclause = Transaction.location_id.in_(
-            select(Location.id)
-            .outerjoin(LocationAdmin)
-            .where(LocationAdmin.user_id == user_id)
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_list(data, whereclause)
 
@@ -140,13 +151,16 @@ class TransactionRepository(BaseRepository):
             .order_by(date_expression)
         )
 
-        if data.location_id:
+        if data.company_id:
+            stmt = stmt.join(Controller).where(Controller.company_id == data.company_id)
+
+        elif data.location_id:
             stmt = stmt.where(Transaction.location_id == data.location_id)
 
-        if data.controller_id:
+        elif data.controller_id:
             stmt = stmt.where(Transaction.controller_id == data.controller_id)
 
-        if whereclause is not None:
+        elif whereclause is not None:
             stmt = stmt.where(whereclause)
 
         result = await self.session.execute(stmt)

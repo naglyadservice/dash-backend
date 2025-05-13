@@ -1,8 +1,11 @@
+from typing import Sequence
+
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
-from dash.models.admin_user import AdminRole
+from dash.models.admin_user import AdminRole, AdminUser
+from dash.models.transactions.transaction import Transaction
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.transaction.dto import (
@@ -27,6 +30,23 @@ class TransactionService:
         self.location_repository = location_repository
         self.controller_repository = controller_repository
 
+    async def _get_transactions_by_role(
+        self, data: ReadTransactionListRequest, user: AdminUser
+    ) -> tuple[Sequence[Transaction], int]:
+        match user.role:
+            case AdminRole.SUPERADMIN:
+                return await self.transaction_repository.get_list_all(data)
+            case AdminRole.COMPANY_OWNER:
+                return await self.transaction_repository.get_list_by_owner(
+                    data, user.id
+                )
+            case AdminRole.LOCATION_ADMIN:
+                return await self.transaction_repository.get_list_by_admin(
+                    data, user.id
+                )
+            case _:
+                raise AccessForbiddenError
+
     async def read_transactions(
         self, data: ReadTransactionListRequest
     ) -> ReadTransactionListResponse:
@@ -42,25 +62,12 @@ class TransactionService:
             await self.identity_provider.ensure_location_admin(
                 location_id=data.location_id
             )
-
-        if user.role is AdminRole.SUPERADMIN:
-            transactions, total = await self.transaction_repository.get_list_all(data)
-        elif user.role is AdminRole.COMPANY_OWNER:
-            transactions, total = await self.transaction_repository.get_list_by_owner(
-                data, user.id
-            )
-        elif user.role is AdminRole.LOCATION_ADMIN:
-            transactions, total = await self.transaction_repository.get_list_by_admin(
-                data, user.id
-            )
         else:
-            raise AccessForbiddenError
+            transactions, total = await self._get_transactions_by_role(data, user)
 
         return ReadTransactionListResponse(
             transactions=[
-                WaterVendingTransactionScheme.model_validate(
-                    transaction, from_attributes=True
-                )
+                WaterVendingTransactionScheme.model_validate(transaction)
                 for transaction in transactions
             ],
             total=total,
@@ -88,7 +95,7 @@ class TransactionService:
                 return await self.transaction_repository.get_stats_by_owner(
                     data, user.id
                 )
-            if user.role is AdminRole.LOCATION_ADMIN:
+            elif user.role is AdminRole.LOCATION_ADMIN:
                 return await self.transaction_repository.get_stats_by_admin(
                     data, user.id
                 )
