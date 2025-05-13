@@ -110,7 +110,7 @@ class WsmClient(_NpcClient[WsmDispatcher]):
             ttl=ttl,
         )
 
-    async def respond_payment_cart(
+    async def respond_payment_card(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
     ) -> ResponseWaiter[dict[str, Any]]:
         return await self._send_message(
