@@ -2,6 +2,7 @@ import secrets
 
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
+from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.location_admin import LocationAdmin
@@ -12,6 +13,7 @@ from dash.services.user.dto import (
     AddLocationAdminResponse,
     CreateUserRequest,
     CreateUserResponse,
+    DeleteUserRequest,
     ReadUserListResponse,
     RemoveLocationAdminRequest,
     UserDTO,
@@ -21,14 +23,14 @@ from dash.services.user.dto import (
 class UserService:
     def __init__(
         self,
-        user_repository: UserRepository,
+        user_repository: UserRepository,        customer_repository: CustomerRepository,
         identity_provider: IdProvider,
         password_processor: PasswordProcessor,
     ) -> None:
         self.user_repository = user_repository
         self.identity_provider = identity_provider
         self.password_processor = password_processor
-
+        
     async def _create_user(
         self, data: CreateUserRequest, role: AdminRole
     ) -> CreateUserResponse:
@@ -55,6 +57,7 @@ class UserService:
 
     async def create_company_owner(self, data: CreateUserRequest) -> CreateUserResponse:
         return await self._create_user(data, role=AdminRole.COMPANY_OWNER)
+    
 
     async def add_location_admin(
         self, data: AddLocationAdminRequest
@@ -80,7 +83,7 @@ class UserService:
 
         return AddLocationAdminResponse(user=new_user)
 
-    async def remove_location_admin(self, data: RemoveLocationAdminRequest) -> None:
+    async def remove_admin_from_location(self, data: RemoveLocationAdminRequest) -> None:
         await self.identity_provider.ensure_company_owner(data.location_id)
 
         if not await self.user_repository.is_location_admin(
@@ -89,6 +92,21 @@ class UserService:
             raise UserNotFoundError
 
         await self.user_repository.delete_location_admin(data.user_id, data.location_id)
+        await self.user_repository.commit()
+        
+    async def delete_user(self, data: DeleteUserRequest) -> None:
+        user = await self.user_repository.get(data.id)
+        if not user:
+            raise UserNotFoundError
+        
+        if user.role is AdminRole.COMPANY_OWNER:
+            await self.identity_provider.ensure_superadmin()
+        elif user.role is AdminRole.LOCATION_ADMIN:
+            await self.identity_provider.ensure_company_owner(user.company_id)
+        else:
+            raise AccessForbiddenError
+        
+        await self.user_repository.delete_user(user)
         await self.user_repository.commit()
 
     async def read_users(self) -> ReadUserListResponse:

@@ -56,3 +56,6 @@ class AddLocationAdminResponse(BaseModel):
 class RemoveLocationAdminRequest(BaseModel):
     location_id: UUID
     user_id: UUID
+
+class DeleteUserRequest(BaseModel):
+    id: UUID

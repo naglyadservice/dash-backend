@@ -1,11 +1,12 @@
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.user.dto import (
     AddLocationAdminRequest,
     AddLocationAdminResponse,
+    DeleteUserRequest,
     ReadUserListResponse,
     RemoveLocationAdminRequest,
 )
@@ -32,7 +33,15 @@ async def add_location_admin(
 
 
 @user_router.delete("/location-admins")
-async def remove_location_admin(
+async def remove_admin_from_location(
     user_service: FromDishka[UserService], data: RemoveLocationAdminRequest
 ) -> None:
-    return await user_service.remove_location_admin(data)
+    return await user_service.remove_admin_from_location(data)
+
+
+@user_router.delete("/{id}")
+async def delete_user(
+    user_service: FromDishka[UserService], data: DeleteUserRequest = Depends()
+) -> None:
+    return await user_service.delete_user(data)
+
