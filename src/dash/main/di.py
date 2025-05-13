@@ -36,6 +36,7 @@ from dash.main.config import (
 )
 from dash.services.company.company import CompanyService
 from dash.services.controller.controller import ControllerService
+from dash.services.customer.customer import CustomerService
 from dash.services.location.location import LocationService
 from dash.services.payment.payment import PaymentService
 from dash.services.transaction.transaction import TransactionService
@@ -82,6 +83,7 @@ def provide_services() -> Provider:
         LocationService,
         UserService,
         CompanyService,
+        CustomerService,
     )
     return provider
 

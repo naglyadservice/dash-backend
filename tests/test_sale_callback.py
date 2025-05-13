@@ -37,17 +37,17 @@ async def test_payment_card_balance_out(
         out_liters_1=7,
         out_liters_2=8,
         sale_type="card",
-        card_uid=test_env.customer.card_id,
+        card_uid=test_env.customer_1.card_id,
         card_balance_in=10000,
         card_balance_out=int(card_balance_out * 100),
     )
 
-    await wsm_client.dispatcher.sale._process_callbacks(
+    await wsm_client.dispatcher.sale._process_callbacks(  # type: ignore
         device_id="test_device_id_1",
         decoded_payload=sale_callabck_retort.dump(payload),
         di_container=di_container,
     )
 
-    await session.refresh(test_env.customer)
+    await session.refresh(test_env.customer_1)
 
-    assert test_env.customer.balance == card_balance_out
+    assert test_env.customer_1.balance == card_balance_out

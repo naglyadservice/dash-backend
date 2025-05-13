@@ -90,8 +90,8 @@ async def payment_card_get_callback(
     tariffPerLiter2 = 150
 
     try:
-        tariffPerLiter1 = controller.settings["tariffPerLiter_1"]
-        tariffPerLiter2 = controller.settings["tariffPerLiter_2"]
+        tariffPerLiter1 = controller.settings["tariffPerLiter_1"]  # type: ignore
+        tariffPerLiter2 = controller.settings["tariffPerLiter_2"]  # type: ignore
     except Exception as e:
         logger.info(
             "Fail to get tariffPerLiter_1 or tariffPerLiter_2",

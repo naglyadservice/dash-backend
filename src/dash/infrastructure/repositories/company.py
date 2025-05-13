@@ -24,7 +24,7 @@ class CompanyRepository(BaseRepository):
             stmt = stmt.where(whereclause)
 
         result = await self.session.scalars(stmt)
-        return result.all()
+        return result.unique().all()
 
     async def get_list_all(self) -> Sequence[Company]:
         return await self._get_list()

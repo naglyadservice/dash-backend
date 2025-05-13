@@ -25,7 +25,9 @@ class AdminUser(Base, UUIDMixin, TimestampMixin):
     role: Mapped[AdminRole] = mapped_column()
     company_id: Mapped[UUID | None] = mapped_column()
 
-    companies: Mapped[list["Company"]] = relationship(back_populates="owner")
+    companies: Mapped[list["Company"]] = relationship(
+        back_populates="owner", lazy="joined"
+    )
     administrated_locations: Mapped[list["Location"]] = relationship(
         secondary="location_admins",
         primaryjoin="AdminUser.id == LocationAdmin.user_id",

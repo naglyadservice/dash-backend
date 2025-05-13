@@ -98,7 +98,9 @@ class ControllerService:
         if not controller:
             raise ControllerNotFoundError
 
-        await self.identity_provider.ensure_company_owner(controller.location_id)
+        await self.identity_provider.ensure_company_owner(
+            location_id=controller.location_id
+        )
 
         controller.monopay_token = data.monopay.token
         controller.monopay_active = data.monopay.is_active
@@ -110,7 +112,9 @@ class ControllerService:
         if not controller:
             raise ControllerNotFoundError
 
-        await self.identity_provider.ensure_company_owner(controller.location_id)
+        await self.identity_provider.ensure_company_owner(
+            location_id=controller.location_id
+        )
 
         controller.liqpay_private_key = data.liqpay.private_key
         controller.liqpay_public_key = data.liqpay.public_key

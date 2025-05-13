@@ -1,0 +1,46 @@
+from uuid import UUID
+
+from dishka import FromDishka
+from dishka.integrations.fastapi import DishkaRoute
+from fastapi import APIRouter, Depends
+
+from dash.services.customer.customer import CustomerService
+from dash.services.customer.dto import (
+    CreateCustomerRequest,
+    DeleteCustomerRequest,
+    EditCustomerDTO,
+    EditCustomerRequest,
+    ReadCustomerListRequest,
+)
+
+customer_router = APIRouter(
+    prefix="/customers", tags=["CUSTOMERS"], route_class=DishkaRoute
+)
+
+
+@customer_router.post("")
+async def create_customer(
+    service: FromDishka[CustomerService], data: CreateCustomerRequest
+):
+    return await service.create_customer(data)
+
+
+@customer_router.get("")
+async def read_customers(
+    service: FromDishka[CustomerService], data: ReadCustomerListRequest = Depends()
+):
+    return await service.read_customers(data)
+
+
+@customer_router.patch("/{id}")
+async def edit_customer(
+    service: FromDishka[CustomerService], data: EditCustomerDTO, id: UUID
+):
+    return await service.edit_customer(EditCustomerRequest(id=id, user=data))
+
+
+@customer_router.delete("/{id}")
+async def delete_customer(
+    service: FromDishka[CustomerService], data: DeleteCustomerRequest = Depends()
+):
+    return await service.delete_customer(data)

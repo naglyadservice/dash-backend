@@ -1,11 +1,13 @@
-from typing import Sequence
+from typing import Any, Sequence
 from uuid import UUID
 
-from sqlalchemy import exists, select
+from sqlalchemy import ColumnElement, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models import Customer
+from dash.models.company import Company
+from dash.services.customer.dto import ReadCustomerListRequest
 
 
 class CustomerRepository(BaseRepository):
@@ -61,11 +63,47 @@ class CustomerRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
-    async def get_list(self, company_id: UUID) -> Sequence[Customer]:
-        stmt = select(Customer).where(Customer.company_id == company_id)
-
-        result = await self.session.scalars(stmt)
-        return result.unique().all()
-
     async def delete(self, customer: Customer) -> None:
         await self.session.delete(customer)
+
+    async def _get_list(
+        self,
+        data: ReadCustomerListRequest,
+        whereclause: ColumnElement[Any] | None = None,
+    ) -> tuple[Sequence[Customer], int]:
+        stmt = select(Customer)
+
+        if data.company_id is not None:
+            stmt = stmt.where(Customer.company_id == data.company_id)
+
+        elif whereclause is not None:
+            stmt = stmt.where(whereclause)
+        paginated_stmt = (
+            stmt.order_by(Customer.created_at.desc())
+            .offset(data.offset)
+            .limit(data.limit)
+        )
+
+        paginated = (await self.session.scalars(paginated_stmt)).unique().all()
+        total = await self._get_count(stmt)
+
+        return paginated, total
+
+    async def get_list_all(
+        self, data: ReadCustomerListRequest
+    ) -> tuple[Sequence[Customer], int]:
+        return await self._get_list(data)
+
+    async def get_list_by_owner(
+        self, data: ReadCustomerListRequest, user_id: UUID
+    ) -> tuple[Sequence[Customer], int]:
+        whereclause = Customer.company_id.in_(
+            select(Company.id).where(Company.owner_id == user_id)
+        )
+        return await self._get_list(data, whereclause)
+
+    async def get_list_by_admin(
+        self, data: ReadCustomerListRequest, company_id: UUID
+    ) -> tuple[Sequence[Customer], int]:
+        whereclause = Customer.company_id == company_id
+        return await self._get_list(data, whereclause)

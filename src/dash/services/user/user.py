@@ -64,7 +64,7 @@ class UserService:
     async def add_location_admin(
         self, data: AddLocationAdminRequest
     ) -> AddLocationAdminResponse:
-        await self.identity_provider.ensure_company_owner(data.location_id)
+        await self.identity_provider.ensure_company_owner(location_id=data.location_id)
 
         location = await self.location_repository.get(data.location_id)
         if not location:
@@ -99,7 +99,7 @@ class UserService:
     async def remove_admin_from_location(
         self, data: RemoveLocationAdminRequest
     ) -> None:
-        await self.identity_provider.ensure_company_owner(data.location_id)
+        await self.identity_provider.ensure_company_owner(location_id=data.location_id)
 
         if not await self.user_repository.is_location_admin(
             data.user_id, data.location_id

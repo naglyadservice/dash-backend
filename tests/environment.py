@@ -68,6 +68,7 @@ class TestEnvironment:
         )
 
         self.location_admin_1 = AdminUser(
+            company_id=self.company_1.id,
             name="Test Location Admin",
             email="test_location_admin_1@test.com",
             password_hash="test",
@@ -75,6 +76,7 @@ class TestEnvironment:
         )
 
         self.location_admin_2 = AdminUser(
+            company_id=self.company_2.id,
             name="Test Location Admin 2",
             email="test_location_admin_2@test.com",
             password_hash="test",
@@ -100,12 +102,19 @@ class TestEnvironment:
             status=ControllerStatus.ACTIVE,
         )
 
-        self.customer = Customer(
+        self.customer_1 = Customer(
             company_id=self.company_1.id,
-            email="test_customer@test.com",
-            name="Test Customer",
+            email="test_customer_1@test.com",
+            name="Test Customer 1",
             card_id="test_card_id",
             balance=Decimal("100.00"),
+        )
+        self.customer_2 = Customer(
+            company_id=self.company_2.id,
+            email="test_customer_2@test.com",
+            name="Test Customer 2",
+            card_id="test_card_id_2",
+            balance=Decimal("200.00"),
         )
 
         db_session.add_all(
@@ -118,7 +127,8 @@ class TestEnvironment:
                 LocationAdmin(
                     location_id=self.location_2.id, user_id=self.location_admin_2.id
                 ),
-                self.customer,
+                self.customer_1,
+                self.customer_2,
             )
         )
         await db_session.commit()

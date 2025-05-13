@@ -50,7 +50,19 @@ class UserRepository(BaseRepository):
         result = await self.session.scalars(stmt)
         return result.unique().all()
 
-    async def is_company_owner(self, user_id: UUID, location_id: UUID) -> bool:
+    async def is_company_owner(self, user_id: UUID, company_id: UUID) -> bool:
+        stmt = select(
+            exists().where(
+                Company.id == company_id,
+                Company.owner_id == user_id,
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
+
+    async def is_company_owner_by_location_id(
+        self, user_id: UUID, location_id: UUID
+    ) -> bool:
         stmt = select(
             exists().where(
                 Location.id == location_id,

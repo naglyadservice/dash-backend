@@ -29,5 +29,5 @@ async def test_payment_card_get_callback(di_container: AsyncContainer):
     await payment_card_get_callback(
         "test_device_id",
         {"request_id": 1, "created": "test_created", "cardUID": "test_card_uid"},
-        di_container=di_container,
+        di_container=di_container,  # type: ignore
     )
