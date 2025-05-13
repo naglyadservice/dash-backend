@@ -1,6 +1,12 @@
 import click
 
 
+def enable_debugpy():
+    import debugpy  # noqa: T100
+
+    debugpy.listen(("0.0.0.0", 5678))  # noqa: S104, T100
+
+
 def enable_datadog():
     import ddtrace.auto  # noqa: F401
     import ddtrace.profiling.auto  # noqa: F401
@@ -24,6 +30,9 @@ def cli(ctx: click.Context):
         json_logs=config.logging.json_mode,
         colorize=config.logging.colorize,
     )
+
+    if config.app.enable_debugpy:
+        enable_debugpy()
 
 
 @cli.command()

@@ -54,6 +54,7 @@ class AppConfig(BaseSettings):
     proxy_headers: bool = Field(default=False)
     forwarded_allow_ips: str = Field(default="127.0.0.1")
     enable_datadog: bool = Field(default=False)
+    enable_debugpy: bool = Field(default=False)
 
 
 class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
