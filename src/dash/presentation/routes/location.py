@@ -1,11 +1,12 @@
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.location.dto import (
     CreateLocationRequest,
     CreateLocationResponse,
+    ReadLocationListRequest,
     ReadLocationListResponse,
 )
 from dash.services.location.location import LocationService
@@ -28,6 +29,6 @@ async def create_location(
 
 @location_router.get("")
 async def read_locations(
-    location_service: FromDishka[LocationService],
+    location_service: FromDishka[LocationService], data: ReadLocationListRequest = Depends()
 ) -> ReadLocationListResponse:
-    return await location_service.read_locations()
+    return await location_service.read_locations(data)
