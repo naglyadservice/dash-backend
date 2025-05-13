@@ -229,5 +229,5 @@ class WaterVendingService:
         await self._send_message(
             device_id=controller.device_id,
             topic="client/action/set",
-            payload=data.model_dump(exclude_unset=True),
+            payload=data.actions.model_dump(exclude_unset=True),
         )
