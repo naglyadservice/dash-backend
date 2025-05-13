@@ -22,8 +22,7 @@ class ControllerRepository(BaseRepository):
         if company_id:
             stmt = stmt.where(Controller.company_id == company_id)
 
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return await self.session.scalar(stmt)
 
     async def get_wsm_by_device_id(
         self, device_id: str
