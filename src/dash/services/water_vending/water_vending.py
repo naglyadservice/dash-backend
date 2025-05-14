@@ -1,7 +1,6 @@
-from typing import Any, Literal
+from typing import Any
 from uuid import UUID
 
-from npc_iot.exception import DeviceResponceError
 from sqlalchemy.orm.attributes import flag_modified
 
 from dash.infrastructure.auth.id_provider import IdProvider
@@ -12,8 +11,6 @@ from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
-    ControllerResponseError,
-    ControllerTimeoutError,
 )
 from dash.services.water_vending.dto import (
     ClearPaymentsRequest,
@@ -32,15 +29,15 @@ from dash.services.water_vending.dto import (
 class WaterVendingService:
     def __init__(
         self,
-        npc_client: WsmClient,
         controller_repository: ControllerRepository,
         identity_provider: IdProvider,
         iot_storage: IotStorage,
+        wsm_client: WsmClient,
     ):
-        self.npc_client = npc_client
         self.controller_repository = controller_repository
         self.identity_provider = identity_provider
         self.iot_storage = iot_storage
+        self.wsm_client = wsm_client
 
     async def _get_controller(self, controller_id: UUID) -> WaterVendingController:
         controller = await self.controller_repository.get_wsm(controller_id)
@@ -50,36 +47,8 @@ class WaterVendingService:
 
         return controller
 
-    async def _send_message(
-        self,
-        device_id: str,
-        topic: str,
-        payload: dict[str, Any],
-        qos: Literal[0, 1, 2] = 1,
-        ttl: int = 5,
-    ) -> dict[str, Any]:
-        waiter = await self.npc_client._send_message(
-            device_id=device_id,
-            topic=topic,
-            payload=payload,
-            qos=qos,
-            ttl=ttl,
-        )
-        try:
-            response = await waiter.wait(timeout=2)
-        except DeviceResponceError:
-            raise ControllerResponseError
-        except TimeoutError:
-            raise ControllerTimeoutError
-
-        return response
-
     async def healtcheck(self, device_id: str) -> None:
-        await self._send_message(
-            device_id=device_id,
-            topic="client/state/get",
-            payload={"fields": []},
-        )
+        await self.wsm_client.get_state(device_id)
 
     async def set_config(self, data: SetWaterVendingConfigRequest) -> None:
         controller = await self._get_controller(data.controller_id)
@@ -89,11 +58,8 @@ class WaterVendingService:
         )
 
         config_dict = data.config.model_dump(exclude_unset=True)
-
-        await self._send_message(
-            device_id=controller.device_id,
-            topic="client/config/set",
-            payload=config_dict,
+        await self.wsm_client.set_config(
+            device_id=controller.device_id, payload=config_dict
         )
 
         if controller.config:
@@ -112,11 +78,8 @@ class WaterVendingService:
         )
 
         settings_dict = data.settings.model_dump(exclude_unset=True)
-
-        await self._send_message(
-            device_id=controller.device_id,
-            topic="client/setting/set",
-            payload=settings_dict,
+        await self.wsm_client.set_settings(
+            device_id=controller.device_id, payload=settings_dict
         )
 
         if controller.settings:
@@ -127,37 +90,9 @@ class WaterVendingService:
 
         await self.controller_repository.commit()
 
-    async def _get_config(self, device_id: str) -> dict[str, Any] | None:
-        try:
-            return await self._send_message(
-                device_id=device_id,
-                topic="client/config/get",
-                payload={"fields": []},
-            )
-        except (ControllerResponseError, ControllerTimeoutError):
-            return None
-
-    async def _get_settings(self, device_id: str) -> dict[str, Any] | None:
-        try:
-            return await self._send_message(
-                device_id=device_id,
-                topic="client/setting/get",
-                payload={"fields": []},
-            )
-        except (ControllerResponseError, ControllerTimeoutError):
-            return None
-
     async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
         controller = await self._get_controller(data.controller_id)
-
-        display = await self._send_message(
-            device_id=controller.device_id,
-            topic="client/display/get",
-            payload={"fields": []},
-        )
-        return {
-            k: v for k, v in display.items() if v and v != " " and k != "request_id"
-        }
+        return await self.wsm_client.get_display(controller.device_id)
 
     async def read_controller(self, data: ControllerID) -> WaterVendingControllerScheme:
         controller = await self._get_controller(data.controller_id)
@@ -166,9 +101,13 @@ class WaterVendingService:
 
         if not controller.config or not controller.settings:
             if not controller.config:
-                controller.config = await self._get_config(controller.device_id)
+                controller.config = await self.wsm_client.get_config(
+                    device_id=controller.device_id
+                )
             if not controller.settings:
-                controller.settings = await self._get_settings(controller.device_id)
+                controller.settings = await self.wsm_client.get_settings(
+                    device_id=controller.device_id
+                )
 
             await self.controller_repository.commit()
 
@@ -181,15 +120,15 @@ class WaterVendingService:
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
         )
-
-        await self.npc_client.reboot(controller.device_id, {"delay": data.delay})
+        await self.wsm_client.reboot(
+            device_id=controller.device_id, payload={"delay": data.delay}
+        )
 
     async def send_qr_payment(self, data: SendQRPaymentRequest) -> None:
         controller = await self._get_controller(data.controller_id)
 
-        await self._send_message(
+        await self.wsm_client.set_payment(
             device_id=controller.device_id,
-            topic="client/payment/set",
             payload={
                 "addQRcode": {
                     "order_id": data.payment.order_id,
@@ -205,9 +144,8 @@ class WaterVendingService:
             location_id=controller.location_id
         )
 
-        await self._send_message(
+        await self.wsm_client.set_payment(
             device_id=controller.device_id,
-            topic="client/payment/set",
             payload={"addFree": {"amount": data.payment.amount}},
         )
         payment = Payment(
@@ -226,10 +164,8 @@ class WaterVendingService:
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
         )
-
-        await self._send_message(
+        await self.wsm_client.set_payment(
             device_id=controller.device_id,
-            topic="client/payment/set",
             payload=data.options.model_dump(exclude_unset=True),
         )
 
@@ -239,9 +175,7 @@ class WaterVendingService:
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
         )
-
-        await self._send_message(
+        await self.wsm_client.set_action(
             device_id=controller.device_id,
-            topic="client/action/set",
             payload=data.actions.model_dump(exclude_unset=True),
         )

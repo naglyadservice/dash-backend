@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Any, Literal, Self
 from uuid import UUID
@@ -104,15 +104,18 @@ class WaterVendingControllerScheme(BaseModel):
     config: WaterVendingConfig | None
     settings: WaterVendingSettings | None
     state: WaterVendingState | None = None
+    alert: str | None = None
 
     @classmethod
     def make(
         cls, controller: WaterVendingController, state: dict[str, Any] | None
     ) -> Self:
-        scheme = cls.model_validate(controller, from_attributes=True)
+        dto = cls.model_validate(controller, from_attributes=True)
         if state:
-            scheme.state = WaterVendingState.model_validate(state)
-        return scheme
+            dto.state = WaterVendingState.model_validate(state)
+            if dto.state.created + timedelta(minutes=5) < datetime.now():
+                dto.alert = "Контроллер не надсилав оновлення більше 5 хвилин"
+        return dto
 
 
 class PaymentClearOptionsDTO(BaseModel):

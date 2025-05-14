@@ -1,9 +1,14 @@
-from typing import Any
+from typing import Any, Literal, Mapping
 
 from npc_iot import Dispatcher as _Dispatcher
 from npc_iot import NpcClient as _NpcClient
 from npc_iot.dispatcher import MessageHandler
-from npc_iot.response import ResponseWaiter
+from npc_iot.exception import DeviceResponceError
+
+from dash.services.common.errors.controller import (
+    ControllerResponseError,
+    ControllerTimeoutError,
+)
 
 
 class WsmDispatcher(_Dispatcher):
@@ -21,10 +26,28 @@ class WsmDispatcher(_Dispatcher):
 
 
 class WsmClient(_NpcClient[WsmDispatcher]):
+    async def _wait_for_response(
+        self,
+        device_id: str,
+        topic: str,
+        qos: Literal[0, 1, 2],
+        payload: Mapping[str, Any] | None,
+        ttl: int | None,
+    ) -> dict[str, Any]:
+        waiter = await self._send_message(device_id, topic, qos, payload, ttl)
+        try:
+            response = await waiter.wait(timeout=1)
+        except DeviceResponceError:
+            raise ControllerResponseError
+        except TimeoutError:
+            raise ControllerTimeoutError
+
+        return response
+
     async def set_config(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
-        return await self._send_message(
+    ) -> dict[str, Any]:
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/config/set",
             qos=1,
@@ -34,11 +57,11 @@ class WsmClient(_NpcClient[WsmDispatcher]):
 
     async def get_config(
         self, device_id: str, fields: list | None = None, ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
+    ) -> dict[str, Any]:
         if fields is None:
             fields = []
 
-        return await self._send_message(
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/config/get",
             qos=1,
@@ -48,8 +71,8 @@ class WsmClient(_NpcClient[WsmDispatcher]):
 
     async def set_settings(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
-        return await self._send_message(
+    ) -> dict[str, Any]:
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/setting/set",
             qos=1,
@@ -59,11 +82,11 @@ class WsmClient(_NpcClient[WsmDispatcher]):
 
     async def get_settings(
         self, device_id: str, fields: list | None = None, ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
+    ) -> dict[str, Any]:
         if fields is None:
             fields = []
 
-        return await self._send_message(
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/setting/get",
             qos=1,
@@ -73,25 +96,22 @@ class WsmClient(_NpcClient[WsmDispatcher]):
 
     async def get_display(
         self, device_id: str, fields: list | None = None, ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
+    ) -> dict[str, Any]:
         if fields is None:
             fields = []
 
-        return await self._send_message(
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/display/get",
             qos=1,
             payload={"fields": fields},
             ttl=ttl,
         )
-        # return {
-        #     k: v for k, v in display.items() if v and v != " " and k != "request_id"
-        # }
 
     async def set_payment(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
-        return await self._send_message(
+    ) -> dict[str, Any]:
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/payment/set",
             qos=1,
@@ -101,8 +121,8 @@ class WsmClient(_NpcClient[WsmDispatcher]):
 
     async def set_action(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
-        return await self._send_message(
+    ) -> dict[str, Any]:
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/action/set",
             qos=1,
@@ -112,8 +132,8 @@ class WsmClient(_NpcClient[WsmDispatcher]):
 
     async def respond_payment_card(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> ResponseWaiter[dict[str, Any]]:
-        return await self._send_message(
+    ) -> dict[str, Any]:
+        return await self._wait_for_response(
             device_id=device_id,
             topic="client/payment/card",
             qos=1,
@@ -122,10 +142,24 @@ class WsmClient(_NpcClient[WsmDispatcher]):
         )
 
     async def sale_ack(self, device_id: str, transaction_id: int) -> None:
-        await self._send_message(
+        await self._wait_for_response(
             device_id=device_id,
             topic="client/sale/ack",
             payload={"id": transaction_id, "code": 0},
             qos=1,
             ttl=None,
+        )
+
+    async def get_state(
+        self, device_id: str, fields: list | None = None, ttl: int | None = 5
+    ) -> dict[str, Any]:
+        if fields is None:
+            fields = []
+
+        return await self._wait_for_response(
+            device_id=device_id,
+            topic="client/state/get",
+            payload={"fields": fields},
+            qos=1,
+            ttl=ttl,
         )

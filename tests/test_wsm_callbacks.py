@@ -50,7 +50,7 @@ async def test_state_info_callback(
     user,
 ):
     state = {
-        "created": "2025-05-14T20:28:01",
+        "created": "2000-01-01T12:00:00",
         "summaInBox": 500,
         "litersInTank": 7500,
         "operatingMode": "WAIT",
@@ -82,3 +82,4 @@ async def test_state_info_callback(
         ControllerID(controller_id=test_env.controller_1.id)
     )
     assert response.state == Retort().load(state, WaterVendingState)
+    assert response.alert is not None
