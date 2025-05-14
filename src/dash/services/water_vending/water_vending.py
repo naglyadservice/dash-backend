@@ -169,9 +169,7 @@ class WaterVendingService:
 
             await self.controller_repository.commit()
 
-        return WaterVendingControllerScheme.model_validate(
-            controller, from_attributes=True
-        )
+        return WaterVendingControllerScheme.model_validate(controller)
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
         controller = await self._get_controller(data.controller_id)

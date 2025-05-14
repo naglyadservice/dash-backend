@@ -3,7 +3,7 @@ from enum import StrEnum
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from dash.models.controllers.controller import ControllerType
 
@@ -103,6 +103,8 @@ class WaterVendingControllerScheme(BaseModel):
     config: WaterVendingConfig | None
     settings: WaterVendingSettings | None
     state: WaterVendingState | None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PaymentClearOptionsDTO(BaseModel):

@@ -67,12 +67,12 @@ class IdProvider:
             raise AccessForbiddenError
 
         if self._user.role is AdminRole.COMPANY_OWNER:
-            if company_id:
+            if company_id is not None:
                 if not await self.user_repository.is_company_owner(
                     self._user.id, company_id
                 ):
                     raise AccessForbiddenError
-            if location_id:
+            elif location_id is not None:
                 if not await self.user_repository.is_company_owner_by_location_id(
                     self._user.id, location_id
                 ):
@@ -93,7 +93,7 @@ class IdProvider:
             raise AccessForbiddenError
 
         if self._user.role is AdminRole.COMPANY_OWNER:
-            if not await self.user_repository.is_company_owner(
+            if not await self.user_repository.is_company_owner_by_location_id(
                 self._user.id, location_id
             ):
                 raise AccessForbiddenError
