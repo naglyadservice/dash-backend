@@ -1,10 +1,8 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import Any, Literal
+from typing import Any, Literal, Self
 from uuid import UUID
 
-from adaptix import Retort
-from adaptix.conversion import coercer, from_param, impl_converter, link_function
 from pydantic import BaseModel, Field
 
 from dash.models.controllers.controller import ControllerType
@@ -102,10 +100,19 @@ class WaterVendingControllerScheme(BaseModel):
     id: UUID
     device_id: str
     name: str | None
-    type: Literal[ControllerType.WATER_VENDING] = ControllerType.WATER_VENDING
+    type: Literal[ControllerType.WATER_VENDING]
     config: WaterVendingConfig | None
     settings: WaterVendingSettings | None
-    state: WaterVendingState | None
+    state: WaterVendingState | None = None
+
+    @classmethod
+    def make(
+        cls, controller: WaterVendingController, state: dict[str, Any] | None
+    ) -> Self:
+        scheme = cls.model_validate(controller, from_attributes=True)
+        if state:
+            scheme.state = WaterVendingState.model_validate(state)
+        return scheme
 
 
 class PaymentClearOptionsDTO(BaseModel):
@@ -153,23 +160,3 @@ class SendFreePaymentRequest(ControllerID):
 
 class GetDisplayInfoRequest(ControllerID):
     pass
-
-
-retort = Retort()
-
-
-@impl_converter(
-    recipe=[
-        link_function(lambda x: x.type, "type"),
-        link_function(lambda x: x.config, "config"),
-        link_function(lambda x: x.settings, "settings"),
-        coercer(
-            from_param("state"),
-            WaterVendingState | None,
-            func=lambda x: x and retort.load(x, WaterVendingState),
-        ),
-    ]
-)
-def convert_wsm_to_dto(
-    wsm: WaterVendingController, state: dict[str, Any] | None
-) -> WaterVendingControllerScheme: ...

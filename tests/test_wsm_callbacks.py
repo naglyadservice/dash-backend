@@ -2,11 +2,13 @@ import asyncio
 from dataclasses import dataclass
 
 import pytest
+from adaptix import Retort
 from dishka import AsyncContainer
 
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.storages.iot import IotStorage
 from dash.presentation.callbacks_wsm.payment_card_get import payment_card_get_callback
+from dash.services.water_vending.dto import ControllerID, WaterVendingState
 from dash.services.water_vending.water_vending import WaterVendingService
 from tests.environment import TestEnvironment
 
@@ -76,4 +78,7 @@ async def test_state_info_callback(
     )
     await asyncio.sleep(0.1)
 
-    assert await deps.iot_storage.get_state(test_env.controller_1.id) == state
+    response = await deps.wsm_service.read_controller(
+        ControllerID(controller_id=test_env.controller_1.id)
+    )
+    assert response.state == Retort().load(state, WaterVendingState)

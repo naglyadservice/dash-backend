@@ -26,7 +26,6 @@ from dash.services.water_vending.dto import (
     SetWaterVendingConfigRequest,
     SetWaterVendingSettingsRequest,
     WaterVendingControllerScheme,
-    convert_wsm_to_dto,
 )
 
 
@@ -174,7 +173,7 @@ class WaterVendingService:
             await self.controller_repository.commit()
 
         state = await self.iot_storage.get_state(controller.id)
-        return convert_wsm_to_dto(controller, state)
+        return WaterVendingControllerScheme.make(controller, state)
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
         controller = await self._get_controller(data.controller_id)
