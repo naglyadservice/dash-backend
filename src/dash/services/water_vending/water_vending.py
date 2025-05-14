@@ -7,6 +7,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.controller import (
@@ -25,6 +26,7 @@ from dash.services.water_vending.dto import (
     SetWaterVendingConfigRequest,
     SetWaterVendingSettingsRequest,
     WaterVendingControllerScheme,
+    convert_wsm_to_dto,
 )
 
 
@@ -34,10 +36,12 @@ class WaterVendingService:
         npc_client: WsmClient,
         controller_repository: ControllerRepository,
         identity_provider: IdProvider,
+        iot_storage: IotStorage,
     ):
         self.npc_client = npc_client
         self.controller_repository = controller_repository
         self.identity_provider = identity_provider
+        self.iot_storage = iot_storage
 
     async def _get_controller(self, controller_id: UUID) -> WaterVendingController:
         controller = await self.controller_repository.get_wsm(controller_id)
@@ -169,7 +173,8 @@ class WaterVendingService:
 
             await self.controller_repository.commit()
 
-        return WaterVendingControllerScheme.model_validate(controller)
+        state = await self.iot_storage.get_state(controller.id)
+        return convert_wsm_to_dto(controller, state)
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
         controller = await self._get_controller(data.controller_id)

@@ -4,6 +4,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.storages.iot import IotStorage
 
 from .di_injector import inject, request_scope
 
@@ -15,11 +16,11 @@ async def state_info_callback(
     device_id: str,
     data: dict[str, Any],
     controller_repository: FromDishka[ControllerRepository],
+    iot_storage: FromDishka[IotStorage],
 ) -> None:
     controller = await controller_repository.get_wsm_by_device_id(device_id)
 
     if controller is None:
         return
 
-    controller.state = data
-    await controller_repository.commit()
+    await iot_storage.set_state(data, controller.id)

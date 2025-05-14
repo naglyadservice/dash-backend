@@ -22,6 +22,7 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.acquring import AcquringStorage
+from dash.infrastructure.storages.iot import IotStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
 from dash.main.config import (
@@ -101,6 +102,7 @@ def provide_gateways() -> Provider:
         LocationRepository,
         SessionStorage,
         CompanyRepository,
+        IotStorage,
     )
     return provider
 
