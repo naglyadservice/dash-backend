@@ -108,8 +108,6 @@ async def sale_callback(
         sale_type=data.sale_type,
     )
 
-    was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
-
     if data.sale_type == "card":
         customer = await customer_repository.get_by_card_id(
             company_id=company_id,
@@ -120,6 +118,7 @@ async def sale_callback(
             card_balance_out = cast(int, data.card_balance_out)
 
             customer.balance -= Decimal(card_balance_in - card_balance_out) / 100
+            transaction.customer_id = customer.id
         else:
             logger.error(
                 "Customer not found",
@@ -129,8 +128,19 @@ async def sale_callback(
                 card_id=data.card_uid,
             )
 
-    await transaction_repository.commit()
+    was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
+    if not was_inserted:
+        logger.error(
+            "Transaction not inserted",
+            device_id=device_id,
+            controller_id=controller.id,
+            company_id=company_id,
+            card_id=data.card_uid,
+        )
+        return
+
+    await transaction_repository.commit()
     await wsm_client.sale_ack(device_id, data.id)
 
     logger.info(

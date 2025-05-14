@@ -31,6 +31,13 @@ class BaseTransactionFilters(BaseModel):
         return values
 
 
+class CustomerDTO(BaseModel):
+    id: UUID
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class TransactionBase(BaseModel):
     id: UUID
     type: TransactionType
@@ -45,6 +52,7 @@ class TransactionBase(BaseModel):
     paypass_amount: int
     created_at: datetime
     created_at_controller: datetime
+    customer: CustomerDTO | None
 
 
 class WaterVendingTransactionScheme(TransactionBase):

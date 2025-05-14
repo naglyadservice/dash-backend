@@ -3,9 +3,10 @@ from enum import StrEnum
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from dash.models.base import Base, CreatedAtMixin, UUIDMixin
+from dash.models.customer import Customer
 
 
 class TransactionType(StrEnum):
@@ -24,6 +25,9 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     location_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL")
     )
+    customer_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("customers.id", ondelete="SET NULL")
+    )
     coin_amount: Mapped[int] = mapped_column()
     bill_amount: Mapped[int] = mapped_column()
     prev_amount: Mapped[int] = mapped_column()
@@ -32,6 +36,8 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     paypass_amount: Mapped[int] = mapped_column()
     type: Mapped[TransactionType] = mapped_column()
     created_at_controller: Mapped[datetime] = mapped_column()
+
+    customer: Mapped["Customer"] = relationship(lazy="joined")
 
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "transaction"}
 
