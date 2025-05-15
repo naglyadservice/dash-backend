@@ -23,7 +23,6 @@ logger = structlog.get_logger()
 @dataclass
 class SaleCallbackPayload:
     id: int
-    created: datetime
     add_coin: int
     add_bill: int
     add_prev: int
@@ -33,6 +32,8 @@ class SaleCallbackPayload:
     out_liters_1: int
     out_liters_2: int
     sale_type: str
+    created: datetime | None = None
+    sended: datetime | None = None
     card_uid: str | None = None
     card_balance_in: int | None = None
     card_balance_out: int | None = None
@@ -102,7 +103,7 @@ async def sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         type=TransactionType.WATER_VENDING.value,
-        created_at_controller=data.created,
+        created_at_controller=data.created or data.sended,
         out_liters_1=data.out_liters_1,
         out_liters_2=data.out_liters_2,
         sale_type=data.sale_type,
