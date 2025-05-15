@@ -32,7 +32,7 @@ def get_arg_type(func, position):
     return hints.get(second_param)
 
 
-def parse_paylaad(retort: Retort | None = None):
+def parse_payload(retort: Retort | None = None):
     if retort is None:
         retort = default_retort
 
@@ -56,8 +56,11 @@ def request_scope(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         di_container: AsyncContainer = kwargs["di_container"]  # type: ignore
-        async with di_container(scope=Scope.REQUEST) as container:
-            kwargs["di_container"] = container
+        if di_container.scope is Scope.APP:
+            async with di_container(scope=Scope.REQUEST) as container:
+                kwargs["di_container"] = container
+                return await func(*args, **kwargs)
+        else:
             return await func(*args, **kwargs)
 
     return wrapper

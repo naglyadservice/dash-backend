@@ -15,7 +15,7 @@ from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WaterVendingTransaction
 
-from .di_injector import datetime_recipe, inject, parse_paylaad, request_scope
+from .di_injector import datetime_recipe, inject, parse_payload, request_scope
 
 logger = structlog.get_logger()
 
@@ -64,7 +64,7 @@ sale_callabck_retort = Retort(
 
 
 @tracer.wrap()
-@parse_paylaad(retort=sale_callabck_retort)
+@parse_payload(retort=sale_callabck_retort)
 @request_scope
 @inject
 async def sale_callback(

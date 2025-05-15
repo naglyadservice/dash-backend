@@ -2,6 +2,7 @@ from typing import Sequence
 
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.encashment import EncashmentRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.controllers.carwash import CarwashController
@@ -10,6 +11,10 @@ from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.errors.encashment import (
+    EncashmentAlreadyClosedError,
+    EncashmentNotFoundError,
+)
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.controller.dto import (
     AddControllerLocationRequest,
@@ -17,9 +22,13 @@ from dash.services.controller.dto import (
     AddControllerResponse,
     AddLiqpayCredentialsRequest,
     AddMonopayCredentialsRequest,
+    CloseEncashmentRequest,
     ControllerScheme,
+    EncashmentScheme,
     ReadControllerListRequest,
     ReadControllerResponse,
+    ReadEncashmentListRequest,
+    ReadEncashmentListResponse,
 )
 
 
@@ -29,10 +38,12 @@ class ControllerService:
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
         location_repository: LocationRepository,
+        encashment_repository: EncashmentRepository,
     ):
         self.identity_provider = identity_provider
         self.controller_repository = controller_repository
         self.location_repository = location_repository
+        self.encashment_repository = encashment_repository
 
     async def _get_controllers_by_role(
         self, data: ReadControllerListRequest, user: AdminUser
@@ -134,3 +145,43 @@ class ControllerService:
 
         controller.location_id = data.location_id
         await self.controller_repository.commit()
+
+    async def read_encashments(
+        self, data: ReadEncashmentListRequest
+    ) -> ReadEncashmentListResponse:
+        controller = await self.controller_repository.get_wsm(data.controller_id)
+        if not controller:
+            raise ControllerNotFoundError
+
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        encashments, total = await self.encashment_repository.get_list(data)
+
+        return ReadEncashmentListResponse(
+            encashments=[
+                EncashmentScheme.model_validate(encashment)
+                for encashment in encashments
+            ],
+            total=total,
+        )
+
+    async def close_encashment(self, data: CloseEncashmentRequest) -> None:
+        controller = await self.controller_repository.get(data.controller_id)
+        if not controller:
+            raise ControllerNotFoundError
+
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        encashment = await self.encashment_repository.get(
+            data.encashment_id, controller.id
+        )
+        if not encashment:
+            raise EncashmentNotFoundError
+
+        if encashment.is_closed:
+            raise EncashmentAlreadyClosedError
+
+        encashment.received_amount = data.received_amount
+        encashment.is_closed = True
+
+        await self.encashment_repository.commit()

@@ -24,3 +24,8 @@ class AccessForbiddenError(ApplicationError):
 @dataclass
 class ValidationError(ApplicationError):
     pass
+
+
+@dataclass
+class ConflictError(ApplicationError):
+    message: str = "Conflict error"

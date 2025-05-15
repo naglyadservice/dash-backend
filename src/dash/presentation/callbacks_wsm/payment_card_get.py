@@ -9,7 +9,7 @@ from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 
-from .di_injector import datetime_recipe, inject, parse_paylaad, request_scope
+from .di_injector import datetime_recipe, inject, parse_payload, request_scope
 
 logger = get_logger()
 
@@ -36,7 +36,7 @@ payment_card_get_retort = Retort(
 
 
 @tracer.wrap()
-@parse_paylaad(retort=payment_card_get_retort)
+@parse_payload(retort=payment_card_get_retort)
 @request_scope
 @inject
 async def payment_card_get_callback(
@@ -54,7 +54,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
-        await wsm_client.respond_payment_card(
+        await wsm_client.payment_card_ack(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -65,7 +65,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             controller_id=controller.id,
         )
-        await wsm_client.respond_payment_card(
+        await wsm_client.payment_card_ack(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -80,7 +80,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
-        await wsm_client.respond_payment_card(
+        await wsm_client.payment_card_ack(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -100,7 +100,7 @@ async def payment_card_get_callback(
         )
         return
 
-    await wsm_client.respond_payment_card(
+    await wsm_client.payment_card_ack(
         device_id=device_id,
         payload={
             "request_id": data.request_id,
@@ -108,7 +108,6 @@ async def payment_card_get_callback(
             "balance": int(customer.balance * 100),
             "tariffPerLiter_1": tariff_per_liter_1,
             "tariffPerLiter_2": tariff_per_liter_2,
-            "replenishmentRatio": 100 + (customer.discount_percent or 0),
             "code": 0,
         },
     )

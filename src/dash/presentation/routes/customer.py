@@ -7,12 +7,12 @@ from fastapi import APIRouter, Depends
 from dash.services.customer.customer import CustomerService
 from dash.services.customer.dto import (
     CreateCustomerRequest,
+    CreateCustomerResponse,
     DeleteCustomerRequest,
     EditCustomerDTO,
     EditCustomerRequest,
     ReadCustomerListRequest,
     ReadCustomerListResponse,
-    CreateCustomerResponse,
 )
 
 customer_router = APIRouter(

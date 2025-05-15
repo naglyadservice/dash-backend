@@ -11,6 +11,7 @@ from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
+    ControllerTimeoutError,
 )
 from dash.services.water_vending.dto import (
     ClearPaymentsRequest,
@@ -98,17 +99,26 @@ class WaterVendingService:
         controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_location_admin(controller.location_id)
+        commit = False
 
-        if not controller.config or not controller.settings:
-            if not controller.config:
+        if not controller.config:
+            try:
                 controller.config = await self.wsm_client.get_config(
                     device_id=controller.device_id
                 )
-            if not controller.settings:
+                commit = True
+            except ControllerTimeoutError:
+                pass
+        if not controller.settings:
+            try:
                 controller.settings = await self.wsm_client.get_settings(
                     device_id=controller.device_id
                 )
+                commit = True
+            except ControllerTimeoutError:
+                pass
 
+        if commit:
             await self.controller_repository.commit()
 
         state = await self.iot_storage.get_state(controller.id)

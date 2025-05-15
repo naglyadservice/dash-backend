@@ -23,6 +23,7 @@ class WsmDispatcher(_Dispatcher):
         self.payment_ack = MessageHandler(topic="/+/server/payment/ack", is_ack=True)
         self.sale = MessageHandler(topic="/+/server/sale/set")
         self.payment_card_get = MessageHandler(topic="/+/server/payment/card/get")
+        self.encashment = MessageHandler(topic="/+/server/incass/set")
 
 
 class WsmClient(_NpcClient[WsmDispatcher]):
@@ -130,7 +131,7 @@ class WsmClient(_NpcClient[WsmDispatcher]):
             ttl=ttl,
         )
 
-    async def respond_payment_card(
+    async def payment_card_ack(
         self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
     ) -> dict[str, Any]:
         return await self._wait_for_response(
@@ -148,6 +149,17 @@ class WsmClient(_NpcClient[WsmDispatcher]):
             payload={"id": transaction_id, "code": 0},
             qos=1,
             ttl=None,
+        )
+
+    async def encashment_ack(
+        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+    ) -> None:
+        await self._wait_for_response(
+            device_id=device_id,
+            topic="client/incass/ack",
+            payload=payload,
+            qos=1,
+            ttl=ttl,
         )
 
     async def get_state(

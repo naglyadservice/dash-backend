@@ -9,13 +9,13 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 
-from .di_injector import datetime_recipe, inject, parse_paylaad, request_scope
+from .di_injector import datetime_recipe, inject, parse_payload, request_scope
 
 
 @dataclass
 class DenominationCallbackPayload:
     created: datetime
-    coin: str
+    coin: int
     bill: int
 
 
@@ -23,7 +23,7 @@ denomination_callback_retort = Retort(recipe=[*datetime_recipe])
 
 
 @tracer.wrap()
-@parse_paylaad(retort=denomination_callback_retort)
+@parse_payload(retort=denomination_callback_retort)
 @request_scope
 @inject
 async def denomination_callback(

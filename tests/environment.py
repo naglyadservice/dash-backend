@@ -107,6 +107,8 @@ class TestEnvironment:
             email="test_customer_1@test.com",
             name="Test Customer 1",
             card_id="test_card_id",
+            tariff_per_liter_1=10,
+            tariff_per_liter_2=20,
             balance=Decimal("100.00"),
         )
         self.customer_2 = Customer(

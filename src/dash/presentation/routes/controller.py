@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from uuid import UUID
 
 from dishka import FromDishka
@@ -12,11 +13,14 @@ from dash.services.controller.dto import (
     AddControllerResponse,
     AddLiqpayCredentialsRequest,
     AddMonopayCredentialsRequest,
+    CloseEncashmentRequest,
     LiqpayCredentialsDTO,
     LocationID,
     MonopayCredentialsDTO,
     ReadControllerListRequest,
     ReadControllerResponse,
+    ReadEncashmentListRequest,
+    ReadEncashmentListResponse,
 )
 
 controller_router = APIRouter(
@@ -75,4 +79,33 @@ async def add_liqpay_credentials(
 ) -> None:
     await controller_service.add_liqpay_credentials(
         AddLiqpayCredentialsRequest(controller_id=controller_id, liqpay=data)
+    )
+
+
+@controller_router.post("/{controller_id}/encashments")
+async def read_encashments(
+    controller_service: FromDishka[ControllerService],
+    data: ReadEncashmentListRequest = Depends(),
+) -> ReadEncashmentListResponse:
+    return await controller_service.read_encashments(data)
+
+
+@dataclass
+class EncashmentReceivedAmount:
+    received_amount: int
+
+
+@controller_router.post("/{controller_id}/encashments/{encashment_id}", status_code=204)
+async def close_encashment(
+    controller_service: FromDishka[ControllerService],
+    controller_id: UUID,
+    encashment_id: UUID,
+    data: EncashmentReceivedAmount,
+) -> None:
+    await controller_service.close_encashment(
+        CloseEncashmentRequest(
+            controller_id=controller_id,
+            encashment_id=encashment_id,
+            received_amount=data.received_amount,
+        )
     )

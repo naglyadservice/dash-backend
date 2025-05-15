@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -89,3 +90,44 @@ class LocationID(BaseModel):
 
 class AddControllerLocationRequest(ControllerID, LocationID):
     pass
+
+
+class EncashmentScheme(BaseModel):
+    id: UUID
+    created_at: datetime
+    created_at_controller: datetime
+    updated_at: datetime | None
+    encashed_amount: int
+    received_amount: int | None
+    is_closed: bool
+    coin_1: int
+    coin_2: int
+    coin_3: int
+    coin_4: int
+    coin_5: int
+    coin_6: int
+    bill_1: int
+    bill_2: int
+    bill_3: int
+    bill_4: int
+    bill_5: int
+    bill_6: int
+    bill_7: int
+    bill_8: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ReadEncashmentListRequest(Pagination):
+    controller_id: UUID
+
+
+class ReadEncashmentListResponse(BaseModel):
+    encashments: list[EncashmentScheme]
+    total: int
+
+
+class CloseEncashmentRequest(BaseModel):
+    encashment_id: UUID
+    controller_id: UUID
+    received_amount: int
