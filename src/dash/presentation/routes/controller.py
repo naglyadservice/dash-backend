@@ -82,7 +82,7 @@ async def add_liqpay_credentials(
     )
 
 
-@controller_router.post("/{controller_id}/encashments")
+@controller_router.get("/{controller_id}/encashments")
 async def read_encashments(
     controller_service: FromDishka[ControllerService],
     data: ReadEncashmentListRequest = Depends(),
