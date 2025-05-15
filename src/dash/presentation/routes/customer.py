@@ -11,6 +11,8 @@ from dash.services.customer.dto import (
     EditCustomerDTO,
     EditCustomerRequest,
     ReadCustomerListRequest,
+    ReadCustomerListResponse,
+    CreateCustomerResponse,
 )
 
 customer_router = APIRouter(
@@ -21,26 +23,26 @@ customer_router = APIRouter(
 @customer_router.post("")
 async def create_customer(
     service: FromDishka[CustomerService], data: CreateCustomerRequest
-):
+) -> CreateCustomerResponse:
     return await service.create_customer(data)
 
 
 @customer_router.get("")
 async def read_customers(
     service: FromDishka[CustomerService], data: ReadCustomerListRequest = Depends()
-):
+) -> ReadCustomerListResponse:
     return await service.read_customers(data)
 
 
-@customer_router.patch("/{id}")
+@customer_router.patch("/{id}", status_code=204)
 async def edit_customer(
     service: FromDishka[CustomerService], data: EditCustomerDTO, id: UUID
-):
-    return await service.edit_customer(EditCustomerRequest(id=id, user=data))
+) -> None:
+    await service.edit_customer(EditCustomerRequest(id=id, user=data))
 
 
-@customer_router.delete("/{id}")
+@customer_router.delete("/{id}", status_code=204)
 async def delete_customer(
     service: FromDishka[CustomerService], data: DeleteCustomerRequest = Depends()
-):
-    return await service.delete_customer(data)
+) -> None:
+    await service.delete_customer(data)

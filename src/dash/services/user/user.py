@@ -23,11 +23,11 @@ from dash.services.user.dto import (
 
 class UserService:
     def __init__(
-            self,
-            user_repository: UserRepository,
-            location_repository: LocationRepository,
-            identity_provider: IdProvider,
-            password_processor: PasswordProcessor,
+        self,
+        user_repository: UserRepository,
+        location_repository: LocationRepository,
+        identity_provider: IdProvider,
+        password_processor: PasswordProcessor,
     ) -> None:
         self.user_repository = user_repository
         self.location_repository = location_repository
@@ -35,7 +35,7 @@ class UserService:
         self.password_processor = password_processor
 
     async def _create_user(
-            self, data: CreateUserRequest, role: AdminRole
+        self, data: CreateUserRequest, role: AdminRole
     ) -> CreateUserResponse:
         if await self.user_repository.exists(data.email):
             raise EmailAlreadyTakenError
@@ -62,7 +62,7 @@ class UserService:
         return await self._create_user(data, role=AdminRole.COMPANY_OWNER)
 
     async def add_location_admin(
-            self, data: AddLocationAdminRequest
+        self, data: AddLocationAdminRequest
     ) -> AddLocationAdminResponse:
         await self.identity_provider.ensure_company_owner(location_id=data.location_id)
 
@@ -97,12 +97,12 @@ class UserService:
         return AddLocationAdminResponse(user=new_user_dto)
 
     async def remove_admin_from_location(
-            self, data: RemoveLocationAdminRequest
+        self, data: RemoveLocationAdminRequest
     ) -> None:
         await self.identity_provider.ensure_company_owner(location_id=data.location_id)
 
         if not await self.user_repository.is_location_admin(
-                data.user_id, data.location_id
+            data.user_id, data.location_id
         ):
             raise UserNotFoundError
 
