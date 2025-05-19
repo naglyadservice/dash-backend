@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm.attributes import flag_modified
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.water_vending import WaterVendingController
@@ -13,7 +13,7 @@ from dash.services.common.errors.controller import (
     ControllerNotFoundError,
     ControllerTimeoutError,
 )
-from dash.services.water_vending.dto import (
+from dash.services.wsm.dto import (
     ClearPaymentsRequest,
     ControllerID,
     GetDisplayInfoRequest,
@@ -21,13 +21,13 @@ from dash.services.water_vending.dto import (
     SendActionRequest,
     SendFreePaymentRequest,
     SendQRPaymentRequest,
-    SetWaterVendingConfigRequest,
-    SetWaterVendingSettingsRequest,
-    WaterVendingControllerScheme,
+    SetWsmConfigRequest,
+    SetWsmSettingsRequest,
+    WsmControllerScheme,
 )
 
 
-class WaterVendingService:
+class WsmService:
     def __init__(
         self,
         controller_repository: ControllerRepository,
@@ -51,7 +51,7 @@ class WaterVendingService:
     async def healtcheck(self, device_id: str) -> None:
         await self.wsm_client.get_state(device_id)
 
-    async def set_config(self, data: SetWaterVendingConfigRequest) -> None:
+    async def set_config(self, data: SetWsmConfigRequest) -> None:
         controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_company_owner(
@@ -71,7 +71,7 @@ class WaterVendingService:
 
         await self.controller_repository.commit()
 
-    async def set_settings(self, data: SetWaterVendingSettingsRequest) -> None:
+    async def set_settings(self, data: SetWsmSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_company_owner(
@@ -93,12 +93,14 @@ class WaterVendingService:
 
     async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
         controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
         return await self.wsm_client.get_display(controller.device_id)
 
-    async def read_controller(self, data: ControllerID) -> WaterVendingControllerScheme:
+    async def read_controller(self, data: ControllerID) -> WsmControllerScheme:
         controller = await self._get_controller(data.controller_id)
-
         await self.identity_provider.ensure_location_admin(controller.location_id)
+
         commit = False
 
         if not controller.config:
@@ -122,7 +124,7 @@ class WaterVendingService:
             await self.controller_repository.commit()
 
         state = await self.iot_storage.get_state(controller.id)
-        return WaterVendingControllerScheme.make(controller, state)
+        return WsmControllerScheme.make(controller, state)
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
         controller = await self._get_controller(data.controller_id)

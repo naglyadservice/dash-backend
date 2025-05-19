@@ -6,7 +6,8 @@ from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.carwash import CarwashClient
+from dash.infrastructure.iot.wsm import WsmClient
 from dash.main.config import Config
 from dash.main.di import setup_di
 from dash.main.logging.access import access_logs_middleware
@@ -18,6 +19,7 @@ from dash.presentation.routes.root import root_router
 async def lifespan(app: FastAPI):
     di_container: AsyncContainer = app.state.dishka_container
     await di_container.get(WsmClient)
+    await di_container.get(CarwashClient)
 
     yield
 

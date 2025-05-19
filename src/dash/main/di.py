@@ -1,6 +1,5 @@
-from dishka import AnyOf, AsyncContainer, Provider, Scope, make_async_container
+from dishka import AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
-from npc_iot import NpcClient as NpcIotClient
 
 from dash.infrastructure.acquring.liqpay import LiqpayService
 from dash.infrastructure.acquring.monopay import MonopayService
@@ -13,7 +12,8 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.iot.wsm.di import WsmClient, get_npc_client
+from dash.infrastructure.iot.carwash import CarwashClient, get_carwash_client
+from dash.infrastructure.iot.wsm import WsmClient, get_wsm_client
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
@@ -36,6 +36,7 @@ from dash.main.config import (
     MqttConfig,
     RedisConfig,
 )
+from dash.services.carwash.carwash import CarwashService
 from dash.services.company.company import CompanyService
 from dash.services.controller.controller import ControllerService
 from dash.services.customer.customer import CustomerService
@@ -43,7 +44,7 @@ from dash.services.location.location import LocationService
 from dash.services.payment.payment import PaymentService
 from dash.services.transaction.transaction import TransactionService
 from dash.services.user.user import UserService
-from dash.services.water_vending.water_vending import WaterVendingService
+from dash.services.wsm.wsm import WsmService
 
 
 def provide_configs() -> Provider:
@@ -78,7 +79,7 @@ def provide_services() -> Provider:
     provider = Provider(scope=Scope.REQUEST)
 
     provider.provide_all(
-        WaterVendingService,
+        WsmService,
         TransactionService,
         PaymentService,
         ControllerService,
@@ -86,6 +87,7 @@ def provide_services() -> Provider:
         UserService,
         CompanyService,
         CustomerService,
+        CarwashService,
     )
     return provider
 
@@ -119,9 +121,8 @@ def provide_infrastructure() -> Provider:
     provider.provide(AuthService, scope=Scope.REQUEST)
     provider.provide(IdProvider, scope=Scope.REQUEST)
 
-    provider.provide(
-        get_npc_client, scope=Scope.APP, provides=AnyOf[WsmClient, NpcIotClient]
-    )
+    provider.provide(get_wsm_client, scope=Scope.APP, provides=WsmClient)
+    provider.provide(get_carwash_client, scope=Scope.APP, provides=CarwashClient)
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)
 

@@ -4,10 +4,8 @@ from datetime import timedelta
 from typing import Literal
 from uuid import UUID
 
-import ddtrace
 import orjson
 import structlog
-from ddtrace.trace import tracer
 from structlog.types import EventDict, Processor
 
 LoggingLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -29,20 +27,20 @@ def rename_event_key(_, __, event_dict: EventDict) -> EventDict:
     return event_dict
 
 
-def tracer_injection(_, __, event_dict: EventDict) -> EventDict:
-    span = tracer.current_span()
-    trace_id, span_id = (span.trace_id, span.span_id) if span else (None, None)
+# def tracer_injection(_, __, event_dict: EventDict) -> EventDict:
+#     span = tracer.current_span()
+#     trace_id, span_id = (span.trace_id, span.span_id) if span else (None, None)
 
-    # add ids to structlog event dictionary
-    event_dict["dd.trace_id"] = str(trace_id or 0)
-    event_dict["dd.span_id"] = str(span_id or 0)
+#     # add ids to structlog event dictionary
+#     event_dict["dd.trace_id"] = str(trace_id or 0)
+#     event_dict["dd.span_id"] = str(span_id or 0)
 
-    # add the env, service, and version configured for the tracer
-    event_dict["dd.env"] = ddtrace.config.env or ""
-    event_dict["dd.service"] = ddtrace.config.service or ""
-    event_dict["dd.version"] = ddtrace.config.version or ""
+#     # add the env, service, and version configured for the tracer
+#     event_dict["dd.env"] = ddtrace.config.env or ""
+#     event_dict["dd.service"] = ddtrace.config.service or ""
+#     event_dict["dd.version"] = ddtrace.config.version or ""
 
-    return event_dict
+#     return event_dict
 
 
 def convert_uuid_keys(_, __, event_dict: EventDict) -> EventDict:
@@ -103,7 +101,7 @@ def configure_logging(
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.stdlib.ExtraAdder(),
         drop_color_message_key,
-        tracer_injection,
+        # tracer_injection,
         timestamper,
         structlog.processors.StackInfoRenderer(),
     ]

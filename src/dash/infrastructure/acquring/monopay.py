@@ -18,8 +18,8 @@ from dash.main.config import MonopayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.water_vending.dto import QRPaymentDTO, SendQRPaymentRequest
-from dash.services.water_vending.water_vending import WaterVendingService
+from dash.services.wsm.dto import QRPaymentDTO, SendQRPaymentRequest
+from dash.services.wsm.wsm import WsmService
 
 
 class ProcessWebhookRequest(BaseModel):
@@ -50,7 +50,7 @@ class MonopayService:
         acquring_storage: AcquringStorage,
         payment_repository: PaymentRepository,
         controller_repository: ControllerRepository,
-        water_vending_service: WaterVendingService,
+        wsm_service: WsmService,
         locker: Redis,
     ):
         self.config = config
@@ -58,7 +58,7 @@ class MonopayService:
         self.base_url = "https://api.monobank.ua/api"
         self.payment_repository = payment_repository
         self.controller_repository = controller_repository
-        self.water_vending_service = water_vending_service
+        self.wsm_service = wsm_service
         self.locker = locker
         self.token: str
 
@@ -123,7 +123,7 @@ class MonopayService:
                 status_code=400, detail="Controller is not supported Monopay"
             )
 
-        await self.water_vending_service.healtcheck(controller.device_id)
+        await self.wsm_service.healtcheck(controller.device_id)
 
         self.token = controller.monopay_token
         response = await self.make_request(
@@ -240,7 +240,7 @@ class MonopayService:
         elif status == "hold":
             payment.status = PaymentStatus.HOLD
             try:
-                await self.water_vending_service.send_qr_payment(
+                await self.wsm_service.send_qr_payment(
                     SendQRPaymentRequest(
                         controller_id=payment.controller_id,
                         payment=QRPaymentDTO(

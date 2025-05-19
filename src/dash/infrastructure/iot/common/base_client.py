@@ -1,7 +1,6 @@
 from typing import Any, Literal, Mapping
 
-from npc_iot import Dispatcher as _Dispatcher
-from npc_iot import NpcClient as _NpcClient
+from npc_iot import Dispatcher, NpcClient
 from npc_iot.dispatcher import MessageHandler
 from npc_iot.exception import DeviceResponceError
 
@@ -11,7 +10,7 @@ from dash.services.common.errors.controller import (
 )
 
 
-class WsmDispatcher(_Dispatcher):
+class BaseDispatcher(Dispatcher):
     def __init__(self, callback_kwargs: dict[str, Any] | None = None) -> None:
         super().__init__(callback_kwargs=callback_kwargs)
 
@@ -26,7 +25,7 @@ class WsmDispatcher(_Dispatcher):
         self.encashment = MessageHandler(topic="/+/server/incass/set")
 
 
-class WsmClient(_NpcClient[WsmDispatcher]):
+class BaseNpcClient(NpcClient[BaseDispatcher]):
     async def _wait_for_response(
         self,
         device_id: str,

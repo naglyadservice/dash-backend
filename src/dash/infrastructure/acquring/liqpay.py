@@ -11,8 +11,8 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.water_vending.dto import QRPaymentDTO, SendQRPaymentRequest
-from dash.services.water_vending.water_vending import WaterVendingService
+from dash.services.wsm.dto import QRPaymentDTO, SendQRPaymentRequest
+from dash.services.wsm.wsm import WsmService
 
 
 class CreateLiqpayInvoiceRequest(BaseModel):
@@ -33,12 +33,12 @@ class LiqpayService:
     def __init__(
         self,
         config: LiqpayConfig,
-        water_vending_service: WaterVendingService,
+        wsm_service: WsmService,
         controller_repository: ControllerRepository,
         payment_repository: PaymentRepository,
     ):
         self.config = config
-        self.water_vending_service = water_vending_service
+        self.wsm_service = wsm_service
         self.controller_repository = controller_repository
         self.payment_repository = payment_repository
 
@@ -59,7 +59,7 @@ class LiqpayService:
                 status_code=400, detail="Controller is not supported Liqpay"
             )
 
-        await self.water_vending_service.healtcheck(controller.device_id)
+        await self.wsm_service.healtcheck(controller.device_id)
 
         invoice_id = str(uuid.uuid4())
         params = {
@@ -143,7 +143,7 @@ class LiqpayService:
         if status == "hold_wait":
             payment.status = PaymentStatus.HOLD
             try:
-                await self.water_vending_service.send_qr_payment(
+                await self.wsm_service.send_qr_payment(
                     SendQRPaymentRequest(
                         controller_id=payment.controller_id,
                         payment=QRPaymentDTO(

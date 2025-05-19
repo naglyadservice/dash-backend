@@ -149,7 +149,7 @@ class ControllerService:
     async def read_encashments(
         self, data: ReadEncashmentListRequest
     ) -> ReadEncashmentListResponse:
-        controller = await self.controller_repository.get_wsm(data.controller_id)
+        controller = await self.controller_repository.get(data.controller_id)
         if not controller:
             raise ControllerNotFoundError
 

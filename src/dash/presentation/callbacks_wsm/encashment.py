@@ -55,7 +55,7 @@ async def encashment_callback(
     wsm_client: FromDishka[WsmClient],
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
-    controller = await controller_repository.get_wsm_by_device_id(device_id)
+    controller = await controller_repository.get_by_device_id(device_id)
     if not controller:
         logger.info(
             "Ignoring encashment request from controller, controller not found by device_id",

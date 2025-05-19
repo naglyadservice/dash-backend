@@ -18,7 +18,7 @@ async def state_info_callback(
     controller_repository: FromDishka[ControllerRepository],
     iot_storage: FromDishka[IotStorage],
 ) -> None:
-    controller = await controller_repository.get_wsm_by_device_id(device_id)
+    controller = await controller_repository.get_by_device_id(device_id)
 
     if controller is None:
         return

@@ -7,15 +7,10 @@ from pydantic import BaseModel, Field
 
 from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.water_vending import WaterVendingController
-
-COIN_VALIDATOR_TYPE = Literal["protocol", "impulse"]
-
-
-class ControllerID(BaseModel):
-    controller_id: UUID
+from dash.services.common.const import COIN_VALIDATOR_TYPE, ControllerID
 
 
-class WaterVendingConfig(BaseModel):
+class WsmConfig(BaseModel):
     ppos_apn: str | None = None
     wifi_STA_ssid: str | None = None
     wifi_STA_pass: str | None = None
@@ -33,11 +28,11 @@ class WaterVendingConfig(BaseModel):
     coin_table: list[int] | None = Field(default=None, min_length=16, max_length=16)
 
 
-class SetWaterVendingConfigRequest(ControllerID):
-    config: WaterVendingConfig
+class SetWsmConfigRequest(ControllerID):
+    config: WsmConfig
 
 
-class WaterVendingSettings(BaseModel):
+class WsmSettings(BaseModel):
     maxPayment: int | None = None
     minPayPass: int | None = None
     maxPayPass: int | None = None
@@ -54,11 +49,11 @@ class WaterVendingSettings(BaseModel):
     spillAmount: int | None = None
 
 
-class SetWaterVendingSettingsRequest(ControllerID):
-    settings: WaterVendingSettings
+class SetWsmSettingsRequest(ControllerID):
+    settings: WsmSettings
 
 
-class OperatingMode(StrEnum):
+class WsmOperatingMode(StrEnum):
     WAIT = "WAIT"
     BLOCK = "BLOCK"
     INCASS = "INCASS"
@@ -71,7 +66,7 @@ class OperatingMode(StrEnum):
     STARTTEST = "STARTTEST"
 
 
-class StateErrors(BaseModel):
+class WsmStateErrors(BaseModel):
     lowLevelSensor: bool
     ServerBlock: bool
     pour_1: bool
@@ -82,28 +77,28 @@ class StateErrors(BaseModel):
     Card: bool
 
 
-class WaterVendingState(BaseModel):
+class WsmState(BaseModel):
     created: datetime
     summaInBox: int
     litersInTank: int
-    operatingMode: OperatingMode
+    operatingMode: WsmOperatingMode
     tankLowLevelSensor: bool
     tankHighLevelSensor: bool
     depositBoxSensor: bool
     doorSensor: bool
     coinState: int
     billState: int
-    errors: StateErrors
+    errors: WsmStateErrors
 
 
-class WaterVendingControllerScheme(BaseModel):
+class WsmControllerScheme(BaseModel):
     id: UUID
     device_id: str
     name: str | None
     type: Literal[ControllerType.WATER_VENDING]
-    config: WaterVendingConfig | None
-    settings: WaterVendingSettings | None
-    state: WaterVendingState | None = None
+    config: WsmConfig | None
+    settings: WsmSettings | None
+    state: WsmState | None = None
     alert: str | None = None
 
     @classmethod
@@ -112,7 +107,7 @@ class WaterVendingControllerScheme(BaseModel):
     ) -> Self:
         dto = cls.model_validate(controller, from_attributes=True)
         if state:
-            dto.state = WaterVendingState.model_validate(state)
+            dto.state = WsmState.model_validate(state)
             if dto.state.created + timedelta(minutes=5) < datetime.now():
                 dto.alert = "Контроллер не надсилав оновлення більше 5 хвилин"
         return dto
@@ -131,13 +126,13 @@ class ClearPaymentsRequest(ControllerID):
     options: PaymentClearOptionsDTO
 
 
-class WaterVendingActionDTO(BaseModel):
+class WsmActionDTO(BaseModel):
     Pour: Literal["Start_1", "Start_2", "Stop"] | None = None
     Blocking: bool | None = None
 
 
 class SendActionRequest(ControllerID):
-    actions: WaterVendingActionDTO
+    actions: WsmActionDTO
 
 
 class RebootControllerRequest(ControllerID):

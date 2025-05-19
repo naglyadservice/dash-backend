@@ -5,7 +5,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import get_logger
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 
@@ -46,7 +46,7 @@ async def payment_card_get_callback(
     controller_repository: FromDishka[ControllerRepository],
     wsm_client: FromDishka[WsmClient],
 ) -> None:
-    controller = await controller_repository.get_wsm_by_device_id(device_id)
+    controller = await controller_repository.get_by_device_id(device_id)
 
     if controller is None:
         logger.info(

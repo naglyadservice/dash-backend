@@ -32,7 +32,7 @@ async def denomination_callback(
     payment_repository: FromDishka[PaymentRepository],
     controller_repository: FromDishka[ControllerRepository],
 ) -> None:
-    controller = await controller_repository.get_wsm_by_device_id(device_id)
+    controller = await controller_repository.get_by_device_id(device_id)
 
     if controller is None:
         return
