@@ -8,7 +8,7 @@ import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm import WsmClient
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.presentation.callbacks_wsm.denomination import (
@@ -124,7 +124,7 @@ async def test_encashment_callback(
     mocker,
 ):
     payload = EncashmentCallbackPayload(
-        request_id=1,
+        id=1,
         created=datetime(2000, 1, 1),
         coin_1=1,
         coin_2=2,

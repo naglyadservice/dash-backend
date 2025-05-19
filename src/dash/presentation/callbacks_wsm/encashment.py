@@ -6,7 +6,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import getLogger
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
 from dash.presentation.callbacks_wsm.di_injector import (
@@ -21,7 +21,7 @@ logger = getLogger()
 
 @dataclass
 class EncashmentCallbackPayload:
-    request_id: int
+    id: int
     coin_1: int
     coin_2: int
     coin_3: int
@@ -62,7 +62,7 @@ async def encashment_callback(
             device_id=device_id,
         )
         await wsm_client.payment_card_ack(
-            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
+            device_id=device_id, payload={"request_id": data.id, "code": 1}
         )
         return
 
@@ -89,5 +89,5 @@ async def encashment_callback(
     await encashment_repository.commit()
 
     await wsm_client.encashment_ack(
-        device_id=device_id, payload={"request_id": data.request_id, "code": 0}
+        device_id=device_id, payload={"request_id": data.id, "code": 0}
     )
