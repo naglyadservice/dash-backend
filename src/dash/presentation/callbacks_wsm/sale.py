@@ -8,7 +8,7 @@ from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
-from dash.infrastructure.iot.wsm import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository

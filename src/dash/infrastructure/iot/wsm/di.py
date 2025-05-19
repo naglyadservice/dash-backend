@@ -2,17 +2,14 @@ from typing import AsyncIterator
 
 from dishka import AsyncContainer
 
-from dash.infrastructure.iot.common.base_client import BaseDispatcher, BaseNpcClient
+from dash.infrastructure.iot.common.base_client import BaseDispatcher
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.main.config import MqttConfig
 from dash.presentation.callbacks_wsm.denomination import denomination_callback
 from dash.presentation.callbacks_wsm.encashment import encashment_callback
 from dash.presentation.callbacks_wsm.payment_card_get import payment_card_get_callback
 from dash.presentation.callbacks_wsm.sale import sale_callback
 from dash.presentation.callbacks_wsm.state_info import state_info_callback
-
-
-class WsmClient(BaseNpcClient):
-    pass
 
 
 async def get_wsm_client(

@@ -8,7 +8,7 @@ import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dash.infrastructure.iot.wsm import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.presentation.callbacks_wsm.denomination import (

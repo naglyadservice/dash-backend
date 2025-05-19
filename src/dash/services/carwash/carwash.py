@@ -5,7 +5,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from structlog import getLogger
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.carwash import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.carwash import CarwashController

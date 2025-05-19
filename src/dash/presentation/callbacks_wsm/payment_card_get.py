@@ -5,7 +5,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import get_logger
 
-from dash.infrastructure.iot.wsm import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 

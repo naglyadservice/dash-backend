@@ -6,8 +6,8 @@ from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from dash.infrastructure.iot.carwash import CarwashClient
-from dash.infrastructure.iot.wsm import WsmClient
+from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.main.config import Config
 from dash.main.di import setup_di
 from dash.main.logging.access import access_logs_middleware

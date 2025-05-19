@@ -12,8 +12,10 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.iot.carwash import CarwashClient, get_carwash_client
-from dash.infrastructure.iot.wsm import WsmClient, get_wsm_client
+from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.di import get_carwash_client
+from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm.di import get_wsm_client
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository

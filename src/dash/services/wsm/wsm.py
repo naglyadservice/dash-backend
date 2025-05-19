@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm.attributes import flag_modified
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.wsm import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.water_vending import WaterVendingController
