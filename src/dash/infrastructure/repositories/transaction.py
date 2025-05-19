@@ -74,7 +74,7 @@ class TransactionRepository(BaseRepository):
         )
 
         if data.company_id is not None:
-            stmt = stmt.join(Controller).where(Location.company_id == data.company_id)
+            stmt = stmt.join(Location).where(Location.company_id == data.company_id)
 
         elif data.controller_id is not None:
             stmt = stmt.where(Transaction.controller_id == data.controller_id)
