@@ -7,7 +7,7 @@ from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminUser
 from dash.services.common.errors.base import AccessDeniedError, AccessForbiddenError
 from dash.services.location.dto import CreateLocationRequest, ReadLocationListRequest
-from dash.services.location.location import LocationService
+from dash.services.location.service import LocationService
 from tests.environment import TestEnvironment
 
 pytestmark = pytest.mark.usefixtures("create_tables")

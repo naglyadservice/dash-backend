@@ -9,7 +9,7 @@ from dash.services.location.dto import (
     ReadLocationListRequest,
     ReadLocationListResponse,
 )
-from dash.services.location.location import LocationService
+from dash.services.location.service import LocationService
 
 location_router = APIRouter(
     prefix="/locations",

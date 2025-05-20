@@ -18,8 +18,8 @@ from dash.main.config import MonopayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.wsm.dto import QRPaymentDTO, SendQRPaymentRequest
-from dash.services.wsm.wsm import WsmService
+from dash.services.iot.dto import QRPaymentDTO, SendQRPaymentRequest
+from dash.services.iot.factory import IoTServiceFactory
 
 
 class ProcessWebhookRequest(BaseModel):
@@ -50,7 +50,7 @@ class MonopayService:
         acquring_storage: AcquringStorage,
         payment_repository: PaymentRepository,
         controller_repository: ControllerRepository,
-        wsm_service: WsmService,
+        service_factory: IoTServiceFactory,
         locker: Redis,
     ):
         self.config = config
@@ -58,11 +58,12 @@ class MonopayService:
         self.base_url = "https://api.monobank.ua/api"
         self.payment_repository = payment_repository
         self.controller_repository = controller_repository
-        self.wsm_service = wsm_service
+        self.factory = service_factory
         self.locker = locker
         self.token: str
 
-    async def _check_response(self, response: aiohttp.ClientResponse) -> None:
+    @staticmethod
+    async def _check_response(response: aiohttp.ClientResponse) -> None:
         if response.status != 200:
             raise HTTPException(status_code=503, detail="Failed to connect to Monobank")
 
@@ -88,7 +89,8 @@ class MonopayService:
         await self.acquring_storage.set_monopay_pub_key(pub_key_bytes, invoice_id)
         return pub_key_bytes
 
-    def _verify_pub_key(self, body: bytes, signature: bytes, pub_key: bytes) -> bool:
+    @staticmethod
+    def _verify_pub_key(body: bytes, signature: bytes, pub_key: bytes) -> bool:
         key = ecdsa.VerifyingKey.from_pem(pub_key.decode())
         return key.verify(
             signature=signature,
@@ -123,7 +125,7 @@ class MonopayService:
                 status_code=400, detail="Controller is not supported Monopay"
             )
 
-        await self.wsm_service.healtcheck(controller.device_id)
+        await self.factory.get(controller.type).healthcheck(controller.device_id)
 
         self.token = controller.monopay_token
         response = await self.make_request(
@@ -224,6 +226,10 @@ class MonopayService:
         if not payment:
             raise HTTPException(status_code=400, detail="Payment not found")
 
+        controller = await self.controller_repository.get(payment.controller_id)
+        if not controller:
+            raise HTTPException(status_code=400, detail="Controller not found")
+
         if status == "processing":
             payment.status = PaymentStatus.PROCESSING
 
@@ -240,7 +246,7 @@ class MonopayService:
         elif status == "hold":
             payment.status = PaymentStatus.HOLD
             try:
-                await self.wsm_service.send_qr_payment(
+                await self.factory.get(controller.type).send_qr_payment(
                     SendQRPaymentRequest(
                         controller_id=payment.controller_id,
                         payment=QRPaymentDTO(

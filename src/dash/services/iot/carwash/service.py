@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm.attributes import flag_modified
@@ -9,23 +8,22 @@ from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.carwash import CarwashController
-from dash.services.carwash.dto import (
-    CarwashControllerScheme,
-    GetDisplayInfoRequest,
-    SetCarwashConfigRequest,
-    SetCarwashSettingsRequest,
-)
-from dash.services.carwash.utils import decode_relay_mask, encode_relay_mask
-from dash.services.common.const import ControllerID
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
     ControllerTimeoutError,
 )
+from dash.services.iot.base import BaseIoTService
+from dash.services.iot.carwash.dto import (
+    CarwashControllerScheme,
+    SetCarwashSettingsRequest,
+)
+from dash.services.iot.carwash.utils import decode_relay_mask, encode_relay_mask
+from dash.services.iot.dto import ControllerID
 
 logger = getLogger()
 
 
-class CarwashService:
+class CarwashService(BaseIoTService):
     def __init__(
         self,
         controller_repository: ControllerRepository,
@@ -33,10 +31,8 @@ class CarwashService:
         iot_storage: IotStorage,
         carwash_client: CarwashClient,
     ):
-        self.controller_repository = controller_repository
-        self.identity_provider = identity_provider
+        super().__init__(carwash_client, identity_provider, controller_repository)
         self.iot_storage = iot_storage
-        self.carwash_client = carwash_client
 
     async def _get_controller(self, controller_id: UUID) -> CarwashController:
         controller = await self.controller_repository.get_carwash(controller_id)
@@ -45,29 +41,6 @@ class CarwashService:
             raise ControllerNotFoundError
 
         return controller
-
-    async def healtcheck(self, device_id: str) -> None:
-        await self.carwash_client.get_state(device_id)
-
-    async def set_config(self, data: SetCarwashConfigRequest) -> None:
-        controller = await self._get_controller(data.controller_id)
-
-        await self.identity_provider.ensure_company_owner(
-            location_id=controller.location_id
-        )
-
-        config_dict = data.config.model_dump(exclude_unset=True)
-        await self.carwash_client.set_config(
-            device_id=controller.device_id, payload=config_dict
-        )
-
-        if controller.config:
-            controller.config.update(config_dict)
-            flag_modified(controller, "config")
-        else:
-            controller.config = config_dict
-
-        await self.controller_repository.commit()
 
     async def set_settings(self, data: SetCarwashSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
@@ -82,7 +55,7 @@ class CarwashService:
                 settings_dict["servicesRelay"]
             )
 
-        await self.carwash_client.set_settings(
+        await self.iot_client.set_settings(
             device_id=controller.device_id, payload=settings_dict
         )
 
@@ -94,12 +67,6 @@ class CarwashService:
 
         await self.controller_repository.commit()
 
-    async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
-        controller = await self._get_controller(data.controller_id)
-        await self.identity_provider.ensure_location_admin(controller.location_id)
-
-        return await self.carwash_client.get_display(controller.device_id)
-
     async def read_controller(self, data: ControllerID) -> CarwashControllerScheme:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
@@ -108,7 +75,7 @@ class CarwashService:
 
         if not controller.config:
             try:
-                controller.config = await self.carwash_client.get_config(
+                controller.config = await self.iot_client.get_config(
                     device_id=controller.device_id
                 )
                 commit = True
@@ -117,7 +84,7 @@ class CarwashService:
 
         if not controller.settings:
             try:
-                settings = await self.carwash_client.get_settings(
+                settings = await self.iot_client.get_settings(
                     device_id=controller.device_id
                 )
                 logger.info(f"settings: {settings}")

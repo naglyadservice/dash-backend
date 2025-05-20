@@ -13,11 +13,11 @@ from dash.services.common.errors.encashment import (
     EncashmentAlreadyClosedError,
     EncashmentNotFoundError,
 )
-from dash.services.controller.controller import ControllerService
 from dash.services.controller.dto import (
     CloseEncashmentRequest,
     ReadEncashmentListRequest,
 )
+from dash.services.controller.service import ControllerService
 from tests.environment import TestEnvironment
 
 pytestmark = pytest.mark.usefixtures("create_tables")

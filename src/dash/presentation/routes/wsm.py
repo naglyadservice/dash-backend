@@ -6,7 +6,7 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.wsm.dto import (
+from dash.services.iot.dto import (
     ClearPaymentsRequest,
     ControllerID,
     FreePaymentDTO,
@@ -14,9 +14,11 @@ from dash.services.wsm.dto import (
     PaymentClearOptionsDTO,
     QRPaymentDTO,
     RebootControllerRequest,
-    SendActionRequest,
     SendFreePaymentRequest,
     SendQRPaymentRequest,
+)
+from dash.services.iot.wsm.dto import (
+    SendWsmActionRequest,
     SetWsmConfigRequest,
     SetWsmSettingsRequest,
     WsmActionDTO,
@@ -24,7 +26,7 @@ from dash.services.wsm.dto import (
     WsmControllerScheme,
     WsmSettings,
 )
-from dash.services.wsm.wsm import WsmService
+from dash.services.iot.wsm.service import WsmService
 
 wsm_router = APIRouter(
     prefix="/wsm",
@@ -71,7 +73,7 @@ async def send_action(
     controller_id: UUID,
 ) -> None:
     return await wsm_service.send_action(
-        SendActionRequest(controller_id=controller_id, actions=data)
+        SendWsmActionRequest(controller_id=controller_id, action=data)
     )
 
 

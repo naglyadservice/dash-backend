@@ -38,15 +38,16 @@ from dash.main.config import (
     MqttConfig,
     RedisConfig,
 )
-from dash.services.carwash.carwash import CarwashService
-from dash.services.company.company import CompanyService
-from dash.services.controller.controller import ControllerService
-from dash.services.customer.customer import CustomerService
-from dash.services.location.location import LocationService
-from dash.services.payment.payment import PaymentService
-from dash.services.transaction.transaction import TransactionService
-from dash.services.user.user import UserService
-from dash.services.wsm.wsm import WsmService
+from dash.services.company.service import CompanyService
+from dash.services.controller.service import ControllerService
+from dash.services.customer.service import CustomerService
+from dash.services.iot.carwash.service import CarwashService
+from dash.services.iot.factory import IoTServiceFactory
+from dash.services.iot.wsm.service import WsmService
+from dash.services.location.service import LocationService
+from dash.services.payment.service import PaymentService
+from dash.services.transaction.service import TransactionService
+from dash.services.user.service import UserService
 
 
 def provide_configs() -> Provider:
@@ -90,6 +91,7 @@ def provide_services() -> Provider:
         CompanyService,
         CustomerService,
         CarwashService,
+        IoTServiceFactory,
     )
     return provider
 

@@ -9,7 +9,7 @@ from dash.services.transaction.dto import (
     ReadTransactionListRequest,
     ReadTransactionListResponse,
 )
-from dash.services.transaction.transaction import TransactionService
+from dash.services.transaction.service import TransactionService
 
 transaction_router = APIRouter(
     prefix="/transactions",

@@ -10,7 +10,7 @@ from dash.services.user.dto import (
     ReadUserListResponse,
     RemoveLocationAdminRequest,
 )
-from dash.services.user.user import UserService
+from dash.services.user.service import UserService
 
 user_router = APIRouter(
     prefix="/users",

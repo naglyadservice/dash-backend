@@ -5,9 +5,9 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.models.controllers.controller import ControllerStatus, ControllerType
-from dash.services.common.const import ControllerID
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
+from dash.services.iot.dto import ControllerID
 
 
 class BaseControllerFilters(BaseModel):

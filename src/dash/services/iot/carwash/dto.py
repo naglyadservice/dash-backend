@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field
 
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import ControllerType
-from dash.services.common.const import COIN_VALIDATOR_TYPE, ControllerID
+from dash.services.common.const import COIN_VALIDATOR_TYPE
+from dash.services.iot.dto import SetConfigRequest, SetSettingsRequest
 
 
 class CarwashConfig(BaseModel):
@@ -146,13 +147,9 @@ class CarwashControllerScheme(BaseModel):
         return dto
 
 
-class SetCarwashConfigRequest(ControllerID):
+class SetCarwashConfigRequest(SetConfigRequest):
     config: CarwashConfig
 
 
-class SetCarwashSettingsRequest(ControllerID):
+class SetCarwashSettingsRequest(SetSettingsRequest):
     settings: CarwashSettings
-
-
-class GetDisplayInfoRequest(ControllerID):
-    pass

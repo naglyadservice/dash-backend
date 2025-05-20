@@ -1,4 +1,4 @@
-from dash.services.carwash.dto import RelayBit
+from dash.services.iot.carwash.dto import RelayBit
 
 
 def encode_relay_mask(data: dict[str, list[RelayBit]]) -> list[int]:

@@ -6,7 +6,6 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.controller.controller import ControllerService
 from dash.services.controller.dto import (
     AddControllerLocationRequest,
     AddControllerRequest,
@@ -22,6 +21,7 @@ from dash.services.controller.dto import (
     ReadEncashmentListRequest,
     ReadEncashmentListResponse,
 )
+from dash.services.controller.service import ControllerService
 
 controller_router = APIRouter(
     prefix="/controllers",

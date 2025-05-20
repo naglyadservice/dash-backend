@@ -9,7 +9,7 @@ from dash.services.payment.dto import (
     ReadPaymentListRequest,
     ReadPaymentListResponse,
 )
-from dash.services.payment.payment import PaymentService
+from dash.services.payment.service import PaymentService
 
 payment_router = APIRouter(
     prefix="/payments",

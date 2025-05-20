@@ -7,7 +7,12 @@ from pydantic import BaseModel, Field
 
 from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.water_vending import WaterVendingController
-from dash.services.common.const import COIN_VALIDATOR_TYPE, ControllerID
+from dash.services.common.const import COIN_VALIDATOR_TYPE
+from dash.services.iot.dto import (
+    SendActionRequest,
+    SetConfigRequest,
+    SetSettingsRequest,
+)
 
 
 class WsmConfig(BaseModel):
@@ -28,7 +33,7 @@ class WsmConfig(BaseModel):
     coin_table: list[int] | None = Field(default=None, min_length=16, max_length=16)
 
 
-class SetWsmConfigRequest(ControllerID):
+class SetWsmConfigRequest(SetConfigRequest):
     config: WsmConfig
 
 
@@ -49,7 +54,7 @@ class WsmSettings(BaseModel):
     spillAmount: int | None = None
 
 
-class SetWsmSettingsRequest(ControllerID):
+class SetWsmSettingsRequest(SetSettingsRequest):
     settings: WsmSettings
 
 
@@ -113,48 +118,10 @@ class WsmControllerScheme(BaseModel):
         return dto
 
 
-class PaymentClearOptionsDTO(BaseModel):
-    CoinClear: bool | None = None
-    BillClear: bool | None = None
-    PrevClear: bool | None = None
-    FreeClear: bool | None = None
-    QRcodeClear: bool | None = None
-    PayPassClear: bool | None = None
-
-
-class ClearPaymentsRequest(ControllerID):
-    options: PaymentClearOptionsDTO
-
-
 class WsmActionDTO(BaseModel):
     Pour: Literal["Start_1", "Start_2", "Stop"] | None = None
     Blocking: bool | None = None
 
 
-class SendActionRequest(ControllerID):
-    actions: WsmActionDTO
-
-
-class RebootControllerRequest(ControllerID):
-    delay: int
-
-
-class QRPaymentDTO(BaseModel):
-    amount: int
-    order_id: str
-
-
-class SendQRPaymentRequest(ControllerID):
-    payment: QRPaymentDTO
-
-
-class FreePaymentDTO(BaseModel):
-    amount: int
-
-
-class SendFreePaymentRequest(ControllerID):
-    payment: FreePaymentDTO
-
-
-class GetDisplayInfoRequest(ControllerID):
-    pass
+class SendWsmActionRequest(SendActionRequest):
+    action: WsmActionDTO

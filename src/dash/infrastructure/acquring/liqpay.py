@@ -11,8 +11,8 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.wsm.dto import QRPaymentDTO, SendQRPaymentRequest
-from dash.services.wsm.wsm import WsmService
+from dash.services.iot.dto import QRPaymentDTO, SendQRPaymentRequest
+from dash.services.iot.factory import IoTServiceFactory
 
 
 class CreateLiqpayInvoiceRequest(BaseModel):
@@ -33,16 +33,17 @@ class LiqpayService:
     def __init__(
         self,
         config: LiqpayConfig,
-        wsm_service: WsmService,
+        service_factory: IoTServiceFactory,
         controller_repository: ControllerRepository,
         payment_repository: PaymentRepository,
     ):
         self.config = config
-        self.wsm_service = wsm_service
+        self.factory = service_factory
         self.controller_repository = controller_repository
         self.payment_repository = payment_repository
 
-    def _get_client(self, public_key: str, private_key: str) -> LiqPay:
+    @staticmethod
+    def _get_client(public_key: str, private_key: str) -> LiqPay:
         return LiqPay(public_key, private_key)
 
     async def create_invoice(
@@ -59,7 +60,7 @@ class LiqpayService:
                 status_code=400, detail="Controller is not supported Liqpay"
             )
 
-        await self.wsm_service.healtcheck(controller.device_id)
+        await self.factory.get(controller.type).healthcheck(controller.device_id)
 
         invoice_id = str(uuid.uuid4())
         params = {
@@ -91,7 +92,8 @@ class LiqpayService:
 
         return CreateLiqpayInvoiceResponse(invoice_url=invoice_url)
 
-    def _refund(self, client: LiqPay, order_id: str, amount: int) -> None:
+    @staticmethod
+    def _refund(client: LiqPay, order_id: str, amount: int) -> None:
         client.api(
             "request",
             {
@@ -102,7 +104,8 @@ class LiqpayService:
             },
         )
 
-    def _finalize(self, client: LiqPay, order_id: str, amount: int) -> None:
+    @staticmethod
+    def _finalize(client: LiqPay, order_id: str, amount: int) -> None:
         client.api(
             "request",
             {
@@ -115,7 +118,6 @@ class LiqpayService:
 
     async def process_webhook(self, data: ProcessLiqpayWebhookRequest) -> None:
         dict_data = json.loads(base64.b64decode(data.body).decode("utf-8"))
-        print(dict_data)
         invoice_id = dict_data["order_id"]
 
         payment = await self.payment_repository.get_by_invoice_id(invoice_id)
@@ -143,7 +145,7 @@ class LiqpayService:
         if status == "hold_wait":
             payment.status = PaymentStatus.HOLD
             try:
-                await self.wsm_service.send_qr_payment(
+                await self.factory.get(controller.type).send_qr_payment(
                     SendQRPaymentRequest(
                         controller_id=payment.controller_id,
                         payment=QRPaymentDTO(

@@ -6,8 +6,8 @@ from dishka import AsyncContainer
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.models.admin_user import AdminUser
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.company.company import CompanyService
 from dash.services.company.dto import CreateCompanyRequest
+from dash.services.company.service import CompanyService
 from dash.services.user.dto import CreateUserRequest
 from tests.environment import TestEnvironment
 
