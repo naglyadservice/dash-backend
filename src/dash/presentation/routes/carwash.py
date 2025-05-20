@@ -3,7 +3,7 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.iot.carwash import CarwashControllerScheme
+from dash.services.iot.carwash.dto import CarwashControllerScheme
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.dto import ControllerID
 

@@ -2,7 +2,6 @@ from typing import Any, Sequence
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, exists, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models import Customer
@@ -11,9 +10,6 @@ from dash.services.customer.dto import ReadCustomerListRequest
 
 
 class CustomerRepository(BaseRepository):
-    def __init__(self, session: AsyncSession) -> None:
-        self.session = session
-
     async def get(self, customer_id: UUID) -> Customer | None:
         stmt = select(Customer).where(Customer.id == customer_id)
         result = await self.session.execute(stmt)
