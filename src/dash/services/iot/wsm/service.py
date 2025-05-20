@@ -48,28 +48,6 @@ class WsmService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        commit = False
-
-        if not controller.config:
-            try:
-                controller.config = await self.iot_client.get_config(
-                    device_id=controller.device_id
-                )
-                commit = True
-            except ControllerTimeoutError:
-                pass
-        if not controller.settings:
-            try:
-                controller.settings = await self.iot_client.get_settings(
-                    device_id=controller.device_id
-                )
-                commit = True
-            except ControllerTimeoutError:
-                pass
-
-        if commit:
-            await self.controller_repository.commit()
-
         state = await self.iot_storage.get_state(controller.id)
         return WsmControllerScheme.make(controller, state)
 

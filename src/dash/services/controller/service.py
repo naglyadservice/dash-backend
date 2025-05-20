@@ -25,11 +25,15 @@ from dash.services.controller.dto import (
     CloseEncashmentRequest,
     ControllerScheme,
     EncashmentScheme,
+    PublicCarwashScheme,
+    PublicWsmScheme,
     ReadControllerListRequest,
+    ReadControllerRequest,
     ReadControllerResponse,
     ReadEncashmentListRequest,
     ReadEncashmentListResponse,
 )
+from dash.services.iot.factory import IoTServiceFactory
 
 
 class ControllerService:
@@ -39,11 +43,13 @@ class ControllerService:
         controller_repository: ControllerRepository,
         location_repository: LocationRepository,
         encashment_repository: EncashmentRepository,
+        factory: IoTServiceFactory,
     ):
         self.identity_provider = identity_provider
         self.controller_repository = controller_repository
         self.location_repository = location_repository
         self.encashment_repository = encashment_repository
+        self.factory = factory
 
     async def _get_controllers_by_role(
         self, data: ReadControllerListRequest, user: AdminUser
@@ -98,6 +104,8 @@ class ControllerService:
 
         if data.type is ControllerType.VACUUM:
             controller = VacuumController(**base_controller)
+
+        await self.factory.get(controller.type).init_controller_settings(controller)
 
         self.controller_repository.add(controller)
         await self.controller_repository.commit()
@@ -185,3 +193,17 @@ class ControllerService:
         encashment.is_closed = True
 
         await self.encashment_repository.commit()
+
+    async def read_controller_public(
+        self, data: ReadControllerRequest
+    ) -> PublicWsmScheme | PublicCarwashScheme:
+        controller = await self.controller_repository.get_concrete(data.controller_id)
+        if not controller:
+            raise ControllerNotFoundError
+
+        if controller.type is ControllerType.CARWASH:
+            return PublicCarwashScheme.make(controller)
+        elif controller.type is ControllerType.WATER_VENDING:
+            return PublicWsmScheme.make(controller)
+        else:
+            raise ValueError("This controller type is not support online payment yet")

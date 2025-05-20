@@ -6,6 +6,8 @@ from sqlalchemy import ForeignKey, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from dash.models import Company
+
 if TYPE_CHECKING:
     from dash.models.location import Location
 
@@ -45,6 +47,10 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     location: Mapped["Location | None"] = relationship(lazy="joined")
 
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "controller"}
+
+    @property
+    def company(self) -> Company | None:
+        return self.location and self.location.company
 
     @hybrid_property
     def company_id(self) -> UUID | None:

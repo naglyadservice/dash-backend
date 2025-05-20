@@ -7,9 +7,11 @@ from dash.models.admin_user import AdminRole
 from dash.models.location import Location
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.company import CompanyNotFoundError
+from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.location.dto import (
     CreateLocationRequest,
     CreateLocationResponse,
+    EditLocationRequest,
     LocationScheme,
     ReadLocationListRequest,
     ReadLocationListResponse,
@@ -80,3 +82,17 @@ class LocationService:
             ],
             total=total,
         )
+
+    async def edit_location(self, data: EditLocationRequest) -> None:
+        await self.identity_provider.ensure_company_owner(location_id=data.location_id)
+
+        location = await self.location_repository.get(data.location_id)
+        if not location:
+            raise LocationNotFoundError
+
+        dict_data = data.data.model_dump(exclude_unset=True)
+        for k, v in dict_data.items():
+            if hasattr(location, k):
+                setattr(location, k, v)
+
+        await self.location_repository.commit()

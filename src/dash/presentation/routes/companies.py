@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter
@@ -6,6 +8,8 @@ from dash.presentation.bearer import bearer_scheme
 from dash.services.company.dto import (
     CreateCompanyRequest,
     CreateCompanyResponse,
+    EditCompanyDTO,
+    EditCompanyRequest,
     ReadCompanyListResponse,
 )
 from dash.services.company.service import CompanyService
@@ -30,3 +34,10 @@ async def create_company(
     service: FromDishka[CompanyService], data: CreateCompanyRequest
 ) -> CreateCompanyResponse:
     return await service.create_company(data)
+
+
+@company_router.patch("/{company_id}", status_code=204)
+async def edit_company(
+    service: FromDishka[CompanyService], company_id: UUID, data: EditCompanyDTO
+) -> None:
+    await service.edit_company(EditCompanyRequest(company_id=company_id, data=data))

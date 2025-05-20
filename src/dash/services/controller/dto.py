@@ -1,12 +1,14 @@
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal, Self
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from dash.models import WaterVendingController
 from dash.models.controllers.controller import ControllerStatus, ControllerType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
+from dash.services.iot.carwash.dto import CarwashTariffDTO
 from dash.services.iot.dto import ControllerID
 
 
@@ -128,3 +130,67 @@ class CloseEncashmentRequest(BaseModel):
     encashment_id: UUID
     controller_id: UUID
     received_amount: int
+
+
+class LocationDTO(BaseModel):
+    name: str
+    address: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CompanyDTO(BaseModel):
+    name: str
+    privacy_policy: str | None
+    offer_agreement: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublicCarwashScheme(BaseModel):
+    id: UUID
+    name: str
+    type: Literal[ControllerType.CARWASH]
+    location: LocationDTO | None
+    company: CompanyDTO
+    tariff: CarwashTariffDTO
+
+    @classmethod
+    def make(cls, model: WaterVendingController) -> Self:
+        return cls(
+            id=model.id,
+            name=model.name,
+            type=model.type,
+            location=model.location and LocationDTO.model_validate(model.location),
+            company=model.company and CompanyDTO.model_validate(model.company),
+            tariff=CarwashTariffDTO.model_validate(model.settings["tariff"]),
+        )
+
+
+class WsmTariffDTO(BaseModel):
+    tariffPerLiter_1: int
+    tariffPerLiter_2: int
+
+
+class PublicWsmScheme(BaseModel):
+    id: UUID
+    name: str
+    type: Literal[ControllerType.WATER_VENDING]
+    location: LocationDTO | None
+    company: CompanyDTO
+    tariff: WsmTariffDTO
+
+    @classmethod
+    def make(cls, model: WaterVendingController) -> Self:
+        return cls(
+            id=model.id,
+            name=model.name,
+            type=model.type,
+            location=model.location and LocationDTO.model_validate(model.location),
+            company=model.company and CompanyDTO.model_validate(model.company),
+            tariff=WsmTariffDTO.model_validate(model.settings),
+        )
+
+
+class ReadControllerRequest(BaseModel):
+    controller_id: UUID

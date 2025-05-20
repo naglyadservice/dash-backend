@@ -45,15 +45,49 @@ class RelayBit(IntEnum):
     RESERVED_2 = 13
 
 
-class CarwashServicesRelay(BaseModel):
-    relay_1: list[RelayBit] | None = None
-    relay_2: list[RelayBit] | None = None
-    relay_3: list[RelayBit] | None = None
-    relay_4: list[RelayBit] | None = None
-    relay_5: list[RelayBit] | None = None
-    relay_6: list[RelayBit] | None = None
-    relay_7: list[RelayBit] | None = None
-    relay_8: list[RelayBit] | None = None
+class CarwashServicesRelayDTO(BaseModel):
+    foam: list[RelayBit] | None = None
+    foam_extra: list[RelayBit] | None = None
+    water_pressured: list[RelayBit] | None = None
+    water_warm: list[RelayBit] | None = None
+    osmos: list[RelayBit] | None = None
+    wax: list[RelayBit] | None = None
+    winter: list[RelayBit] | None = None
+    blackening: list[RelayBit] | None = None
+
+
+class CarwashServiceEnum(StrEnum):
+    FOAM = "foam"
+    FOAM_EXTRA = "foam_extra"
+    WATER_PRESSURED = "water_pressured"
+    WATER_WARM = "water_warm"
+    OSMOS = "osmos"
+    WAX = "wax"
+    WINTER = "winter"
+    BLACKENING = "blackening"
+
+
+class ServicesIntListDTO(BaseModel):
+    foam: int | None = None
+    foam_extra: int | None = None
+    water_pressured: int | None = None
+    water_warm: int | None = None
+    osmos: int | None = None
+    wax: int | None = None
+    winter: int | None = None
+    blackening: int | None = None
+
+
+class CarwashServicesPauseDTO(ServicesIntListDTO):
+    pass
+
+
+class CarwashServicesVfdFrequencyDTO(ServicesIntListDTO):
+    pass
+
+
+class CarwashTariffDTO(ServicesIntListDTO):
+    pass
 
 
 class CarwashSettings(BaseModel):
@@ -63,10 +97,10 @@ class CarwashSettings(BaseModel):
     deltaPayPass: int | None = None
     timeOnePay: int | None = None
     timePause: int | None = None
-    servicesRelay: CarwashServicesRelay | None = None
-    servicesPause: list[int] | None = Field(min_length=8, max_length=8)
-    vfdFrequency: list[int] | None = Field(min_length=8, max_length=8)
-    tariff: list[int] | None = Field(min_length=8, max_length=8)
+    servicesRelay: CarwashServicesRelayDTO | None = None
+    servicesPause: CarwashServicesPauseDTO | None = None
+    vfdFrequency: CarwashServicesVfdFrequencyDTO | None = None
+    tariff: CarwashTariffDTO | None = None
     pulsesPerLiter: int | None = None
     enableSrcAfterPause: bool | None = None
     timeLight: int | None = None
@@ -117,7 +151,7 @@ class CarwashState(BaseModel):
         "blackening",
     ]
     timer: time
-    summa: int
+    summa: float
     depositBoxSensor: bool
     doorSensor: bool
     coinState: int

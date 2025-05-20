@@ -1,3 +1,4 @@
+from copy import deepcopy
 from uuid import UUID
 
 from sqlalchemy.orm.attributes import flag_modified
@@ -7,6 +8,7 @@ from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
+from dash.models import Controller
 from dash.models.controllers.carwash import CarwashController
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
@@ -17,7 +19,12 @@ from dash.services.iot.carwash.dto import (
     CarwashControllerScheme,
     SetCarwashSettingsRequest,
 )
-from dash.services.iot.carwash.utils import decode_relay_mask, encode_relay_mask
+from dash.services.iot.carwash.utils import (
+    decode_service_bit_mask,
+    decode_service_int_mask,
+    encode_service_bit_mask,
+    encode_service_int_mask,
+)
 from dash.services.iot.dto import ControllerID
 
 logger = getLogger()
@@ -42,6 +49,17 @@ class CarwashService(BaseIoTService):
 
         return controller
 
+    async def init_controller_settings(self, controller: Controller) -> None:
+        controller.config = await self.iot_client.get_config(controller.device_id)
+
+        settings = await self.iot_client.get_settings(controller.device_id)
+        settings["servicesRelay"] = decode_service_bit_mask(settings["servicesRelay"])
+        settings["tariff"] = decode_service_int_mask(settings["tariff"])
+        settings["servicesPause"] = decode_service_int_mask(settings["servicesPause"])
+        settings["vfdFrequency"] = decode_service_int_mask(settings["vfdFrequency"])
+
+        controller.settings = settings
+
     async def set_settings(self, data: SetCarwashSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
 
@@ -50,13 +68,27 @@ class CarwashService(BaseIoTService):
         )
 
         settings_dict = data.settings.model_dump(exclude_unset=True)
+        controller_settings_dict = deepcopy(settings_dict)
+
         if data.settings.servicesRelay is not None:
-            settings_dict["servicesRelay"] = encode_relay_mask(
-                settings_dict["servicesRelay"]
+            controller_settings_dict["servicesRelay"] = encode_service_bit_mask(
+                controller_settings_dict["servicesRelay"]
+            )
+        if data.settings.tariff is not None:
+            controller_settings_dict["tariff"] = encode_service_int_mask(
+                controller_settings_dict["tariff"]
+            )
+        if data.settings.servicesPause is not None:
+            controller_settings_dict["servicesPause"] = encode_service_int_mask(
+                controller_settings_dict["servicesPause"]
+            )
+        if data.settings.vfdFrequency is not None:
+            controller_settings_dict["vfdFrequency"] = encode_service_int_mask(
+                controller_settings_dict["vfdFrequency"]
             )
 
         await self.iot_client.set_settings(
-            device_id=controller.device_id, payload=settings_dict
+            device_id=controller.device_id, payload=controller_settings_dict
         )
 
         if controller.settings:
@@ -70,33 +102,6 @@ class CarwashService(BaseIoTService):
     async def read_controller(self, data: ControllerID) -> CarwashControllerScheme:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
-
-        commit = False
-
-        if not controller.config:
-            try:
-                controller.config = await self.iot_client.get_config(
-                    device_id=controller.device_id
-                )
-                commit = True
-            except ControllerTimeoutError:
-                pass
-
-        if not controller.settings:
-            try:
-                settings = await self.iot_client.get_settings(
-                    device_id=controller.device_id
-                )
-                logger.info(f"settings: {settings}")
-            except ControllerTimeoutError:
-                pass
-            else:
-                settings["servicesRelay"] = decode_relay_mask(settings["servicesRelay"])
-                controller.settings = settings
-                commit = True
-
-        if commit:
-            await self.controller_repository.commit()
 
         state = await self.iot_storage.get_state(controller.id)
         return CarwashControllerScheme.make(controller, state)

@@ -16,6 +16,8 @@ class Company(Base, UUIDMixin, CreatedAtMixin):
 
     owner_id: Mapped[UUID] = mapped_column(ForeignKey("admin_users.id"))
     name: Mapped[str] = mapped_column()
+    privacy_policy: Mapped[str | None] = mapped_column()
+    offer_agreement: Mapped[str | None] = mapped_column()
 
     locations: Mapped[list["Location"]] = relationship(back_populates="company")
     owner: Mapped["AdminUser"] = relationship(back_populates="companies", lazy="joined")

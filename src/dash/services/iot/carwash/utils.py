@@ -1,23 +1,36 @@
-from dash.services.iot.carwash.dto import RelayBit
+from dash.services.iot.carwash.dto import CarwashServiceEnum, RelayBit
 
 
-def encode_relay_mask(data: dict[str, list[RelayBit]]) -> list[int]:
+def encode_service_bit_mask(
+    data: dict[CarwashServiceEnum, list[RelayBit]],
+) -> list[int]:
     result = []
-    for i in range(1, 9):
-        relay_bits = data.get(f"relay_{i}", None) or []
+    for service in CarwashServiceEnum:
+        bits = data.get(service, []) or []
         mask = 0
-        for bit in relay_bits:
+        for bit in bits:
             mask |= 1 << bit
         result.append(mask)
     return result
 
 
-def decode_relay_mask(mask: list[int]) -> dict[str, list[RelayBit]]:
-    relays = {}
-    for i, value in enumerate(mask, start=1):
+def decode_service_bit_mask(
+    mask: list[int],
+) -> dict[CarwashServiceEnum, list[RelayBit] | None]:
+    result = {}
+    for i, value in enumerate(mask):
+        service = list(CarwashServiceEnum)[i]
         bits = []
         for bit in RelayBit:
             if value & (1 << bit):
                 bits.append(bit)
-        relays[f"relay_{i}"] = bits if bits else None
-    return relays
+        result[service] = bits if bits else None
+    return result
+
+
+def encode_service_int_mask(data: dict[CarwashServiceEnum, int]) -> list[int]:
+    return [data[s] for s in CarwashServiceEnum]
+
+
+def decode_service_int_mask(mask: list[int]) -> dict[CarwashServiceEnum, int]:
+    return {CarwashServiceEnum(s): mask[i] for i, s in enumerate(CarwashServiceEnum)}

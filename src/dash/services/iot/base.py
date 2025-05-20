@@ -35,6 +35,10 @@ class BaseIoTService(ABC):
     async def _get_controller(self, controller_id: UUID) -> Controller:
         pass
 
+    async def init_controller_settings(self, controller: Controller) -> None:
+        controller.config = await self.iot_client.get_config(controller.device_id)
+        controller.settings = await self.iot_client.get_settings(controller.device_id)
+
     async def healthcheck(self, device_id: str) -> None:
         await self.iot_client.get_state(device_id)
 

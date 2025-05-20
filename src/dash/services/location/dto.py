@@ -45,3 +45,13 @@ class ReadLocationListRequest(Pagination):
 class ReadLocationListResponse(BaseModel):
     locations: list[LocationScheme]
     total: int
+
+
+class EditLocationDTO(BaseModel):
+    name: str | None = None
+    address: str | None = None
+
+
+class EditLocationRequest(BaseModel):
+    location_id: UUID
+    data: EditLocationDTO

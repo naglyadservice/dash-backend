@@ -16,7 +16,10 @@ from dash.services.controller.dto import (
     LiqpayCredentialsDTO,
     LocationID,
     MonopayCredentialsDTO,
+    PublicCarwashScheme,
+    PublicWsmScheme,
     ReadControllerListRequest,
+    ReadControllerRequest,
     ReadControllerResponse,
     ReadEncashmentListRequest,
     ReadEncashmentListResponse,
@@ -109,3 +112,11 @@ async def close_encashment(
             received_amount=data.received_amount,
         )
     )
+
+
+@controller_router.get("/{controller_id}")
+async def read_controller_public(
+    controller_service: FromDishka[ControllerService],
+    data: ReadControllerRequest = Depends(),
+) -> PublicWsmScheme | PublicCarwashScheme:
+    return await controller_service.read_controller_public(data)

@@ -2,6 +2,7 @@ from typing import Any, Sequence
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, select
+from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.company import Company
@@ -23,6 +24,17 @@ class ControllerRepository(BaseRepository):
         if company_id:
             stmt = stmt.where(Controller.company_id == company_id)
 
+        return await self.session.scalar(stmt)
+
+    async def get_concrete(
+        self, controller_id: UUID
+    ) -> WaterVendingController | CarwashController | None:
+        loader_opt = selectin_polymorphic(
+            Controller, [WaterVendingController, CarwashController]
+        )
+        stmt = (
+            select(Controller).where(Controller.id == controller_id).options(loader_opt)
+        )
         return await self.session.scalar(stmt)
 
     async def get_by_device_id(self, device_id: str) -> Controller | None:

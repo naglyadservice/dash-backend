@@ -11,6 +11,8 @@ class CreateCompanyRequest(BaseModel):
     name: str
     owner_id: UUID | None = None
     new_owner: CreateUserRequest | None = None
+    offer_agreement: str | None = None
+    privacy_policy: str | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -42,3 +44,14 @@ class CompanyScheme(BaseModel):
 
 class ReadCompanyListResponse(BaseModel):
     companies: list[CompanyScheme]
+
+
+class EditCompanyDTO(BaseModel):
+    name: str | None = None
+    offer_agreement: str | None = None
+    privacy_policy: str | None = None
+
+
+class EditCompanyRequest(BaseModel):
+    company_id: UUID
+    data: EditCompanyDTO
