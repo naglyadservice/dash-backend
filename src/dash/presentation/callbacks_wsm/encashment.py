@@ -61,8 +61,8 @@ async def encashment_callback(
             "Ignoring encashment request from controller, controller not found by device_id",
             device_id=device_id,
         )
-        await wsm_client.payment_card_ack(
-            device_id=device_id, payload={"request_id": data.id, "code": 1}
+        await wsm_client.encashment_ack(
+            device_id=device_id, payload={"id": data.id, "code": 1}
         )
         return
 
@@ -89,5 +89,5 @@ async def encashment_callback(
     await encashment_repository.commit()
 
     await wsm_client.encashment_ack(
-        device_id=device_id, payload={"request_id": data.id, "code": 0}
+        device_id=device_id, payload={"id": data.id, "code": 0}
     )
