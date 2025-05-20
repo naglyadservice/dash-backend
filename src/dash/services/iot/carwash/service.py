@@ -17,6 +17,7 @@ from dash.services.common.errors.controller import (
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.carwash.dto import (
     CarwashControllerScheme,
+    SetCarwashConfigRequest,
     SetCarwashSettingsRequest,
 )
 from dash.services.iot.carwash.utils import (
@@ -25,7 +26,7 @@ from dash.services.iot.carwash.utils import (
     encode_service_bit_mask,
     encode_service_int_mask,
 )
-from dash.services.iot.dto import ControllerID
+from dash.services.iot.dto import ControllerID, SetConfigRequest
 
 logger = getLogger()
 
@@ -59,6 +60,9 @@ class CarwashService(BaseIoTService):
         settings["vfdFrequency"] = decode_service_int_mask(settings["vfdFrequency"])
 
         controller.settings = settings
+
+    async def set_config(self, data: SetCarwashConfigRequest) -> None:
+        await super().set_config(data)
 
     async def set_settings(self, data: SetCarwashSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)

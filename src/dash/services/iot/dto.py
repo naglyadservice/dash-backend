@@ -19,8 +19,12 @@ class GetDisplayInfoRequest(ControllerID):
     pass
 
 
-class RebootControllerRequest(ControllerID):
+class RebootDelayDTO(BaseModel):
     delay: int
+
+
+class RebootControllerRequest(ControllerID, RebootDelayDTO):
+    pass
 
 
 class QRPaymentDTO(BaseModel):

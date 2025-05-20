@@ -8,7 +8,11 @@ from pydantic import BaseModel, Field
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
-from dash.services.iot.dto import SetConfigRequest, SetSettingsRequest
+from dash.services.iot.dto import (
+    SendActionRequest,
+    SetConfigRequest,
+    SetSettingsRequest,
+)
 
 
 class CarwashConfig(BaseModel):
@@ -187,3 +191,25 @@ class SetCarwashConfigRequest(SetConfigRequest):
 
 class SetCarwashSettingsRequest(SetSettingsRequest):
     settings: CarwashSettings
+
+
+class CarwashActionDTO(BaseModel):
+    Service: (
+        Literal[
+            "Pause",
+            "Foam",
+            "Foam_extra",
+            "Water_pressured",
+            "Water_warm",
+            "Osmos",
+            "Wax",
+            "Winter",
+            "Blackening",
+        ]
+        | None
+    ) = None
+    Blocking: bool | None = None
+
+
+class SendCarwashActionRequest(SendActionRequest):
+    action: CarwashActionDTO

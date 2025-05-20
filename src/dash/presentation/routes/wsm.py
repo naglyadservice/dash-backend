@@ -14,6 +14,7 @@ from dash.services.iot.dto import (
     PaymentClearOptionsDTO,
     QRPaymentDTO,
     RebootControllerRequest,
+    RebootDelayDTO,
     SendFreePaymentRequest,
     SendQRPaymentRequest,
 )
@@ -77,15 +78,10 @@ async def send_action(
     )
 
 
-@dataclass
-class DelayDTO:
-    delay: int
-
-
 @wsm_router.post("/{controller_id}/reboot", status_code=204)
 async def reboot_controller(
     wsm_service: FromDishka[WsmService],
-    data: DelayDTO,
+    data: RebootDelayDTO,
     controller_id: UUID,
 ) -> None:
     return await wsm_service.reboot_controller(

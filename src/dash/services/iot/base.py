@@ -82,10 +82,14 @@ class BaseIoTService(ABC):
 
         await self.controller_repository.commit()
 
-    async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, Any]:
+    async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, str]:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
-        return await self.iot_client.get_display(controller.device_id)
+
+        display_info = await self.iot_client.get_display(controller.device_id)
+        display_info.pop("request_id")
+
+        return display_info
 
     async def reboot_controller(self, data: RebootControllerRequest) -> None:
         controller = await self._get_controller(data.controller_id)
