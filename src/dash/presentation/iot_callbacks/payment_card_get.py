@@ -108,6 +108,7 @@ async def payment_card_get_callback(
             "balance": int(customer.balance * 100),
             "tariffPerLiter_1": tariff_per_liter_1,
             "tariffPerLiter_2": tariff_per_liter_2,
+            "replenishmentRatio": 100 + (customer.discount_percent or 0),
             "code": 0,
         },
     )

@@ -6,24 +6,20 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.controller.dto import (
-    AddControllerLocationRequest,
-    AddControllerRequest,
-    AddControllerResponse,
-    AddLiqpayCredentialsRequest,
-    AddMonopayCredentialsRequest,
-    CloseEncashmentRequest,
-    LiqpayCredentialsDTO,
-    LocationID,
-    MonopayCredentialsDTO,
-    PublicCarwashScheme,
-    PublicWsmScheme,
-    ReadControllerListRequest,
-    ReadControllerRequest,
-    ReadControllerResponse,
-    ReadEncashmentListRequest,
-    ReadEncashmentListResponse,
-)
+from dash.services.controller.dto import (AddControllerLocationRequest,
+                                          AddControllerRequest,
+                                          AddControllerResponse,
+                                          AddLiqpayCredentialsRequest,
+                                          AddMonopayCredentialsRequest,
+                                          CloseEncashmentRequest,
+                                          LiqpayCredentialsDTO, LocationID,
+                                          MonopayCredentialsDTO,
+                                          PublicCarwashScheme, PublicWsmScheme,
+                                          ReadControllerListRequest,
+                                          ReadControllerRequest,
+                                          ReadControllerResponse,
+                                          ReadEncashmentListRequest,
+                                          ReadEncashmentListResponse)
 from dash.services.controller.service import ControllerService
 
 controller_router = APIRouter(

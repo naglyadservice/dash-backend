@@ -7,13 +7,10 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.payment import Payment
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.payment.dto import (
-    GetPaymentStatsRequest,
-    GetPaymentStatsResponse,
-    PaymentScheme,
-    ReadPaymentListRequest,
-    ReadPaymentListResponse,
-)
+from dash.services.payment.dto import (GetPaymentStatsRequest,
+                                       GetPaymentStatsResponse, PaymentScheme,
+                                       ReadPaymentListRequest,
+                                       ReadPaymentListResponse)
 
 
 class PaymentService:

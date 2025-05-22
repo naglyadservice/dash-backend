@@ -1,9 +1,7 @@
-from dash.services.iot.carwash.utils import (
-    decode_service_bit_mask,
-    decode_service_int_mask,
-    encode_service_bit_mask,
-    encode_service_int_mask,
-)
+from dash.services.iot.carwash.utils import (decode_service_bit_mask,
+                                             decode_service_int_mask,
+                                             encode_service_bit_mask,
+                                             encode_service_int_mask)
 
 
 def test_bit_mask_encoding():

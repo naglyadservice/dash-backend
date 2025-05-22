@@ -5,20 +5,15 @@ from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.customer import Customer
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.common.errors.user import (
-    CardIdAlreadyTakenError,
-    CustomerNotFoundError,
-    EmailAlreadyTakenError,
-)
-from dash.services.customer.dto import (
-    CreateCustomerRequest,
-    CreateCustomerResponse,
-    CustomerScheme,
-    DeleteCustomerRequest,
-    EditCustomerRequest,
-    ReadCustomerListRequest,
-    ReadCustomerListResponse,
-)
+from dash.services.common.errors.user import (CardIdAlreadyTakenError,
+                                              CustomerNotFoundError,
+                                              EmailAlreadyTakenError)
+from dash.services.customer.dto import (CreateCustomerRequest,
+                                        CreateCustomerResponse, CustomerScheme,
+                                        DeleteCustomerRequest,
+                                        EditCustomerRequest,
+                                        ReadCustomerListRequest,
+                                        ReadCustomerListResponse)
 
 
 class CustomerService:

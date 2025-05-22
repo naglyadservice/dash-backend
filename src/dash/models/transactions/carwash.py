@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import ForeignKey
@@ -12,5 +13,8 @@ class CarwashTransaction(Transaction):
     transaction_id: Mapped[UUID] = mapped_column(
         ForeignKey("transactions.id"), primary_key=True
     )
+    services_sold_seconds: Mapped[dict[str, Any]] = mapped_column()
+    tariff: Mapped[dict[str, Any]] = mapped_column()
+    replenishment_ratio: Mapped[int | None] = mapped_column()
 
     __mapper_args__ = {"polymorphic_identity": TransactionType.CARWASH.value}

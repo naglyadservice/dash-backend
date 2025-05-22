@@ -9,12 +9,9 @@ from structlog import getLogger
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
-from dash.presentation.callbacks_wsm.di_injector import (
-    datetime_recipe,
-    inject,
-    parse_payload,
-    request_scope,
-)
+from dash.presentation.iot_callbacks.di_injector import (datetime_recipe,
+                                                         inject, parse_payload,
+                                                         request_scope)
 
 logger = getLogger()
 

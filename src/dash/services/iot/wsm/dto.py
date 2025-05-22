@@ -8,11 +8,8 @@ from pydantic import BaseModel, Field
 from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.const import COIN_VALIDATOR_TYPE
-from dash.services.iot.dto import (
-    SendActionRequest,
-    SetConfigRequest,
-    SetSettingsRequest,
-)
+from dash.services.iot.dto import (SendActionRequest, SetConfigRequest,
+                                   SetSettingsRequest)
 
 
 class WsmConfig(BaseModel):

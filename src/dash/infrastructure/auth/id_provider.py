@@ -7,7 +7,8 @@ from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
 from dash.models.admin_user import AdminRole, AdminUser
-from dash.services.common.errors.base import AccessDeniedError, AccessForbiddenError
+from dash.services.common.errors.base import (AccessDeniedError,
+                                              AccessForbiddenError)
 
 
 class IdProvider:

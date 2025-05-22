@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from dash.services.common.errors.base import ApplicationError, EntityNotFoundError
+from dash.services.common.errors.base import (ApplicationError,
+                                              EntityNotFoundError)
 
 
 @dataclass

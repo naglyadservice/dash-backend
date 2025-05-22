@@ -5,16 +5,10 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter
 
-from dash.infrastructure.auth.auth_service import (
-    AuthService,
-    LoginRequest,
-    LoginResponse,
-)
-from dash.infrastructure.auth.dto import (
-    LogoutRequest,
-    RefreshTokenRequest,
-    RefreshTokenResponse,
-)
+from dash.infrastructure.auth.auth_service import (AuthService, LoginRequest,
+                                                   LoginResponse)
+from dash.infrastructure.auth.dto import (LogoutRequest, RefreshTokenRequest,
+                                          RefreshTokenResponse)
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.models.admin_user import AdminRole
 from dash.presentation.bearer import bearer_scheme

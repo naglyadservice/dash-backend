@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from dash.models.transactions.transaction import TransactionType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
+from dash.services.iot.carwash.dto import CarwashTariffDTO, ServicesIntListDTO
 
 
 class BaseTransactionFilters(BaseModel):
@@ -51,19 +52,32 @@ class TransactionBase(BaseModel):
     qr_amount: int
     paypass_amount: int
     created_at: datetime
+    sale_type: Literal["no", "money", "card"]
     created_at_controller: datetime
     customer: CustomerDTO | None
+    card_balance_in: int | None
+    card_balance_out: int | None
+    card_uid: str | None
 
 
-class WaterVendingTransactionScheme(TransactionBase):
+class WsmTransactionScheme(TransactionBase):
     out_liters_1: int
     out_liters_2: int
-    sale_type: str
 
     model_config = ConfigDict(from_attributes=True)
 
 
-TRANSACTION_SCHEME_TYPE = WaterVendingTransactionScheme
+class CarwashServicesSoldDTO(ServicesIntListDTO):
+    pass
+
+
+class CarwashTransactionScheme(TransactionBase):
+    services_sold_seconds: CarwashServicesSoldDTO
+    tariff: CarwashTariffDTO
+    replenishment_ratio: int | None
+
+
+TRANSACTION_SCHEME_TYPE = WsmTransactionScheme | CarwashTransactionScheme
 
 
 class ReadTransactionListRequest(Pagination, BaseTransactionFilters):

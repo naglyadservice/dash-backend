@@ -4,10 +4,8 @@ from npc_iot import Dispatcher, NpcClient
 from npc_iot.dispatcher import MessageHandler
 from npc_iot.exception import DeviceResponceError
 
-from dash.services.common.errors.controller import (
-    ControllerResponseError,
-    ControllerTimeoutError,
-)
+from dash.services.common.errors.controller import (ControllerResponseError,
+                                                    ControllerTimeoutError)
 
 
 class BaseDispatcher(Dispatcher):

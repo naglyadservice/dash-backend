@@ -7,19 +7,18 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import aliased, selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models import CarwashTransaction
 from dash.models.base import Base
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.transaction import Transaction
-from dash.models.transactions.water_vending import WaterVendingTransaction
-from dash.services.transaction.dto import (
-    GetTransactionStatsRequest,
-    GetTransactionStatsResponse,
-    ReadTransactionListRequest,
-    TransactionStatDTO,
-)
+from dash.models.transactions.water_vending import WsmTransaction
+from dash.services.transaction.dto import (GetTransactionStatsRequest,
+                                           GetTransactionStatsResponse,
+                                           ReadTransactionListRequest,
+                                           TransactionStatDTO)
 
 
 def parse_model(instance: Base, model: Type[Base]) -> dict[str, Any]:
@@ -48,10 +47,10 @@ class TransactionRepository(BaseRepository):
         if not inserted_id:
             return False
 
-        child_cols = parse_model(model, WaterVendingTransaction)
+        child_cols = parse_model(model, type(model))
 
         await self.session.execute(
-            insert(WaterVendingTransaction).values(
+            insert(type(model)).values(
                 transaction_id=inserted_id,
                 **child_cols,
             )
@@ -63,7 +62,7 @@ class TransactionRepository(BaseRepository):
         data: ReadTransactionListRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Transaction], int]:
-        loader_opt = selectin_polymorphic(Transaction, [WaterVendingTransaction])
+        loader_opt = selectin_polymorphic(Transaction, [WsmTransaction])
 
         stmt = (
             select(Transaction)
@@ -123,7 +122,7 @@ class TransactionRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> GetTransactionStatsResponse:
         date_expression = cast(Transaction.created_at, Date).label("date")
-        water_vending_t = aliased(WaterVendingTransaction)
+        water_vending_t = aliased(WsmTransaction)
         now = datetime.now()
 
         stmt = (

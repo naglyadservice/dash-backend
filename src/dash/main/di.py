@@ -7,11 +7,8 @@ from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
-from dash.infrastructure.db.setup import (
-    get_async_engine,
-    get_async_session,
-    get_async_sessionmaker,
-)
+from dash.infrastructure.db.setup import (get_async_engine, get_async_session,
+                                          get_async_sessionmaker)
 from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.iot.carwash.di import get_carwash_client
 from dash.infrastructure.iot.wsm.client import WsmClient
@@ -28,16 +25,9 @@ from dash.infrastructure.storages.acquring import AcquringStorage
 from dash.infrastructure.storages.iot import IotStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
-from dash.main.config import (
-    AppConfig,
-    Config,
-    DbConfig,
-    JWTConfig,
-    LiqpayConfig,
-    MonopayConfig,
-    MqttConfig,
-    RedisConfig,
-)
+from dash.main.config import (AppConfig, Config, DbConfig, JWTConfig,
+                              LiqpayConfig, MonopayConfig, MqttConfig,
+                              RedisConfig)
 from dash.services.company.service import CompanyService
 from dash.services.controller.service import ControllerService
 from dash.services.customer.service import CustomerService

@@ -7,12 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.models.admin_user import AdminUser
-from dash.services.customer.dto import (
-    CreateCustomerRequest,
-    EditCustomerDTO,
-    EditCustomerRequest,
-    ReadCustomerListRequest,
-)
+from dash.services.customer.dto import (CreateCustomerRequest, EditCustomerDTO,
+                                        EditCustomerRequest,
+                                        ReadCustomerListRequest)
 from dash.services.customer.service import CustomerService
 from tests.environment import TestEnvironment
 

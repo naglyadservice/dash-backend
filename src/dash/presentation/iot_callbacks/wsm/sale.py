@@ -13,15 +13,16 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
-from dash.models.transactions.water_vending import WaterVendingTransaction
-
-from .di_injector import datetime_recipe, inject, parse_payload, request_scope
+from dash.models.transactions.water_vending import WsmTransaction
+from dash.presentation.iot_callbacks.di_injector import (datetime_recipe,
+                                                         inject, parse_payload,
+                                                         request_scope)
 
 logger = structlog.get_logger()
 
 
 @dataclass
-class SaleCallbackPayload:
+class WsmSaleCallbackPayload:
     id: int
     add_coin: int
     add_bill: int
@@ -39,11 +40,11 @@ class SaleCallbackPayload:
     card_balance_out: int | None = None
 
 
-sale_callabck_retort = Retort(
+wsm_sale_callback_retort = Retort(
     recipe=[
         *datetime_recipe,
         name_mapping(
-            SaleCallbackPayload,
+            WsmSaleCallbackPayload,
             map={
                 "add_coin": "addCoin",
                 "add_bill": "addBill",
@@ -64,12 +65,12 @@ sale_callabck_retort = Retort(
 
 
 @tracer.wrap()
-@parse_payload(retort=sale_callabck_retort)
+@parse_payload(retort=wsm_sale_callback_retort)
 @request_scope
 @inject
-async def sale_callback(
+async def wsm_sale_callback(
     device_id: str,
-    data: SaleCallbackPayload,
+    data: WsmSaleCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
@@ -92,7 +93,7 @@ async def sale_callback(
         )
         return
 
-    transaction = WaterVendingTransaction(
+    transaction = WsmTransaction(
         controller_transaction_id=data.id,
         controller_id=controller.id,
         location_id=controller.location_id,
@@ -107,8 +108,10 @@ async def sale_callback(
         out_liters_1=data.out_liters_1,
         out_liters_2=data.out_liters_2,
         sale_type=data.sale_type,
+        card_balance_in=data.card_balance_in,
+        card_balance_out=data.card_balance_out,
+        card_uid=data.card_uid,
     )
-
     if data.sale_type == "card":
         customer = await customer_repository.get_by_card_id(
             company_id=company_id,

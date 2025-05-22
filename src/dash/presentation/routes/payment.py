@@ -3,12 +3,10 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.payment.dto import (
-    GetPaymentStatsRequest,
-    GetPaymentStatsResponse,
-    ReadPaymentListRequest,
-    ReadPaymentListResponse,
-)
+from dash.services.payment.dto import (GetPaymentStatsRequest,
+                                       GetPaymentStatsResponse,
+                                       ReadPaymentListRequest,
+                                       ReadPaymentListResponse)
 from dash.services.payment.service import PaymentService
 
 payment_router = APIRouter(

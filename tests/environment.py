@@ -3,7 +3,7 @@ from decimal import Decimal
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dash.models import Customer
+from dash.models import CarwashController, Customer
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
 from dash.models.controllers.controller import ControllerStatus, ControllerType
@@ -101,6 +101,14 @@ class TestEnvironment:
             version="1.0.0",
             status=ControllerStatus.ACTIVE,
         )
+        self.controller_2 = CarwashController(
+            name="Test Controller 2",
+            device_id="test_device_id_2",
+            location_id=self.location_2.id,
+            type=ControllerType.CARWASH,
+            version="1.0.0",
+            status=ControllerStatus.ACTIVE,
+        )
 
         self.customer_1 = Customer(
             company_id=self.company_1.id,
@@ -123,6 +131,7 @@ class TestEnvironment:
             (
                 self.superadmin,
                 self.controller_1,
+                self.controller_2,
                 LocationAdmin(
                     location_id=self.location_1.id, user_id=self.location_admin_1.id
                 ),

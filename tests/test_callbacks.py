@@ -8,21 +8,18 @@ import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IotStorage
-from dash.presentation.callbacks_wsm.denomination import (
-    DenominationCallbackPayload,
-    denomination_callback_retort,
-)
-from dash.presentation.callbacks_wsm.encashment import (
-    EncashmentCallbackPayload,
-    encashment_callback_retort,
-)
-from dash.presentation.callbacks_wsm.sale import (
-    SaleCallbackPayload,
-    sale_callabck_retort,
-)
+from dash.presentation.iot_callbacks.carwash.sale import (
+    CarwashSaleCallbackPayload, carwash_sale_callback_retort)
+from dash.presentation.iot_callbacks.denomination import (
+    DenominationCallbackPayload, denomination_callback_retort)
+from dash.presentation.iot_callbacks.encashment import (
+    EncashmentCallbackPayload, encashment_callback_retort)
+from dash.presentation.iot_callbacks.wsm.sale import (WsmSaleCallbackPayload,
+                                                      wsm_sale_callback_retort)
 from tests.environment import TestEnvironment
 
 pytestmark = pytest.mark.usefixtures("create_tables")
@@ -32,6 +29,7 @@ pytestmark = pytest.mark.usefixtures("create_tables")
 class CallbackDependencies:
     iot_storage: IotStorage
     wsm_client: WsmClient
+    carwash_client: CarwashClient
 
 
 @pytest.fixture
@@ -39,6 +37,7 @@ async def deps(request_di_container: AsyncContainer) -> CallbackDependencies:
     return CallbackDependencies(
         iot_storage=await request_di_container.get(IotStorage),
         wsm_client=await request_di_container.get(WsmClient),
+        carwash_client=await request_di_container.get(CarwashClient),
     )
 
 
@@ -68,6 +67,7 @@ async def test_payment_card_get_callback(
             "balance": int(test_env.customer_1.balance * 100),
             "tariffPerLiter_1": test_env.customer_1.tariff_per_liter_1,
             "tariffPerLiter_2": test_env.customer_1.tariff_per_liter_2,
+            "replenishmentRatio": 100 + (test_env.customer_1.discount_percent or 0),
             "code": 0,
         },
     )
@@ -151,22 +151,21 @@ async def test_encashment_callback(
     )
     deps.wsm_client.encashment_ack.assert_called_once_with(
         device_id=str(test_env.controller_1.device_id),
-        payload={"request_id": 1, "code": 0},
+        payload={"id": 1, "code": 0},
     )
 
 
 @pytest.mark.asyncio(loop_scope="session")
-async def test_payment_card_balance_out(
-    di_container: AsyncContainer,
+async def test_wsm_sale_callback_with_card_balance_out(
+    deps: CallbackDependencies,
     request_di_container: AsyncContainer,
     test_env: TestEnvironment,
     mocker: Mock,
 ):
     session = await request_di_container.get(AsyncSession)
-
     card_balance_out = Decimal(90)
-    wsm_client = await di_container.get(WsmClient)
-    payload = SaleCallbackPayload(
+
+    payload = WsmSaleCallbackPayload(
         id=1,
         created=datetime(2022, 1, 1),
         add_coin=1,
@@ -179,17 +178,19 @@ async def test_payment_card_balance_out(
         out_liters_2=8,
         sale_type="card",
         card_uid=test_env.customer_1.card_id,
-        card_balance_in=10000,
+        card_balance_in=int(test_env.customer_1.balance * 100),
         card_balance_out=int(card_balance_out * 100),
     )
-    mocker.patch.object(wsm_client, "sale_ack")
+    mocker.patch.object(deps.wsm_client, "sale_ack")
 
-    await wsm_client.dispatcher.sale._process_callbacks(  # type: ignore
-        device_id="test_device_id_1",
-        decoded_payload=sale_callabck_retort.dump(payload),
-        di_container=di_container,
+    await deps.wsm_client.dispatcher.sale._process_callbacks(  # type: ignore
+        device_id=test_env.controller_1.device_id,
+        decoded_payload=wsm_sale_callback_retort.dump(payload),
+        di_container=request_di_container,
     )
-    wsm_client.sale_ack.assert_called_once_with("test_device_id_1", 1)
+    deps.wsm_client.sale_ack.assert_called_once_with(
+        test_env.controller_1.device_id, payload.id
+    )
 
     await session.refresh(test_env.customer_1)
     assert test_env.customer_1.balance == card_balance_out
@@ -218,3 +219,44 @@ async def test_denomination_callback(
     )
     payment_repository.add.assert_called_once()
     payment_repository.commit.assert_called_once()
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_carwash_sale_callback_with_card_balance_out(
+    deps: CallbackDependencies,
+    test_env: TestEnvironment,
+    mocker: Mock,
+    request_di_container: AsyncContainer,
+):
+    session = await request_di_container.get(AsyncSession)
+    card_balance_out = Decimal(50)
+
+    payload = CarwashSaleCallbackPayload(
+        id=1,
+        created=datetime(2022, 1, 1),
+        add_coin=1,
+        add_bill=2,
+        add_prev=3,
+        add_free=4,
+        add_qr=5,
+        add_pp=6,
+        tariff=[50, 0, 0, 0, 0, 0, 0, 0],
+        services_sold=[60, 0, 0, 0, 0, 0, 0, 0],
+        sale_type="card",
+        card_uid=test_env.customer_2.card_id,
+        card_balance_in=int(test_env.customer_2.balance * 100),
+        card_balance_out=int(card_balance_out * 100),
+    )
+    mocker.patch.object(deps.carwash_client, "sale_ack")
+
+    await deps.carwash_client.dispatcher.sale._process_callbacks(
+        device_id=test_env.controller_2.device_id,
+        decoded_payload=carwash_sale_callback_retort.dump(payload),
+        di_container=request_di_container,
+    )
+    deps.carwash_client.sale_ack.assert_called_once_with(
+        test_env.controller_2.device_id, payload.id
+    )
+
+    await session.refresh(test_env.customer_2)
+    assert test_env.customer_2.balance == 50

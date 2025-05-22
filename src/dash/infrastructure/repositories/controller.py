@@ -61,6 +61,12 @@ class ControllerRepository(BaseRepository):
         stmt = select(CarwashController).where(CarwashController.id == controller_id)
         return await self.session.scalar(stmt)
 
+    async def get_carwash_by_device_id(
+        self, device_id: str
+    ) -> CarwashController | None:
+        stmt = select(CarwashController).where(CarwashController.device_id == device_id)
+        return await self.session.scalar(stmt)
+
     async def _get_list(
         self,
         data: ReadControllerListRequest,

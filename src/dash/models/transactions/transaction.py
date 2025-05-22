@@ -36,6 +36,10 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     paypass_amount: Mapped[int] = mapped_column()
     type: Mapped[TransactionType] = mapped_column()
     created_at_controller: Mapped[datetime] = mapped_column()
+    sale_type: Mapped[str] = mapped_column()
+    card_balance_in: Mapped[int | None] = mapped_column()
+    card_balance_out: Mapped[int | None] = mapped_column()
+    card_uid: Mapped[str | None] = mapped_column()
 
     customer: Mapped["Customer"] = relationship(lazy="joined")
 

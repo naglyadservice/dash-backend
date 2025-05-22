@@ -5,16 +5,12 @@ from fastapi.responses import JSONResponse
 from starlette.types import ExceptionHandler
 
 from dash.infrastructure.auth.errors import AuthError
-from dash.services.common.errors.base import (
-    AccessDeniedError,
-    AccessForbiddenError,
-    EntityNotFoundError,
-    ValidationError,
-)
-from dash.services.common.errors.controller import (
-    ControllerResponseError,
-    ControllerTimeoutError,
-)
+from dash.services.common.errors.base import (AccessDeniedError,
+                                              AccessForbiddenError,
+                                              EntityNotFoundError,
+                                              ValidationError)
+from dash.services.common.errors.controller import (ControllerResponseError,
+                                                    ControllerTimeoutError)
 from dash.services.common.errors.user import EmailAlreadyTakenError
 
 

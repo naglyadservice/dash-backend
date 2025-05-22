@@ -12,27 +12,21 @@ from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.encashment import (
-    EncashmentAlreadyClosedError,
-    EncashmentNotFoundError,
-)
+    EncashmentAlreadyClosedError, EncashmentNotFoundError)
 from dash.services.common.errors.location import LocationNotFoundError
-from dash.services.controller.dto import (
-    AddControllerLocationRequest,
-    AddControllerRequest,
-    AddControllerResponse,
-    AddLiqpayCredentialsRequest,
-    AddMonopayCredentialsRequest,
-    CloseEncashmentRequest,
-    ControllerScheme,
-    EncashmentScheme,
-    PublicCarwashScheme,
-    PublicWsmScheme,
-    ReadControllerListRequest,
-    ReadControllerRequest,
-    ReadControllerResponse,
-    ReadEncashmentListRequest,
-    ReadEncashmentListResponse,
-)
+from dash.services.controller.dto import (AddControllerLocationRequest,
+                                          AddControllerRequest,
+                                          AddControllerResponse,
+                                          AddLiqpayCredentialsRequest,
+                                          AddMonopayCredentialsRequest,
+                                          CloseEncashmentRequest,
+                                          ControllerScheme, EncashmentScheme,
+                                          PublicCarwashScheme, PublicWsmScheme,
+                                          ReadControllerListRequest,
+                                          ReadControllerRequest,
+                                          ReadControllerResponse,
+                                          ReadEncashmentListRequest,
+                                          ReadEncashmentListResponse)
 from dash.services.iot.factory import IoTServiceFactory
 
 

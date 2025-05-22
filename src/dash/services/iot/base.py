@@ -8,16 +8,11 @@ from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.common.base_client import BaseNpcClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models import Controller
-from dash.services.iot.dto import (
-    ClearPaymentsRequest,
-    GetDisplayInfoRequest,
-    RebootControllerRequest,
-    SendActionRequest,
-    SendFreePaymentRequest,
-    SendQRPaymentRequest,
-    SetConfigRequest,
-    SetSettingsRequest,
-)
+from dash.services.iot.dto import (ClearPaymentsRequest, GetDisplayInfoRequest,
+                                   RebootControllerRequest, SendActionRequest,
+                                   SendFreePaymentRequest,
+                                   SendQRPaymentRequest, SetConfigRequest,
+                                   SetSettingsRequest)
 
 
 class BaseIoTService(ABC):

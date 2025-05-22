@@ -4,14 +4,14 @@ import pytest
 from dishka import AsyncContainer
 
 from dash.infrastructure.repositories.transaction import TransactionRepository
-from dash.models import TransactionType, WaterVendingTransaction
+from dash.models import TransactionType, WsmTransaction
 from tests.environment import TestEnvironment
 
 pytestmark = pytest.mark.usefixtures("create_tables")
 
 
 def create_transaction(test_env: TestEnvironment):
-    return WaterVendingTransaction(
+    return WsmTransaction(
         controller_transaction_id=123,
         controller_id=test_env.controller_1.id,
         location_id=test_env.location_1.id,

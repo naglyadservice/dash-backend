@@ -1,10 +1,6 @@
-from dash.infrastructure.auth.dto import (
-    LoginRequest,
-    LoginResponse,
-    LogoutRequest,
-    RefreshTokenRequest,
-    RefreshTokenResponse,
-)
+from dash.infrastructure.auth.dto import (LoginRequest, LoginResponse,
+                                          LogoutRequest, RefreshTokenRequest,
+                                          RefreshTokenResponse)
 from dash.infrastructure.auth.errors import InvalidCredentialsError
 from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor

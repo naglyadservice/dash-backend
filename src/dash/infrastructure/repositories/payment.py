@@ -10,12 +10,9 @@ from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.payment import Payment, PaymentType
-from dash.services.payment.dto import (
-    GetPaymentStatsRequest,
-    GetPaymentStatsResponse,
-    PaymentStatDTO,
-    ReadPaymentListRequest,
-)
+from dash.services.payment.dto import (GetPaymentStatsRequest,
+                                       GetPaymentStatsResponse, PaymentStatDTO,
+                                       ReadPaymentListRequest)
 
 
 class PaymentRepository(BaseRepository):

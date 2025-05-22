@@ -8,13 +8,11 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.transactions.transaction import Transaction
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.transaction.dto import (
-    GetTransactionStatsRequest,
-    GetTransactionStatsResponse,
-    ReadTransactionListRequest,
-    ReadTransactionListResponse,
-    WaterVendingTransactionScheme,
-)
+from dash.services.transaction.dto import (GetTransactionStatsRequest,
+                                           GetTransactionStatsResponse,
+                                           ReadTransactionListRequest,
+                                           ReadTransactionListResponse,
+                                           WsmTransactionScheme)
 
 
 class TransactionService:
@@ -69,7 +67,7 @@ class TransactionService:
 
         return ReadTransactionListResponse(
             transactions=[
-                WaterVendingTransactionScheme.model_validate(transaction)
+                WsmTransactionScheme.model_validate(transaction)
                 for transaction in transactions
             ],
             total=total,

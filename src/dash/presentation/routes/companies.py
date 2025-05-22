@@ -5,13 +5,10 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.company.dto import (
-    CreateCompanyRequest,
-    CreateCompanyResponse,
-    EditCompanyDTO,
-    EditCompanyRequest,
-    ReadCompanyListResponse,
-)
+from dash.services.company.dto import (CreateCompanyRequest,
+                                       CreateCompanyResponse, EditCompanyDTO,
+                                       EditCompanyRequest,
+                                       ReadCompanyListResponse)
 from dash.services.company.service import CompanyService
 
 company_router = APIRouter(

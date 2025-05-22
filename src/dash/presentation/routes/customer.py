@@ -4,15 +4,12 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
-from dash.services.customer.dto import (
-    CreateCustomerRequest,
-    CreateCustomerResponse,
-    DeleteCustomerRequest,
-    EditCustomerDTO,
-    EditCustomerRequest,
-    ReadCustomerListRequest,
-    ReadCustomerListResponse,
-)
+from dash.services.customer.dto import (CreateCustomerRequest,
+                                        CreateCustomerResponse,
+                                        DeleteCustomerRequest, EditCustomerDTO,
+                                        EditCustomerRequest,
+                                        ReadCustomerListRequest,
+                                        ReadCustomerListResponse)
 from dash.services.customer.service import CustomerService
 
 customer_router = APIRouter(
