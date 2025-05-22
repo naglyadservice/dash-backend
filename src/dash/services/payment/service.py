@@ -71,7 +71,7 @@ class PaymentService:
         self, data: ReadPublicPaymentListRequest
     ) -> ReadPublicPaymentListResponse:
         payments, _ = await self.payment_repository.get_list_all(
-            ReadPaymentListRequest(controller_id=data.controller_id, limit=data.limit)
+            ReadPaymentListRequest(controller_id=data.controller_id, limit=5)
         )
         return ReadPublicPaymentListResponse(
             payments=[PaymentScheme.model_validate(payment) for payment in payments]

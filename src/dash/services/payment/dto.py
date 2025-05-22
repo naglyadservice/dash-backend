@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any, Literal
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -54,7 +54,6 @@ class ReadPaymentListResponse(BaseModel):
 
 class ReadPublicPaymentListRequest(BaseModel):
     controller_id: UUID
-    limit: Literal[3, 5]
 
 
 class ReadPublicPaymentListResponse(BaseModel):
