@@ -3,10 +3,12 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.transaction.dto import (GetTransactionStatsRequest,
-                                           GetTransactionStatsResponse,
-                                           ReadTransactionListRequest,
-                                           ReadTransactionListResponse)
+from dash.services.transaction.dto import (
+    GetTransactionStatsRequest,
+    GetTransactionStatsResponse,
+    ReadTransactionListRequest,
+    ReadTransactionListResponse,
+)
 from dash.services.transaction.service import TransactionService
 
 transaction_router = APIRouter(

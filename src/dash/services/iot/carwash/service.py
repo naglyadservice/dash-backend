@@ -10,16 +10,22 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models import Controller
 from dash.models.controllers.carwash import CarwashController
-from dash.services.common.errors.controller import (ControllerNotFoundError,
-                                                    ControllerTimeoutError)
+from dash.services.common.errors.controller import (
+    ControllerNotFoundError,
+    ControllerTimeoutError,
+)
 from dash.services.iot.base import BaseIoTService
-from dash.services.iot.carwash.dto import (CarwashControllerScheme,
-                                           SetCarwashConfigRequest,
-                                           SetCarwashSettingsRequest)
-from dash.services.iot.carwash.utils import (decode_service_bit_mask,
-                                             decode_service_int_mask,
-                                             encode_service_bit_mask,
-                                             encode_service_int_mask)
+from dash.services.iot.carwash.dto import (
+    CarwashControllerScheme,
+    SetCarwashConfigRequest,
+    SetCarwashSettingsRequest,
+)
+from dash.services.iot.carwash.utils import (
+    decode_service_bit_mask,
+    decode_service_int_mask,
+    encode_service_bit_mask,
+    encode_service_int_mask,
+)
 from dash.services.iot.dto import ControllerID, SetConfigRequest
 
 logger = getLogger()

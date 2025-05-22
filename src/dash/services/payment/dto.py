@@ -46,16 +46,20 @@ class PaymentScheme(BaseModel):
 class ReadPaymentListRequest(Pagination, BasePaymentFilters):
     pass
 
+
 class ReadPaymentListResponse(BaseModel):
     payments: list[PaymentScheme]
     total: int
+
 
 class ReadPublicPaymentListRequest(BaseModel):
     controller_id: UUID
     limit: Literal[3, 5]
 
+
 class ReadPublicPaymentListResponse(BaseModel):
     payments: list[PaymentScheme]
+
 
 class GetPaymentStatsRequest(BasePaymentFilters):
     period: int

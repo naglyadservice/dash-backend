@@ -14,9 +14,12 @@ from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WsmTransaction
-from dash.presentation.iot_callbacks.di_injector import (datetime_recipe,
-                                                         inject, parse_payload,
-                                                         request_scope)
+from dash.presentation.iot_callbacks.di_injector import (
+    datetime_recipe,
+    inject,
+    parse_payload,
+    request_scope,
+)
 
 logger = structlog.get_logger()
 

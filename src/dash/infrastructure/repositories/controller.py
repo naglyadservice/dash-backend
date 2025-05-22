@@ -37,7 +37,9 @@ class ControllerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
-    async def get_list_concrete(self, location_id: UUID | None = None) -> tuple[Sequence[CarwashController | WaterVendingController], int]:
+    async def get_list_concrete(
+        self, location_id: UUID | None = None
+    ) -> tuple[Sequence[CarwashController | WaterVendingController], int]:
         loader_opt = selectin_polymorphic(
             Controller, [WaterVendingController, CarwashController]
         )

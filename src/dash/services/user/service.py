@@ -8,13 +8,17 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.location_admin import LocationAdmin
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.location import LocationNotFoundError
-from dash.services.common.errors.user import (EmailAlreadyTakenError,
-                                              UserNotFoundError)
-from dash.services.user.dto import (AddLocationAdminRequest,
-                                    AddLocationAdminResponse,
-                                    CreateUserRequest, CreateUserResponse,
-                                    DeleteUserRequest, ReadUserListResponse,
-                                    RemoveLocationAdminRequest, UserDTO)
+from dash.services.common.errors.user import EmailAlreadyTakenError, UserNotFoundError
+from dash.services.user.dto import (
+    AddLocationAdminRequest,
+    AddLocationAdminResponse,
+    CreateUserRequest,
+    CreateUserResponse,
+    DeleteUserRequest,
+    ReadUserListResponse,
+    RemoveLocationAdminRequest,
+    UserDTO,
+)
 
 
 class UserService:

@@ -7,12 +7,15 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.payment import Payment
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.payment.dto import (GetPaymentStatsRequest,
-                                       GetPaymentStatsResponse, PaymentScheme,
-                                       ReadPaymentListRequest,
-                                       ReadPaymentListResponse,
-                                       ReadPublicPaymentListRequest,
-                                       ReadPublicPaymentListResponse)
+from dash.services.payment.dto import (
+    GetPaymentStatsRequest,
+    GetPaymentStatsResponse,
+    PaymentScheme,
+    ReadPaymentListRequest,
+    ReadPaymentListResponse,
+    ReadPublicPaymentListRequest,
+    ReadPublicPaymentListResponse,
+)
 
 
 class PaymentService:
@@ -64,7 +67,9 @@ class PaymentService:
             total=total,
         )
 
-    async def read_payments_public(self, data: ReadPublicPaymentListRequest) -> ReadPublicPaymentListResponse:
+    async def read_payments_public(
+        self, data: ReadPublicPaymentListRequest
+    ) -> ReadPublicPaymentListResponse:
         payments, _ = await self.payment_repository.get_list_all(
             ReadPaymentListRequest(controller_id=data.controller_id, limit=data.limit)
         )

@@ -5,14 +5,18 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Form, HTTPException, Request
 from pydantic import BaseModel
 
-from dash.infrastructure.acquring.liqpay import (CreateLiqpayInvoiceRequest,
-                                                 CreateLiqpayInvoiceResponse,
-                                                 LiqpayService,
-                                                 ProcessLiqpayWebhookRequest)
-from dash.infrastructure.acquring.monopay import (CreateInvoiceRequest,
-                                                  CreateInvoiceResponse,
-                                                  MonopayService,
-                                                  ProcessWebhookRequest)
+from dash.infrastructure.acquring.liqpay import (
+    CreateLiqpayInvoiceRequest,
+    CreateLiqpayInvoiceResponse,
+    LiqpayService,
+    ProcessLiqpayWebhookRequest,
+)
+from dash.infrastructure.acquring.monopay import (
+    CreateInvoiceRequest,
+    CreateInvoiceResponse,
+    MonopayService,
+    ProcessWebhookRequest,
+)
 
 acquiring_router = APIRouter(
     prefix="/acquiring", tags=["ACQUIRING"], route_class=DishkaRoute

@@ -8,11 +8,14 @@ from dash.models.location import Location
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.company import CompanyNotFoundError
 from dash.services.common.errors.location import LocationNotFoundError
-from dash.services.location.dto import (CreateLocationRequest,
-                                        CreateLocationResponse,
-                                        EditLocationRequest, LocationScheme,
-                                        ReadLocationListRequest,
-                                        ReadLocationListResponse)
+from dash.services.location.dto import (
+    CreateLocationRequest,
+    CreateLocationResponse,
+    EditLocationRequest,
+    LocationScheme,
+    ReadLocationListRequest,
+    ReadLocationListResponse,
+)
 
 
 class LocationService:

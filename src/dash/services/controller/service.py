@@ -12,23 +12,29 @@ from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.encashment import (
-    EncashmentAlreadyClosedError, EncashmentNotFoundError)
+    EncashmentAlreadyClosedError,
+    EncashmentNotFoundError,
+)
 from dash.services.common.errors.location import LocationNotFoundError
-from dash.services.controller.dto import (AddControllerLocationRequest,
-                                          AddControllerRequest,
-                                          AddControllerResponse,
-                                          AddLiqpayCredentialsRequest,
-                                          AddMonopayCredentialsRequest,
-                                          CloseEncashmentRequest,
-                                          ControllerScheme, EncashmentScheme,
-                                          PublicCarwashScheme, PublicWsmScheme,
-                                          ReadControllerListRequest,
-                                          ReadControllerRequest,
-                                          ReadControllerResponse,
-                                          ReadEncashmentListRequest,
-                                          ReadEncashmentListResponse,
-                                          ReadPublicControllerListRequest,
-                                          ReadPublicControllerListResponse)
+from dash.services.controller.dto import (
+    AddControllerLocationRequest,
+    AddControllerRequest,
+    AddControllerResponse,
+    AddLiqpayCredentialsRequest,
+    AddMonopayCredentialsRequest,
+    CloseEncashmentRequest,
+    ControllerScheme,
+    EncashmentScheme,
+    PublicCarwashScheme,
+    PublicWsmScheme,
+    ReadControllerListRequest,
+    ReadControllerRequest,
+    ReadControllerResponse,
+    ReadEncashmentListRequest,
+    ReadEncashmentListResponse,
+    ReadPublicControllerListRequest,
+    ReadPublicControllerListResponse,
+)
 from dash.services.iot.factory import IoTServiceFactory
 
 
@@ -204,8 +210,12 @@ class ControllerService:
         else:
             raise ValueError("This controller type is not supported yet")
 
-    async def read_controller_list_public(self, data: ReadPublicControllerListRequest) -> ReadPublicControllerListResponse:
-        controllers, total = await self.controller_repository.get_list_concrete(data.location_id)
+    async def read_controller_list_public(
+        self, data: ReadPublicControllerListRequest
+    ) -> ReadPublicControllerListResponse:
+        controllers, total = await self.controller_repository.get_list_concrete(
+            data.location_id
+        )
 
         controller_list = []
         for controller in controllers:
@@ -216,4 +226,6 @@ class ControllerService:
             else:
                 raise ValueError("This controller type is not supported yet")
 
-        return ReadPublicControllerListResponse(controllers=controller_list, total=total)
+        return ReadPublicControllerListResponse(
+            controllers=controller_list, total=total
+        )

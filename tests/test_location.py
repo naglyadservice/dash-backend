@@ -5,10 +5,8 @@ from dishka import AsyncContainer
 
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminUser
-from dash.services.common.errors.base import (AccessDeniedError,
-                                              AccessForbiddenError)
-from dash.services.location.dto import (CreateLocationRequest,
-                                        ReadLocationListRequest)
+from dash.services.common.errors.base import AccessDeniedError, AccessForbiddenError
+from dash.services.location.dto import CreateLocationRequest, ReadLocationListRequest
 from dash.services.location.service import LocationService
 from tests.environment import TestEnvironment
 

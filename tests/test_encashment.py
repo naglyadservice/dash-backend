@@ -10,9 +10,13 @@ from dash.models.admin_user import AdminUser
 from dash.models.encashment import Encashment
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.encashment import (
-    EncashmentAlreadyClosedError, EncashmentNotFoundError)
-from dash.services.controller.dto import (CloseEncashmentRequest,
-                                          ReadEncashmentListRequest)
+    EncashmentAlreadyClosedError,
+    EncashmentNotFoundError,
+)
+from dash.services.controller.dto import (
+    CloseEncashmentRequest,
+    ReadEncashmentListRequest,
+)
 from dash.services.controller.service import ControllerService
 from tests.environment import TestEnvironment
 

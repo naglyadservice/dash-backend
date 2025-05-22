@@ -5,11 +5,14 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.location.dto import (CreateLocationRequest,
-                                        CreateLocationResponse,
-                                        EditLocationDTO, EditLocationRequest,
-                                        ReadLocationListRequest,
-                                        ReadLocationListResponse)
+from dash.services.location.dto import (
+    CreateLocationRequest,
+    CreateLocationResponse,
+    EditLocationDTO,
+    EditLocationRequest,
+    ReadLocationListRequest,
+    ReadLocationListResponse,
+)
 from dash.services.location.service import LocationService
 
 location_router = APIRouter(

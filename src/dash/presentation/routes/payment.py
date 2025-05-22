@@ -3,12 +3,14 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.payment.dto import (GetPaymentStatsRequest,
-                                       GetPaymentStatsResponse,
-                                       ReadPaymentListRequest,
-                                       ReadPaymentListResponse,
-                                       ReadPublicPaymentListRequest,
-                                       ReadPublicPaymentListResponse)
+from dash.services.payment.dto import (
+    GetPaymentStatsRequest,
+    GetPaymentStatsResponse,
+    ReadPaymentListRequest,
+    ReadPaymentListResponse,
+    ReadPublicPaymentListRequest,
+    ReadPublicPaymentListResponse,
+)
 from dash.services.payment.service import PaymentService
 
 payment_router = APIRouter(
@@ -32,6 +34,7 @@ async def get_stats(
     data: GetPaymentStatsRequest = Depends(),
 ) -> GetPaymentStatsResponse:
     return await payment_service.get_stats(data)
+
 
 @payment_router.get("/public")
 async def read_payments_public(

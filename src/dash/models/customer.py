@@ -2,8 +2,7 @@ from datetime import date
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import (CheckConstraint, ForeignKey, Index, Numeric,
-                        UniqueConstraint)
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from dash.models.base import Base, TimestampMixin, UUIDMixin

@@ -7,8 +7,7 @@ from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
 from dash.models.admin_user import AdminRole, AdminUser
-from dash.services.common.errors.base import (AccessDeniedError,
-                                              AccessForbiddenError)
+from dash.services.common.errors.base import AccessDeniedError, AccessForbiddenError
 
 
 class IdProvider:
@@ -27,13 +26,8 @@ class IdProvider:
         self._user: AdminUser
 
     def _fetch_token(self, request: Request) -> str:
-        authorization = request.headers.get("Authorization")
-        if not authorization:
-            raise JWTTokenError("Authorization header is missing")
-
+        authorization = request.headers.get("Authorization", "")
         token = authorization.lstrip("Bearer").strip()
-        if not token:
-            raise JWTTokenError("Token is missing")
 
         return token
 

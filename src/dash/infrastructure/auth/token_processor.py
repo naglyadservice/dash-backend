@@ -58,6 +58,9 @@ class JWTTokenProcessor:
         )
 
     def validate_access_token(self, token: str) -> UUID:
+        if not token:
+            raise JWTTokenError("JWT token is missing")
+
         return self._decode_token(
             token=token,
             secret=self.config.access_secret,

@@ -8,8 +8,7 @@ from dash.main.config import MqttConfig
 from dash.presentation.iot_callbacks.carwash.sale import carwash_sale_callback
 from dash.presentation.iot_callbacks.denomination import denomination_callback
 from dash.presentation.iot_callbacks.encashment import encashment_callback
-from dash.presentation.iot_callbacks.payment_card_get import \
-    payment_card_get_callback
+from dash.presentation.iot_callbacks.payment_card_get import payment_card_get_callback
 from dash.presentation.iot_callbacks.state_info import state_info_callback
 
 

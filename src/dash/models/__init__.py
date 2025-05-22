@@ -7,8 +7,13 @@ from .encashment import Encashment
 from .location import Location
 from .location_admin import LocationAdmin
 from .payment import Payment
-from .transactions import (CarwashTransaction, Transaction, TransactionType,
-                           VacuumTransaction, WsmTransaction)
+from .transactions import (
+    CarwashTransaction,
+    Transaction,
+    TransactionType,
+    VacuumTransaction,
+    WsmTransaction,
+)
 
 __all__ = [
     "AdminUser",
@@ -30,8 +35,15 @@ __all__ = [
 ]
 from adaptix.type_tools import exec_type_checking
 
-from . import (admin_user, company, customer, encashment, location,
-               location_admin, payment)
+from . import (
+    admin_user,
+    company,
+    customer,
+    encashment,
+    location,
+    location_admin,
+    payment,
+)
 from .controllers import carwash as carwash_c
 from .controllers import controller
 from .controllers import vacuum as vacuum_c

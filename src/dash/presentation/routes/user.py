@@ -3,10 +3,13 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.user.dto import (AddLocationAdminRequest,
-                                    AddLocationAdminResponse,
-                                    DeleteUserRequest, ReadUserListResponse,
-                                    RemoveLocationAdminRequest)
+from dash.services.user.dto import (
+    AddLocationAdminRequest,
+    AddLocationAdminResponse,
+    DeleteUserRequest,
+    ReadUserListResponse,
+    RemoveLocationAdminRequest,
+)
 from dash.services.user.service import UserService
 
 user_router = APIRouter(

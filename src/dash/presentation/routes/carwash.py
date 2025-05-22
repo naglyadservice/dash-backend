@@ -5,19 +5,27 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.iot.carwash.dto import (CarwashActionDTO, CarwashConfig,
-                                           CarwashControllerScheme,
-                                           CarwashSettings,
-                                           SendCarwashActionRequest,
-                                           SetCarwashConfigRequest,
-                                           SetCarwashSettingsRequest)
+from dash.services.iot.carwash.dto import (
+    CarwashActionDTO,
+    CarwashConfig,
+    CarwashControllerScheme,
+    CarwashSettings,
+    SendCarwashActionRequest,
+    SetCarwashConfigRequest,
+    SetCarwashSettingsRequest,
+)
 from dash.services.iot.carwash.service import CarwashService
-from dash.services.iot.dto import (ClearPaymentsRequest, ControllerID,
-                                   FreePaymentDTO, GetDisplayInfoRequest,
-                                   PaymentClearOptionsDTO, QRPaymentDTO,
-                                   RebootControllerRequest,
-                                   SendFreePaymentRequest,
-                                   SendQRPaymentRequest)
+from dash.services.iot.dto import (
+    ClearPaymentsRequest,
+    ControllerID,
+    FreePaymentDTO,
+    GetDisplayInfoRequest,
+    PaymentClearOptionsDTO,
+    QRPaymentDTO,
+    RebootControllerRequest,
+    SendFreePaymentRequest,
+    SendQRPaymentRequest,
+)
 
 carwash_router = APIRouter(
     prefix="/carwash",

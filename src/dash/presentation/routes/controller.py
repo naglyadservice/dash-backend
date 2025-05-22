@@ -6,22 +6,26 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.controller.dto import (AddControllerLocationRequest,
-                                          AddControllerRequest,
-                                          AddControllerResponse,
-                                          AddLiqpayCredentialsRequest,
-                                          AddMonopayCredentialsRequest,
-                                          CloseEncashmentRequest,
-                                          LiqpayCredentialsDTO, LocationID,
-                                          MonopayCredentialsDTO,
-                                          PublicCarwashScheme, PublicWsmScheme,
-                                          ReadControllerListRequest,
-                                          ReadControllerRequest,
-                                          ReadControllerResponse,
-                                          ReadEncashmentListRequest,
-                                          ReadEncashmentListResponse,
-                                          ReadPublicControllerListRequest,
-                                          ReadPublicControllerListResponse)
+from dash.services.controller.dto import (
+    AddControllerLocationRequest,
+    AddControllerRequest,
+    AddControllerResponse,
+    AddLiqpayCredentialsRequest,
+    AddMonopayCredentialsRequest,
+    CloseEncashmentRequest,
+    LiqpayCredentialsDTO,
+    LocationID,
+    MonopayCredentialsDTO,
+    PublicCarwashScheme,
+    PublicWsmScheme,
+    ReadControllerListRequest,
+    ReadControllerRequest,
+    ReadControllerResponse,
+    ReadEncashmentListRequest,
+    ReadEncashmentListResponse,
+    ReadPublicControllerListRequest,
+    ReadPublicControllerListResponse,
+)
 from dash.services.controller.service import ControllerService
 
 controller_router = APIRouter(
@@ -47,7 +51,9 @@ async def add_controller(
     return await controller_service.add_controller(data)
 
 
-@controller_router.post("/{controller_id}", status_code=204, dependencies=[bearer_scheme])
+@controller_router.post(
+    "/{controller_id}", status_code=204, dependencies=[bearer_scheme]
+)
 async def add_controller_location(
     controller_service: FromDishka[ControllerService],
     data: LocationID,
@@ -60,7 +66,9 @@ async def add_controller_location(
     )
 
 
-@controller_router.post("/{controller_id}/monopay, dependencies=[bearer_scheme]", status_code=204)
+@controller_router.post(
+    "/{controller_id}/monopay, dependencies=[bearer_scheme]", status_code=204
+)
 async def add_monopay_credentials(
     controller_service: FromDishka[ControllerService],
     data: MonopayCredentialsDTO,
@@ -71,7 +79,9 @@ async def add_monopay_credentials(
     )
 
 
-@controller_router.post("/{controller_id}/liqpay", status_code=204, dependencies=[bearer_scheme])
+@controller_router.post(
+    "/{controller_id}/liqpay", status_code=204, dependencies=[bearer_scheme]
+)
 async def add_liqpay_credentials(
     controller_service: FromDishka[ControllerService],
     data: LiqpayCredentialsDTO,
@@ -95,7 +105,11 @@ class EncashmentReceivedAmount:
     received_amount: int
 
 
-@controller_router.post("/{controller_id}/encashments/{encashment_id}", status_code=204, dependencies=[bearer_scheme])
+@controller_router.post(
+    "/{controller_id}/encashments/{encashment_id}",
+    status_code=204,
+    dependencies=[bearer_scheme],
+)
 async def close_encashment(
     controller_service: FromDishka[ControllerService],
     controller_id: UUID,
@@ -117,6 +131,7 @@ async def read_controller_list_public(
     data: ReadPublicControllerListRequest = Depends(),
 ) -> ReadPublicControllerListResponse:
     return await controller_service.read_controller_list_public(data)
+
 
 @controller_router.get("/public/{controller_id}")
 async def read_controller_public(

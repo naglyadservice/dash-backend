@@ -13,13 +13,21 @@ from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.presentation.iot_callbacks.carwash.sale import (
-    CarwashSaleCallbackPayload, carwash_sale_callback_retort)
+    CarwashSaleCallbackPayload,
+    carwash_sale_callback_retort,
+)
 from dash.presentation.iot_callbacks.denomination import (
-    DenominationCallbackPayload, denomination_callback_retort)
+    DenominationCallbackPayload,
+    denomination_callback_retort,
+)
 from dash.presentation.iot_callbacks.encashment import (
-    EncashmentCallbackPayload, encashment_callback_retort)
-from dash.presentation.iot_callbacks.wsm.sale import (WsmSaleCallbackPayload,
-                                                      wsm_sale_callback_retort)
+    EncashmentCallbackPayload,
+    encashment_callback_retort,
+)
+from dash.presentation.iot_callbacks.wsm.sale import (
+    WsmSaleCallbackPayload,
+    wsm_sale_callback_retort,
+)
 from tests.environment import TestEnvironment
 
 pytestmark = pytest.mark.usefixtures("create_tables")

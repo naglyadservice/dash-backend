@@ -15,10 +15,12 @@ from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.transaction import Transaction
 from dash.models.transactions.water_vending import WsmTransaction
-from dash.services.transaction.dto import (GetTransactionStatsRequest,
-                                           GetTransactionStatsResponse,
-                                           ReadTransactionListRequest,
-                                           TransactionStatDTO)
+from dash.services.transaction.dto import (
+    GetTransactionStatsRequest,
+    GetTransactionStatsResponse,
+    ReadTransactionListRequest,
+    TransactionStatDTO,
+)
 
 
 def parse_model(instance: Base, model: Type[Base]) -> dict[str, Any]:
