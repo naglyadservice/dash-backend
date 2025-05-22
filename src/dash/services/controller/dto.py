@@ -194,3 +194,10 @@ class PublicWsmScheme(BaseModel):
 
 class ReadControllerRequest(BaseModel):
     controller_id: UUID
+
+class ReadPublicControllerListRequest(BaseModel):
+    location_id: UUID
+
+class ReadPublicControllerListResponse(BaseModel):
+    controllers: list[PublicCarwashScheme | PublicWsmScheme]
+    total: int

@@ -37,6 +37,21 @@ class ControllerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
+    async def get_list_concrete(self, location_id: UUID | None = None) -> tuple[Sequence[CarwashController | WaterVendingController], int]:
+        loader_opt = selectin_polymorphic(
+            Controller, [WaterVendingController, CarwashController]
+        )
+        stmt = select(Controller)
+        if location_id:
+            stmt = stmt.where(Controller.location_id == location_id)
+
+        paginated_stmt = stmt.options(loader_opt).order_by(Controller.created_at.desc())
+
+        paginated = (await self.session.scalars(paginated_stmt)).unique().all()
+        total = await self._get_count(stmt)
+
+        return paginated, total  # type: ignore
+
     async def get_by_device_id(self, device_id: str) -> Controller | None:
         stmt = select(Controller).where(
             Controller.device_id == device_id,

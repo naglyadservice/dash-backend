@@ -19,18 +19,19 @@ from dash.services.controller.dto import (AddControllerLocationRequest,
                                           ReadControllerRequest,
                                           ReadControllerResponse,
                                           ReadEncashmentListRequest,
-                                          ReadEncashmentListResponse)
+                                          ReadEncashmentListResponse,
+                                          ReadPublicControllerListRequest,
+                                          ReadPublicControllerListResponse)
 from dash.services.controller.service import ControllerService
 
 controller_router = APIRouter(
     prefix="/controllers",
     tags=["CONTROLLERS"],
     route_class=DishkaRoute,
-    dependencies=[bearer_scheme],
 )
 
 
-@controller_router.get("")
+@controller_router.get("", dependencies=[bearer_scheme])
 async def read_controllers(
     controller_service: FromDishka[ControllerService],
     data: ReadControllerListRequest = Depends(),
@@ -38,7 +39,7 @@ async def read_controllers(
     return await controller_service.read_controllers(data)
 
 
-@controller_router.post("")
+@controller_router.post("", dependencies=[bearer_scheme])
 async def add_controller(
     controller_service: FromDishka[ControllerService],
     data: AddControllerRequest,
@@ -46,7 +47,7 @@ async def add_controller(
     return await controller_service.add_controller(data)
 
 
-@controller_router.post("/{controller_id}", status_code=204)
+@controller_router.post("/{controller_id}", status_code=204, dependencies=[bearer_scheme])
 async def add_controller_location(
     controller_service: FromDishka[ControllerService],
     data: LocationID,
@@ -59,7 +60,7 @@ async def add_controller_location(
     )
 
 
-@controller_router.post("/{controller_id}/monopay", status_code=204)
+@controller_router.post("/{controller_id}/monopay, dependencies=[bearer_scheme]", status_code=204)
 async def add_monopay_credentials(
     controller_service: FromDishka[ControllerService],
     data: MonopayCredentialsDTO,
@@ -70,7 +71,7 @@ async def add_monopay_credentials(
     )
 
 
-@controller_router.post("/{controller_id}/liqpay", status_code=204)
+@controller_router.post("/{controller_id}/liqpay", status_code=204, dependencies=[bearer_scheme])
 async def add_liqpay_credentials(
     controller_service: FromDishka[ControllerService],
     data: LiqpayCredentialsDTO,
@@ -81,7 +82,7 @@ async def add_liqpay_credentials(
     )
 
 
-@controller_router.get("/{controller_id}/encashments")
+@controller_router.get("/{controller_id}/encashments", dependencies=[bearer_scheme])
 async def read_encashments(
     controller_service: FromDishka[ControllerService],
     data: ReadEncashmentListRequest = Depends(),
@@ -94,7 +95,7 @@ class EncashmentReceivedAmount:
     received_amount: int
 
 
-@controller_router.post("/{controller_id}/encashments/{encashment_id}", status_code=204)
+@controller_router.post("/{controller_id}/encashments/{encashment_id}", status_code=204, dependencies=[bearer_scheme])
 async def close_encashment(
     controller_service: FromDishka[ControllerService],
     controller_id: UUID,
@@ -110,7 +111,14 @@ async def close_encashment(
     )
 
 
-@controller_router.get("/{controller_id}")
+@controller_router.get("/public")
+async def read_controller_list_public(
+    controller_service: FromDishka[ControllerService],
+    data: ReadPublicControllerListRequest = Depends(),
+) -> ReadPublicControllerListResponse:
+    return await controller_service.read_controller_list_public(data)
+
+@controller_router.get("/public/{controller_id}")
 async def read_controller_public(
     controller_service: FromDishka[ControllerService],
     data: ReadControllerRequest = Depends(),

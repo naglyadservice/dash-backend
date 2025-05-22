@@ -10,7 +10,9 @@ from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.payment.dto import (GetPaymentStatsRequest,
                                        GetPaymentStatsResponse, PaymentScheme,
                                        ReadPaymentListRequest,
-                                       ReadPaymentListResponse)
+                                       ReadPaymentListResponse,
+                                       ReadPublicPaymentListRequest,
+                                       ReadPublicPaymentListResponse)
 
 
 class PaymentService:
@@ -60,6 +62,14 @@ class PaymentService:
         return ReadPaymentListResponse(
             payments=[PaymentScheme.model_validate(payment) for payment in payments],
             total=total,
+        )
+
+    async def read_payments_public(self, data: ReadPublicPaymentListRequest) -> ReadPublicPaymentListResponse:
+        payments, _ = await self.payment_repository.get_list_all(
+            ReadPaymentListRequest(controller_id=data.controller_id, limit=data.limit)
+        )
+        return ReadPublicPaymentListResponse(
+            payments=[PaymentScheme.model_validate(payment) for payment in payments]
         )
 
     async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
@@ -46,11 +46,16 @@ class PaymentScheme(BaseModel):
 class ReadPaymentListRequest(Pagination, BasePaymentFilters):
     pass
 
-
 class ReadPaymentListResponse(BaseModel):
     payments: list[PaymentScheme]
     total: int
 
+class ReadPublicPaymentListRequest(BaseModel):
+    controller_id: UUID
+    limit: Literal[3, 5]
+
+class ReadPublicPaymentListResponse(BaseModel):
+    payments: list[PaymentScheme]
 
 class GetPaymentStatsRequest(BasePaymentFilters):
     period: int

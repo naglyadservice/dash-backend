@@ -26,7 +26,9 @@ from dash.services.controller.dto import (AddControllerLocationRequest,
                                           ReadControllerRequest,
                                           ReadControllerResponse,
                                           ReadEncashmentListRequest,
-                                          ReadEncashmentListResponse)
+                                          ReadEncashmentListResponse,
+                                          ReadPublicControllerListRequest,
+                                          ReadPublicControllerListResponse)
 from dash.services.iot.factory import IoTServiceFactory
 
 
@@ -200,4 +202,18 @@ class ControllerService:
         elif controller.type is ControllerType.WATER_VENDING:
             return PublicWsmScheme.make(controller)
         else:
-            raise ValueError("This controller type is not support online payment yet")
+            raise ValueError("This controller type is not supported yet")
+
+    async def read_controller_list_public(self, data: ReadPublicControllerListRequest) -> ReadPublicControllerListResponse:
+        controllers, total = await self.controller_repository.get_list_concrete(data.location_id)
+
+        controller_list = []
+        for controller in controllers:
+            if controller.type is ControllerType.CARWASH:
+                controller_list.append(PublicCarwashScheme.make(controller))
+            elif controller.type is ControllerType.WATER_VENDING:
+                controller_list.append(PublicWsmScheme.make(controller))
+            else:
+                raise ValueError("This controller type is not supported yet")
+
+        return ReadPublicControllerListResponse(controllers=controller_list, total=total)
