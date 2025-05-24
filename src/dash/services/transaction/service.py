@@ -5,10 +5,11 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.admin_user import AdminRole, AdminUser
-from dash.models.transactions.transaction import Transaction
+from dash.models.transactions.transaction import Transaction, TransactionType
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.transaction.dto import (
+    CarwashTransactionScheme,
     GetTransactionStatsRequest,
     GetTransactionStatsResponse,
     ReadTransactionListRequest,
@@ -67,13 +68,20 @@ class TransactionService:
         else:
             transactions, total = await self._get_transactions_by_role(data, user)
 
-        return ReadTransactionListResponse(
-            transactions=[
-                WsmTransactionScheme.model_validate(transaction)
-                for transaction in transactions
-            ],
-            total=total,
-        )
+        transaction_list = []
+        for transaction in transactions:
+            if transaction.type is TransactionType.WATER_VENDING:
+                transaction_list.append(
+                    WsmTransactionScheme.model_validate(transaction)
+                )
+            elif transaction.type is TransactionType.CARWASH:
+                transaction_list.append(
+                    CarwashTransactionScheme.model_validate(transaction)
+                )
+            else:
+                raise ValueError("Unknown transaction type")
+
+        return ReadTransactionListResponse(transactions=transaction_list, total=total)
 
     async def get_stats(
         self, data: GetTransactionStatsRequest

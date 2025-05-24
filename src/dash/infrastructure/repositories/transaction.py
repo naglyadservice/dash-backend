@@ -7,7 +7,6 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import aliased, selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
-from dash.models import CarwashTransaction
 from dash.models.base import Base
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
