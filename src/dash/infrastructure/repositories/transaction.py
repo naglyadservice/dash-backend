@@ -7,6 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import aliased, selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.models import CarwashTransaction
 from dash.models.base import Base
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
@@ -63,7 +64,7 @@ class TransactionRepository(BaseRepository):
         data: ReadTransactionListRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Transaction], int]:
-        loader_opt = selectin_polymorphic(Transaction, [WsmTransaction])
+        loader_opt = selectin_polymorphic(Transaction, [WsmTransaction, CarwashTransaction])
 
         stmt = (
             select(Transaction)
