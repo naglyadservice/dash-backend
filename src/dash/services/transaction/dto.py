@@ -76,6 +76,8 @@ class CarwashTransactionScheme(TransactionBase):
     tariff: CarwashTariffDTO
     replenishment_ratio: int | None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 TRANSACTION_SCHEME_TYPE = WsmTransactionScheme | CarwashTransactionScheme
 
