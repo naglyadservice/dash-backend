@@ -83,4 +83,4 @@ class IoTControllerBaseDTO(BaseModel):
     tax_code: str | None
     checkbox_active: bool | None
 
-    alert: str
+    alert: str | None = None
