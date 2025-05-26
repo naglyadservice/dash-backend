@@ -1,8 +1,9 @@
 from dishka import AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
 
-from dash.infrastructure.acquring.liqpay import LiqpayService
-from dash.infrastructure.acquring.monopay import MonopayService
+from dash.infrastructure.acquiring.checkbox import CheckboxService
+from dash.infrastructure.acquiring.liqpay import LiqpayService
+from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
@@ -24,7 +25,7 @@ from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.repositories.user import UserRepository
-from dash.infrastructure.storages.acquring import AcquringStorage
+from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.infrastructure.storages.iot import IotStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
@@ -105,7 +106,7 @@ def provide_gateways() -> Provider:
         CustomerRepository,
         TransactionRepository,
         PaymentRepository,
-        AcquringStorage,
+        AcquiringStorage,
         LocationRepository,
         SessionStorage,
         CompanyRepository,
@@ -129,6 +130,7 @@ def provide_infrastructure() -> Provider:
     provider.provide(get_carwash_client, scope=Scope.APP, provides=CarwashClient)
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)
+    provider.provide(CheckboxService, scope=Scope.REQUEST)
 
     return provider
 

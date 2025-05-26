@@ -1,11 +1,14 @@
+from datetime import datetime
 from typing import Sequence
 
+from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
+from dash.models import Controller
 from dash.models.admin_user import AdminRole, AdminUser
-from dash.models.payment import Payment
+from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.payment.dto import (
     GetPaymentStatsRequest,
@@ -25,11 +28,13 @@ class PaymentService:
         payment_repository: PaymentRepository,
         location_repository: LocationRepository,
         controller_repository: ControllerRepository,
+        checkbox_service: CheckboxService,
     ):
         self.identity_provider = identity_provider
         self.payment_repository = payment_repository
         self.location_repository = location_repository
         self.controller_repository = controller_repository
+        self.checkbox_service = checkbox_service
 
     async def _get_payments_by_role(
         self, data: ReadPaymentListRequest, user: AdminUser

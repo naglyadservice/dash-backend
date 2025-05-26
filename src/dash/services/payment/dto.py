@@ -34,6 +34,7 @@ class BasePaymentFilters(BaseModel):
 class PaymentScheme(BaseModel):
     id: UUID
     controller_id: UUID
+    receipt_id: UUID | None
     amount: int
     status: PaymentStatus
     type: PaymentType

@@ -64,7 +64,9 @@ class TransactionRepository(BaseRepository):
         data: ReadTransactionListRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Transaction], int]:
-        loader_opt = selectin_polymorphic(Transaction, [WsmTransaction, CarwashTransaction])
+        loader_opt = selectin_polymorphic(
+            Transaction, [WsmTransaction, CarwashTransaction]
+        )
 
         stmt = (
             select(Transaction)

@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from liqpay.liqpay3 import LiqPay
 from pydantic import BaseModel
 
+from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
@@ -36,11 +37,13 @@ class LiqpayService:
         service_factory: IoTServiceFactory,
         controller_repository: ControllerRepository,
         payment_repository: PaymentRepository,
+        checkbox_service: CheckboxService,
     ):
         self.config = config
         self.factory = service_factory
         self.controller_repository = controller_repository
         self.payment_repository = payment_repository
+        self.checkbox_service = checkbox_service
 
     @staticmethod
     def _get_client(public_key: str, private_key: str) -> LiqPay:
@@ -65,7 +68,7 @@ class LiqpayService:
         invoice_id = str(uuid.uuid4())
         params = {
             "action": "hold",
-            "amount": data.amount,
+            "amount": data.amount / 100,
             "currency": "UAH",
             "description": f"Аренда контроллера {controller.device_id}",
             "order_id": invoice_id,
@@ -82,10 +85,10 @@ class LiqpayService:
         payment = Payment(
             controller_id=controller.id,
             location_id=controller.location_id,
-            invoice_id=invoice_id,
-            status=PaymentStatus.CREATED,
             amount=data.amount,
             type=PaymentType.LIQPAY,
+            status=PaymentStatus.CREATED,
+            invoice_id=invoice_id,
         )
         self.payment_repository.add(payment)
         await self.payment_repository.commit()
@@ -138,20 +141,16 @@ class LiqpayService:
             controller.liqpay_private_key + data.body + controller.liqpay_private_key
         )
         if calculated_signature != data.signature:
-            print(data.signature, calculated_signature)
             raise HTTPException(status_code=400, detail="Invalid signature")
 
         status = dict_data["status"]
         if status == "hold_wait":
             payment.status = PaymentStatus.HOLD
             try:
-                await self.factory.get(controller.type).send_qr_payment(
-                    SendQRPaymentRequest(
-                        controller_id=payment.controller_id,
-                        payment=QRPaymentDTO(
-                            amount=payment.amount, order_id=invoice_id
-                        ),
-                    )
+                await self.factory.get(controller.type).send_qr_payment_infra(
+                    device_id=controller.device_id,
+                    order_id=invoice_id,
+                    amount=payment.amount,
                 )
             except Exception:
                 self._refund(client, invoice_id, payment.amount)
@@ -166,9 +165,17 @@ class LiqpayService:
 
         elif status == "success":
             payment.status = PaymentStatus.COMPLETED
+            if controller.checkbox_active:
+                payment.receipt_id = await self.checkbox_service.create_receipt(
+                    controller, payment
+                )
 
         elif status == "reversed":
             payment.status = PaymentStatus.REVERSED
+            if controller.checkbox_active:
+                payment.receipt_id = await self.checkbox_service.create_receipt(
+                    controller, payment, is_return=True
+                )
 
         elif status in ("failure", "error"):
             payment.status = PaymentStatus.FAILED

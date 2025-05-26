@@ -9,6 +9,7 @@ from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
+    IoTControllerBaseDTO,
     SendActionRequest,
     SetConfigRequest,
     SetSettingsRequest,
@@ -165,15 +166,10 @@ class CarwashState(BaseModel):
     errors: CarwashStateErrors
 
 
-class CarwashControllerScheme(BaseModel):
-    id: UUID
-    device_id: str
-    name: str | None
-    type: Literal[ControllerType.CARWASH]
+class CarwashIoTControllerScheme(IoTControllerBaseDTO):
     config: CarwashConfig | None
     settings: CarwashSettings | None
     state: CarwashState | None = None
-    alert: str | None = None
 
     @classmethod
     def make(cls, controller: CarwashController, state: dict[str, Any] | None) -> Self:

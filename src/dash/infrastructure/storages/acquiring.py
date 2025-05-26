@@ -3,7 +3,7 @@ from datetime import datetime
 from redis.asyncio import Redis
 
 
-class AcquringStorage:
+class AcquiringStorage:
     def __init__(self, redis: Redis) -> None:
         self.redis = redis
         self.monopay_pub_key = "monopay:pub_key:{invoice_id}"

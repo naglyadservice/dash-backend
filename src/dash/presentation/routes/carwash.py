@@ -8,7 +8,7 @@ from dash.presentation.bearer import bearer_scheme
 from dash.services.iot.carwash.dto import (
     CarwashActionDTO,
     CarwashConfig,
-    CarwashControllerScheme,
+    CarwashIoTControllerScheme,
     CarwashSettings,
     SendCarwashActionRequest,
     SetCarwashConfigRequest,
@@ -39,7 +39,7 @@ carwash_router = APIRouter(
 async def read_controller(
     service: FromDishka[CarwashService],
     data: ControllerID = Depends(),
-) -> CarwashControllerScheme:
+) -> CarwashIoTControllerScheme:
     return await service.read_controller(data)
 
 

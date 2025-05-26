@@ -2,18 +2,19 @@ import base64
 import hashlib
 import json
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
-import aiohttp
 import ecdsa
 from fastapi import HTTPException
 from pydantic import BaseModel, field_validator
 from redis.asyncio import Redis
 
+from dash.infrastructure.acquiring.checkbox import CheckboxService
+from dash.infrastructure.api_client import APIClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
-from dash.infrastructure.storages.acquring import AcquringStorage
+from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.main.config import MonopayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.base import ValidationError
@@ -34,8 +35,8 @@ class CreateInvoiceRequest(BaseModel):
     @field_validator("amount")
     @classmethod
     def validate(cls, v: int) -> int:
-        if v < 1:
-            raise ValidationError("'amount' cannot be less than 1")
+        if v < 100:
+            raise ValidationError("'amount' cannot be less than 100")
         return v
 
 
@@ -47,38 +48,38 @@ class MonopayService:
     def __init__(
         self,
         config: MonopayConfig,
-        acquring_storage: AcquringStorage,
+        acquiring_storage: AcquiringStorage,
         payment_repository: PaymentRepository,
+        checkbox_service: CheckboxService,
         controller_repository: ControllerRepository,
         service_factory: IoTServiceFactory,
         locker: Redis,
     ):
         self.config = config
-        self.acquring_storage = acquring_storage
+        self.acquiring_storage = acquiring_storage
         self.base_url = "https://api.monobank.ua/api"
         self.payment_repository = payment_repository
+        self.checkbox_service = checkbox_service
         self.controller_repository = controller_repository
         self.factory = service_factory
         self.locker = locker
-        self.token: str
+        self.api_client = APIClient()
 
-    @staticmethod
-    async def _check_response(response: aiohttp.ClientResponse) -> None:
-        if response.status != 200:
-            raise HTTPException(status_code=503, detail="Failed to connect to Monobank")
+        self.token = None
 
     async def make_request(
         self, method: Literal["GET", "POST"], endpoint: str, data: dict | None = None
-    ) -> dict:
-        async with aiohttp.ClientSession() as session:
-            async with session.request(
-                method,
-                self.base_url + endpoint,
-                headers={"X-Token": self.token},
-                json=data,
-            ) as response:
-                await self._check_response(response)
-                return await response.json()
+    ) -> dict[str, Any]:
+        response, status = await self.api_client.make_request(
+            method=method,
+            url=self.base_url + endpoint,
+            headers={"X-Token": self.token},
+            json=data,
+        )
+        if status != 200:
+            raise HTTPException(status_code=503, detail="Failed to connect to Monobank")
+
+        return response
 
     async def _request_pub_key(self, invoice_id: str) -> bytes:
         response = await self.make_request(method="GET", endpoint="/merchant/pubkey")
@@ -86,7 +87,7 @@ class MonopayService:
         pub_key = response["key"]
         pub_key_bytes = base64.b64decode(pub_key)
 
-        await self.acquring_storage.set_monopay_pub_key(pub_key_bytes, invoice_id)
+        await self.acquiring_storage.set_monopay_pub_key(pub_key_bytes, invoice_id)
         return pub_key_bytes
 
     @staticmethod
@@ -101,7 +102,7 @@ class MonopayService:
 
     async def _verify_signature(self, sign: str, body: bytes, invoice_id: str) -> None:
         signature = base64.b64decode(sign)
-        pub_key = await self.acquring_storage.get_monopay_pub_key(invoice_id)
+        pub_key = await self.acquiring_storage.get_monopay_pub_key(invoice_id)
 
         if pub_key is None:
             pub_key = await self._request_pub_key(invoice_id)
@@ -109,7 +110,7 @@ class MonopayService:
         for attempt in range(2):
             if self._verify_pub_key(body, signature, pub_key):
                 return
-            if attempt == 2:
+            if attempt == 1:
                 break
             pub_key = await self._request_pub_key(invoice_id)
 
@@ -144,15 +145,15 @@ class MonopayService:
         payment = Payment(
             controller_id=controller.id,
             location_id=controller.location_id,
-            invoice_id=invoice_id,
-            status=PaymentStatus.CREATED,
             amount=data.amount,
             type=PaymentType.MONOPAY,
+            status=PaymentStatus.CREATED,
+            invoice_id=invoice_id,
         )
         self.payment_repository.add(payment)
         await self.payment_repository.commit()
 
-        await self.acquring_storage.set_monopay_token(
+        await self.acquiring_storage.set_monopay_token(
             token=controller.monopay_token, invoice_id=invoice_id
         )
 
@@ -176,7 +177,7 @@ class MonopayService:
         body = json.loads(data.body.decode())
         invoice_id = body["invoiceId"]
 
-        token = await self.acquring_storage.get_monopay_token(invoice_id)
+        token = await self.acquiring_storage.get_monopay_token(invoice_id)
         if not token:
             payment = await self.payment_repository.get_by_invoice_id(invoice_id)
             if not payment:
@@ -204,7 +205,7 @@ class MonopayService:
     async def _process_webhook_locked(self, invoice_id: str, body: dict) -> None:
         status = body["status"]
         current_modified_date = datetime.fromisoformat(body["modifiedDate"])
-        last_modified_date = await self.acquring_storage.get_last_modified_date(
+        last_modified_date = await self.acquiring_storage.get_last_modified_date(
             invoice_id
         )
 
@@ -218,7 +219,7 @@ class MonopayService:
             elif last_modified_date > current_modified_date:
                 return
 
-        await self.acquring_storage.set_last_modified_date(
+        await self.acquiring_storage.set_last_modified_date(
             invoice_id, current_modified_date
         )
 
@@ -235,9 +236,17 @@ class MonopayService:
 
         elif status == "success":
             payment.status = PaymentStatus.COMPLETED
+            if controller.checkbox_active:
+                payment.receipt_id = await self.checkbox_service.create_receipt(
+                    controller, payment
+                )
 
         elif status == "reversed":
             payment.status = PaymentStatus.REVERSED
+            if controller.checkbox_active:
+                payment.receipt_id = await self.checkbox_service.create_receipt(
+                    controller, payment, is_return=True
+                )
 
         elif status == "failure":
             payment.status = PaymentStatus.FAILED
@@ -246,13 +255,10 @@ class MonopayService:
         elif status == "hold":
             payment.status = PaymentStatus.HOLD
             try:
-                await self.factory.get(controller.type).send_qr_payment(
-                    SendQRPaymentRequest(
-                        controller_id=payment.controller_id,
-                        payment=QRPaymentDTO(
-                            amount=payment.amount, order_id=invoice_id
-                        ),
-                    )
+                await self.factory.get(controller.type).send_qr_payment_infra(
+                    device_id=controller.device_id,
+                    order_id=invoice_id,
+                    amount=payment.amount,
                 )
             except Exception:
                 await self._refund(invoice_id)

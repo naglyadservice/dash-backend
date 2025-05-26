@@ -7,11 +7,13 @@ from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.controller.dto import (
+    AddCheckboxCredentialsRequest,
     AddControllerLocationRequest,
     AddControllerRequest,
     AddControllerResponse,
     AddLiqpayCredentialsRequest,
     AddMonopayCredentialsRequest,
+    CheckboxCredentialsDTO,
     CloseEncashmentRequest,
     LiqpayCredentialsDTO,
     LocationID,
@@ -67,7 +69,7 @@ async def add_controller_location(
 
 
 @controller_router.post(
-    "/{controller_id}/monopay, dependencies=[bearer_scheme]", status_code=204
+    "/{controller_id}/monopay", status_code=204, dependencies=[bearer_scheme]
 )
 async def add_monopay_credentials(
     controller_service: FromDishka[ControllerService],
@@ -89,6 +91,19 @@ async def add_liqpay_credentials(
 ) -> None:
     await controller_service.add_liqpay_credentials(
         AddLiqpayCredentialsRequest(controller_id=controller_id, liqpay=data)
+    )
+
+
+@controller_router.post(
+    "/{controller_id}/checkbox", status_code=204, dependencies=[bearer_scheme]
+)
+async def add_checkbox_credentials(
+    controller_service: FromDishka[ControllerService],
+    data: CheckboxCredentialsDTO,
+    controller_id: UUID,
+) -> None:
+    await controller_service.add_checkbox_credentials(
+        AddCheckboxCredentialsRequest(controller_id=controller_id, checkbox=data)
     )
 
 

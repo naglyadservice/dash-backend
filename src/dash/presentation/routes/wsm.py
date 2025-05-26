@@ -24,7 +24,7 @@ from dash.services.iot.wsm.dto import (
     SetWsmSettingsRequest,
     WsmActionDTO,
     WsmConfig,
-    WsmControllerScheme,
+    WsmIoTControllerScheme,
     WsmSettings,
 )
 from dash.services.iot.wsm.service import WsmService
@@ -41,7 +41,7 @@ wsm_router = APIRouter(
 async def read_controller(
     wsm_service: FromDishka[WsmService],
     path: ControllerID = Depends(),
-) -> WsmControllerScheme:
+) -> WsmIoTControllerScheme:
     return await wsm_service.read_controller(path)
 
 

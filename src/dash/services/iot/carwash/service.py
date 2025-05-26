@@ -16,7 +16,7 @@ from dash.services.common.errors.controller import (
 )
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.carwash.dto import (
-    CarwashControllerScheme,
+    CarwashIoTControllerScheme,
     SetCarwashConfigRequest,
     SetCarwashSettingsRequest,
 )
@@ -103,9 +103,9 @@ class CarwashService(BaseIoTService):
 
         await self.controller_repository.commit()
 
-    async def read_controller(self, data: ControllerID) -> CarwashControllerScheme:
+    async def read_controller(self, data: ControllerID) -> CarwashIoTControllerScheme:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
         state = await self.iot_storage.get_state(controller.id)
-        return CarwashControllerScheme.make(controller, state)
+        return CarwashIoTControllerScheme.make(controller, state)

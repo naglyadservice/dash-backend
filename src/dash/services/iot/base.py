@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Any
 from uuid import UUID
 
 from sqlalchemy.orm.attributes import flag_modified
@@ -107,6 +106,22 @@ class BaseIoTService(ABC):
                 "addQRcode": {
                     "order_id": data.payment.order_id,
                     "amount": data.payment.amount,
+                }
+            },
+        )
+
+    async def send_qr_payment_infra(
+        self,
+        device_id: str,
+        order_id: str,
+        amount: int,
+    ):
+        await self.iot_client.set_payment(
+            device_id=device_id,
+            payload={
+                "addQRcode": {
+                    "order_id": order_id,
+                    "amount": amount,
                 }
             },
         )

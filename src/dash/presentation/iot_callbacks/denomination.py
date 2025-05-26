@@ -9,14 +9,16 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 
+from ...infrastructure.acquiring.checkbox import CheckboxService
+from ...services.payment.service import PaymentService
 from .di_injector import datetime_recipe, inject, parse_payload, request_scope
 
 
 @dataclass
 class DenominationCallbackPayload:
     created: datetime
-    coin: int
-    bill: int
+    coin: int | None = None
+    bill: int | None = None
 
 
 denomination_callback_retort = Retort(recipe=[*datetime_recipe])
@@ -29,8 +31,9 @@ denomination_callback_retort = Retort(recipe=[*datetime_recipe])
 async def denomination_callback(
     device_id: str,
     data: DenominationCallbackPayload,
-    payment_repository: FromDishka[PaymentRepository],
     controller_repository: FromDishka[ControllerRepository],
+    payment_repository: FromDishka[PaymentRepository],
+    checkbox_service: FromDishka[CheckboxService],
 ) -> None:
     controller = await controller_repository.get_by_device_id(device_id)
 
@@ -39,11 +42,11 @@ async def denomination_callback(
 
     if data.bill:
         amount = data.bill
-        type = PaymentType.BILL
+        payment_type = PaymentType.BILL
 
     elif data.coin:
         amount = data.coin
-        type = PaymentType.COIN
+        payment_type = PaymentType.COIN
 
     else:
         return
@@ -51,11 +54,14 @@ async def denomination_callback(
     payment = Payment(
         controller_id=controller.id,
         location_id=controller.location_id,
+        invoice_id=None,
         amount=amount,
-        status=PaymentStatus.COMPLETED,
-        type=type,
+        type=payment_type,
+        status=PaymentStatus.CREATED,
         created_at_controller=data.created,
     )
+    if controller.checkbox_active:
+        payment.receipt_id = await checkbox_service.create_receipt(controller, payment)
 
     payment_repository.add(payment)
     await payment_repository.commit()

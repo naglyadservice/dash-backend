@@ -41,6 +41,14 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     liqpay_private_key: Mapped[str | None] = mapped_column()
     liqpay_active: Mapped[bool] = mapped_column(default=False)
 
+    checkbox_login: Mapped[str | None] = mapped_column()
+    checkbox_password: Mapped[str | None] = mapped_column()
+    checkbox_active: Mapped[bool] = mapped_column(default=False)
+    checkbox_license_key: Mapped[str | None] = mapped_column()
+    good_name: Mapped[str | None] = mapped_column()
+    good_code: Mapped[str | None] = mapped_column()
+    tax_code: Mapped[str | None] = mapped_column()
+
     settings: Mapped[dict[str, Any] | None] = mapped_column()
     config: Mapped[dict[str, Any] | None] = mapped_column()
 

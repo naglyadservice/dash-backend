@@ -15,7 +15,7 @@ from dash.services.iot.wsm.dto import (
     SendWsmActionRequest,
     SetWsmConfigRequest,
     SetWsmSettingsRequest,
-    WsmControllerScheme,
+    WsmIoTControllerScheme,
 )
 
 
@@ -44,12 +44,12 @@ class WsmService(BaseIoTService):
     async def set_settings(self, data: SetWsmSettingsRequest) -> None:
         await super().set_settings(data)
 
-    async def read_controller(self, data: ControllerID) -> WsmControllerScheme:
+    async def read_controller(self, data: ControllerID) -> WsmIoTControllerScheme:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
         state = await self.iot_storage.get_state(controller.id)
-        return WsmControllerScheme.make(controller, state)
+        return WsmIoTControllerScheme.make(controller, state)
 
     async def send_action(self, data: SendWsmActionRequest) -> None:
         await super().send_action(data)

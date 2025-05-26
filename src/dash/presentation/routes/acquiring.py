@@ -5,13 +5,13 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Form, HTTPException, Request
 from pydantic import BaseModel
 
-from dash.infrastructure.acquring.liqpay import (
+from dash.infrastructure.acquiring.liqpay import (
     CreateLiqpayInvoiceRequest,
     CreateLiqpayInvoiceResponse,
     LiqpayService,
     ProcessLiqpayWebhookRequest,
 )
-from dash.infrastructure.acquring.monopay import (
+from dash.infrastructure.acquiring.monopay import (
     CreateInvoiceRequest,
     CreateInvoiceResponse,
     MonopayService,
@@ -38,7 +38,7 @@ async def monopay_invoice(
     )
 
 
-@acquiring_router.post("/monopay/webhook")
+@acquiring_router.post("/monopay/webhook", include_in_schema=False)
 async def monopay_webhook(
     request: Request, monopay_service: FromDishka[MonopayService]
 ) -> dict[str, str]:
@@ -66,7 +66,7 @@ async def liqpay_invoice(
     return await liqpay_service.create_invoice(data)
 
 
-@acquiring_router.post("/liqpay/webhook")
+@acquiring_router.post("/liqpay/webhook", include_in_schema=False)
 async def liqpay_webhook(
     liqpay_service: FromDishka[LiqpayService],
     data: str = Form(...),

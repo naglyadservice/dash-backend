@@ -37,8 +37,10 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     location_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL")
     )
+    receipt_id: Mapped[UUID | None] = mapped_column()
     amount: Mapped[int] = mapped_column()
     status: Mapped[PaymentStatus] = mapped_column()
     type: Mapped[PaymentType] = mapped_column()
     failure_reason: Mapped[str | None] = mapped_column()
+    checkbox_error: Mapped[str | None] = mapped_column()
     created_at_controller: Mapped[datetime | None] = mapped_column()

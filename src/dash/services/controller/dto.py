@@ -65,7 +65,7 @@ class AddControllerResponse(BaseModel):
 
 
 class MonopayCredentialsDTO(BaseModel):
-    token: str | None
+    token: str
     is_active: bool
 
 
@@ -74,13 +74,27 @@ class AddMonopayCredentialsRequest(ControllerID):
 
 
 class LiqpayCredentialsDTO(BaseModel):
-    public_key: str | None
-    private_key: str | None
+    public_key: str
+    private_key: str
     is_active: bool
 
 
 class AddLiqpayCredentialsRequest(ControllerID):
     liqpay: LiqpayCredentialsDTO
+
+
+class CheckboxCredentialsDTO(BaseModel):
+    cashier_login: str
+    cashier_password: str
+    license_key: str
+    good_code: str
+    good_name: str
+    tax_code: str | None
+    is_active: bool
+
+
+class AddCheckboxCredentialsRequest(ControllerID):
+    checkbox: CheckboxCredentialsDTO
 
 
 class LocationID(BaseModel):

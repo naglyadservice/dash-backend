@@ -1,4 +1,5 @@
 from typing import Sequence
+from uuid import UUID
 
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -17,6 +18,7 @@ from dash.services.common.errors.encashment import (
 )
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.controller.dto import (
+    AddCheckboxCredentialsRequest,
     AddControllerLocationRequest,
     AddControllerRequest,
     AddControllerResponse,
@@ -52,6 +54,12 @@ class ControllerService:
         self.location_repository = location_repository
         self.encashment_repository = encashment_repository
         self.factory = factory
+
+    async def _get_controller(self, controller_id: UUID) -> Controller:
+        controller = await self.controller_repository.get(controller_id)
+        if not controller:
+            raise ControllerNotFoundError
+        return controller
 
     async def _get_controllers_by_role(
         self, data: ReadControllerListRequest, user: AdminUser
@@ -115,9 +123,7 @@ class ControllerService:
         return AddControllerResponse(id=controller.id)
 
     async def add_monopay_credentials(self, data: AddMonopayCredentialsRequest) -> None:
-        controller = await self.controller_repository.get(data.controller_id)
-        if not controller:
-            raise ControllerNotFoundError
+        controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
@@ -129,9 +135,7 @@ class ControllerService:
         await self.controller_repository.commit()
 
     async def add_liqpay_credentials(self, data: AddLiqpayCredentialsRequest) -> None:
-        controller = await self.controller_repository.get(data.controller_id)
-        if not controller:
-            raise ControllerNotFoundError
+        controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
@@ -143,15 +147,28 @@ class ControllerService:
 
         await self.controller_repository.commit()
 
+    async def add_checkbox_credentials(
+        self, data: AddCheckboxCredentialsRequest
+    ) -> None:
+        controller = await self._get_controller(data.controller_id)
+
+        controller.checkbox_login = data.checkbox.cashier_login
+        controller.checkbox_password = data.checkbox.cashier_password
+        controller.checkbox_license_key = data.checkbox.license_key
+        controller.good_name = data.checkbox.good_name
+        controller.good_code = data.checkbox.good_code
+        controller.tax_code = data.checkbox.tax_code
+        controller.checkbox_active = data.checkbox.is_active
+
+        await self.controller_repository.commit()
+
     async def add_location(self, data: AddControllerLocationRequest) -> None:
         await self.identity_provider.ensure_superadmin()
 
         if not await self.location_repository.exists(data.location_id):
             raise LocationNotFoundError
 
-        controller = await self.controller_repository.get(data.controller_id)
-        if not controller:
-            raise ControllerNotFoundError
+        controller = await self._get_controller(data.controller_id)
 
         controller.location_id = data.location_id
         await self.controller_repository.commit()
@@ -159,9 +176,7 @@ class ControllerService:
     async def read_encashments(
         self, data: ReadEncashmentListRequest
     ) -> ReadEncashmentListResponse:
-        controller = await self.controller_repository.get(data.controller_id)
-        if not controller:
-            raise ControllerNotFoundError
+        controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
@@ -176,9 +191,7 @@ class ControllerService:
         )
 
     async def close_encashment(self, data: CloseEncashmentRequest) -> None:
-        controller = await self.controller_repository.get(data.controller_id)
-        if not controller:
-            raise ControllerNotFoundError
+        controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_location_admin(controller.location_id)
 

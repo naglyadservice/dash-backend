@@ -9,6 +9,7 @@ from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
+    IoTControllerBaseDTO,
     SendActionRequest,
     SetConfigRequest,
     SetSettingsRequest,
@@ -96,15 +97,10 @@ class WsmState(BaseModel):
     errors: WsmStateErrors
 
 
-class WsmControllerScheme(BaseModel):
-    id: UUID
-    device_id: str
-    name: str | None
-    type: Literal[ControllerType.WATER_VENDING]
+class WsmIoTControllerScheme(IoTControllerBaseDTO):
     config: WsmConfig | None
     settings: WsmSettings | None
     state: WsmState | None = None
-    alert: str | None = None
 
     @classmethod
     def make(
