@@ -58,7 +58,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
 
     @property
     def timezone(self) -> int:
-        return self.settings["timeZone"]
+        return self.config["timeZone"]
 
     @property
     def company(self) -> Company | None:
