@@ -5,8 +5,8 @@ from dishka import FromDishka
 
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
-
-from .di_injector import inject, request_scope
+from dash.presentation.iot_callbacks.common.di_injector import inject, request_scope
+from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 
 @tracer.wrap()
@@ -23,4 +23,5 @@ async def state_info_callback(
     if controller is None:
         return
 
+    data["created"] = dt_naive_to_zone_aware(data["created"], controller.timezone)
     await iot_storage.set_state(data, controller.id)

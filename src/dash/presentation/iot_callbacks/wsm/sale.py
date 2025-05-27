@@ -14,12 +14,13 @@ from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WsmTransaction
-from dash.presentation.iot_callbacks.di_injector import (
+from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
     inject,
     parse_payload,
     request_scope,
 )
+from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 logger = structlog.get_logger()
 
@@ -107,7 +108,9 @@ async def wsm_sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         type=TransactionType.WATER_VENDING.value,
-        created_at_controller=data.created or data.sended,
+        created_at_controller=dt_naive_to_zone_aware(
+            (data.created or data.sended), controller.timezone
+        ),
         out_liters_1=data.out_liters_1,
         out_liters_2=data.out_liters_2,
         sale_type=data.sale_type,

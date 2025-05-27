@@ -1,4 +1,4 @@
-from datetime import datetime, time
+from datetime import UTC, datetime, time
 from typing import Any, Literal
 from uuid import UUID
 
@@ -6,6 +6,7 @@ import uuid_utils.compat
 from structlog import getLogger
 
 from dash.infrastructure.api_client import APIClient
+from dash.main.config import AppConfig
 from dash.models import Controller
 from dash.models.payment import Payment, PaymentType
 
@@ -13,7 +14,8 @@ logger = getLogger()
 
 
 class CheckboxService:
-    def __init__(self):
+    def __init__(self, config: AppConfig):
+        self.config = config
         self.api_client = APIClient()
         self.base_url = "https://api.checkbox.ua/api/v1"
         self.base_headers = {
@@ -66,7 +68,7 @@ class CheckboxService:
         payment: Payment,
         is_return: bool = False,
     ) -> UUID | None:
-        if datetime.now().time() > time(23, 45):
+        if datetime.now(self.config.timezone).time() > time(23, 45):
             return None
 
         self.token = await self._get_token(

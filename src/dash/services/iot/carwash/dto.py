@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import UTC, datetime, time, timedelta
 from enum import IntEnum, StrEnum
 from typing import Any, Literal, Self
 from uuid import UUID
@@ -176,7 +176,7 @@ class CarwashIoTControllerScheme(IoTControllerBaseDTO):
         dto = cls.model_validate(controller, from_attributes=True)
         if state:
             dto.state = CarwashState.model_validate(state)
-            if dto.state.created + timedelta(minutes=5) < datetime.now():
+            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):
                 dto.alert = "Контроллер не надсилав оновлення більше 5 хвилин"
         return dto
 

@@ -5,13 +5,17 @@ from adaptix import Retort
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
+from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.models.payment import Payment, PaymentStatus, PaymentType
-
-from ...infrastructure.acquiring.checkbox import CheckboxService
-from ...services.payment.service import PaymentService
-from .di_injector import datetime_recipe, inject, parse_payload, request_scope
+from dash.presentation.iot_callbacks.common.di_injector import (
+    datetime_recipe,
+    inject,
+    parse_payload,
+    request_scope,
+)
+from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 
 @dataclass
@@ -58,7 +62,7 @@ async def denomination_callback(
         amount=amount,
         type=payment_type,
         status=PaymentStatus.CREATED,
-        created_at_controller=data.created,
+        created_at_controller=dt_naive_to_zone_aware(data.created, controller.timezone),
     )
     if controller.checkbox_active:
         payment.receipt_id = await checkbox_service.create_receipt(controller, payment)

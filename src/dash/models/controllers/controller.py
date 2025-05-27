@@ -57,6 +57,10 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "controller"}
 
     @property
+    def timezone(self) -> int:
+        return self.settings["timeZone"]
+
+    @property
     def company(self) -> Company | None:
         return self.location and self.location.company
 

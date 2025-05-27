@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Sequence
 from uuid import UUID
 
@@ -80,7 +80,7 @@ class PaymentRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> GetPaymentStatsResponse:
         date_expression = cast(Payment.created_at, Date).label("date")
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         stmt = (
             select(

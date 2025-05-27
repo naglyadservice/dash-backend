@@ -9,18 +9,18 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 
 from dash.infrastructure.iot.carwash.client import CarwashClient
-from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models import CarwashTransaction
 from dash.models.transactions.transaction import TransactionType
-from dash.presentation.iot_callbacks.di_injector import (
+from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
     inject,
     parse_payload,
     request_scope,
 )
+from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 from dash.services.iot.carwash.utils import decode_service_int_mask
 
 logger = structlog.get_logger()
@@ -110,7 +110,9 @@ async def carwash_sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         type=TransactionType.CARWASH.value,
-        created_at_controller=data.created or data.sended,
+        created_at_controller=dt_naive_to_zone_aware(
+            (data.created or data.sended), controller.timezone
+        ),
         sale_type=data.sale_type,
         services_sold_seconds=decode_service_int_mask(data.services_sold),
         tariff=decode_service_int_mask(data.tariff),

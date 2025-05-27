@@ -1,11 +1,9 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any, Literal, Self
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
@@ -109,7 +107,7 @@ class WsmIoTControllerScheme(IoTControllerBaseDTO):
         dto = cls.model_validate(controller, from_attributes=True)
         if state:
             dto.state = WsmState.model_validate(state)
-            if dto.state.created + timedelta(minutes=5) < datetime.now():
+            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):
                 dto.alert = "Контроллер не надсилав оновлення більше 5 хвилин"
         return dto
 

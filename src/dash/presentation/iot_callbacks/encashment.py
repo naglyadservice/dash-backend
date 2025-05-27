@@ -9,12 +9,13 @@ from structlog import getLogger
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
-from dash.presentation.iot_callbacks.di_injector import (
+from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
     inject,
     parse_payload,
     request_scope,
 )
+from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 logger = getLogger()
 
@@ -68,7 +69,9 @@ async def encashment_callback(
 
     encashment = Encashment(
         controller_id=controller.id,
-        created_at_controller=data.created or data.sended,
+        created_at_controller=dt_naive_to_zone_aware(
+            (data.created or data.sended), controller.timezone
+        ),
         encashed_amount=data.amount,
         coin_1=data.coin_1,
         coin_2=data.coin_2,

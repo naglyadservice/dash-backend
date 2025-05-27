@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Sequence, Type
 from uuid import UUID
 
@@ -127,7 +127,7 @@ class TransactionRepository(BaseRepository):
     ) -> GetTransactionStatsResponse:
         date_expression = cast(Transaction.created_at, Date).label("date")
         water_vending_t = aliased(WsmTransaction)
-        now = datetime.now()
+        now = datetime.now(UTC)
 
         stmt = (
             select(

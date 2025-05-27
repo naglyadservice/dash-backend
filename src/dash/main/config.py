@@ -1,6 +1,8 @@
+from datetime import UTC
 from typing import Literal
+from zoneinfo import ZoneInfo
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings as _BaseSettings
 from pydantic_settings import SettingsConfigDict
 
@@ -55,6 +57,12 @@ class AppConfig(BaseSettings):
     forwarded_allow_ips: str = Field(default="127.0.0.1")
     enable_datadog: bool = Field(default=False)
     enable_debugpy: bool = Field(default=False)
+    timezone: ZoneInfo = Field(default="Europe/Kiev")
+
+    @field_validator("timezone", mode="before")
+    @classmethod
+    def zone_info_validator(cls, v: str) -> ZoneInfo:
+        return ZoneInfo(v)
 
 
 class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
