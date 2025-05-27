@@ -13,8 +13,8 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 datetime_recipe = (
-    loader(datetime, lambda s: datetime.strptime(s, "%Y-%m-%dT%H:%M:%S")),  # noqa: DTZ007
-    dumper(datetime, lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%S")),
+    loader(datetime, lambda s: datetime.fromisoformat(s)),  # noqa: DTZ007
+    dumper(datetime, lambda dt: dt.isoformat()),
 )
 
 default_retort = Retort(

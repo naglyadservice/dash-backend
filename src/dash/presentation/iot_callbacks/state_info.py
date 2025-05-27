@@ -24,5 +24,7 @@ async def state_info_callback(
     if controller is None:
         return
 
-    data["created"] = dt_naive_to_zone_aware(data["created"], controller.timezone)
+    zone_aware_dt = dt_naive_to_zone_aware(data["created"], controller.timezone)
+    data["created"] = zone_aware_dt.isoformat()
+
     await iot_storage.set_state(data, controller.id)
