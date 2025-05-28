@@ -130,15 +130,13 @@ class BaseNpcClient(NpcClient[BaseDispatcher]):
             ttl=ttl,
         )
 
-    async def payment_card_ack(
-        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> None:
+    async def payment_card_ack(self, device_id: str, payload: dict[str, Any]) -> None:
         await self._send_message(
             device_id=device_id,
             topic="client/payment/card",
             qos=1,
             payload=payload,
-            ttl=ttl,
+            ttl=None,
         )
 
     async def sale_ack(self, device_id: str, transaction_id: int) -> None:
@@ -150,15 +148,13 @@ class BaseNpcClient(NpcClient[BaseDispatcher]):
             ttl=None,
         )
 
-    async def encashment_ack(
-        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
-    ) -> None:
+    async def encashment_ack(self, device_id: str, payload: dict[str, Any]) -> None:
         await self._send_message(
             device_id=device_id,
             topic="client/incass/ack",
             payload=payload,
             qos=1,
-            ttl=ttl,
+            ttl=None,
         )
 
     async def get_state(
