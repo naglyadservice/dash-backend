@@ -134,20 +134,8 @@ async def test_encashment_callback(
     payload = EncashmentCallbackPayload(
         id=1,
         created=datetime(2000, 1, 1),
-        coin_1=1,
-        coin_2=2,
-        coin_3=3,
-        coin_4=4,
-        coin_5=5,
-        coin_6=6,
-        bill_1=1,
-        bill_2=2,
-        bill_3=3,
-        bill_4=4,
-        bill_5=5,
-        bill_6=6,
-        bill_7=7,
-        bill_8=8,
+        coin=[1, 2, 3, 4, 5, 6],
+        bill=[1, 2, 3, 4, 5, 6, 7, 8],
         amount=100,
     )
     mocker.patch.object(deps.wsm_client, "encashment_ack")

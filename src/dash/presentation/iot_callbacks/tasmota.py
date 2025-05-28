@@ -17,7 +17,6 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
-from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 from dash.services.iot.dto import EnergyStateDTO
 
 logger = getLogger()
@@ -64,7 +63,6 @@ async def tasmota_callback(
     if controller is None:
         return
 
-    data.created = dt_naive_to_zone_aware(data.created, controller.timezone)
     day_ago_date = (data.created - timedelta(days=1)).date()
 
     if not await energy_repository.exists_by_date(day_ago_date, controller.id):

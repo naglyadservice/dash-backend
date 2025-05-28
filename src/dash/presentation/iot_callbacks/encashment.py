@@ -15,7 +15,6 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
-from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 logger = getLogger()
 
@@ -23,20 +22,8 @@ logger = getLogger()
 @dataclass
 class EncashmentCallbackPayload:
     id: int
-    coin_1: int
-    coin_2: int
-    coin_3: int
-    coin_4: int
-    coin_5: int
-    coin_6: int
-    bill_1: int
-    bill_2: int
-    bill_3: int
-    bill_4: int
-    bill_5: int
-    bill_6: int
-    bill_7: int
-    bill_8: int
+    coin: list[int]
+    bill: list[int]
     amount: int
     created: datetime | None = None
     sended: datetime | None = None
@@ -69,24 +56,22 @@ async def encashment_callback(
 
     encashment = Encashment(
         controller_id=controller.id,
-        created_at_controller=dt_naive_to_zone_aware(
-            (data.created or data.sended), controller.timezone
-        ),
+        created_at_controller=data.created or data.sended,
         encashed_amount=data.amount,
-        coin_1=data.coin_1,
-        coin_2=data.coin_2,
-        coin_3=data.coin_3,
-        coin_4=data.coin_4,
-        coin_5=data.coin_5,
-        coin_6=data.coin_6,
-        bill_1=data.bill_1,
-        bill_2=data.bill_2,
-        bill_3=data.bill_3,
-        bill_4=data.bill_4,
-        bill_5=data.bill_5,
-        bill_6=data.bill_6,
-        bill_7=data.bill_7,
-        bill_8=data.bill_8,
+        coin_1=data.coin[0],
+        coin_2=data.coin[1],
+        coin_3=data.coin[2],
+        coin_4=data.coin[3],
+        coin_5=data.coin[4],
+        coin_6=data.coin[5],
+        bill_1=data.bill[0],
+        bill_2=data.bill[1],
+        bill_3=data.bill[2],
+        bill_4=data.bill[3],
+        bill_5=data.bill[4],
+        bill_6=data.bill[5],
+        bill_7=data.bill[6],
+        bill_8=data.bill[7],
     )
     encashment_repository.add(encashment)
     await encashment_repository.commit()

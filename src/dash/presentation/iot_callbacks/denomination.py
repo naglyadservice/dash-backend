@@ -15,7 +15,6 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
-from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 
 @dataclass
@@ -62,7 +61,7 @@ async def denomination_callback(
         amount=amount,
         type=payment_type,
         status=PaymentStatus.CREATED,
-        created_at_controller=dt_naive_to_zone_aware(data.created, controller.timezone),
+        created_at_controller=data.created,
     )
     if controller.checkbox_active:
         payment.receipt_id = await checkbox_service.create_receipt(controller, payment)

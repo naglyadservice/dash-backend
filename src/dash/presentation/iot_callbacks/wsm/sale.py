@@ -20,7 +20,6 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
-from dash.presentation.iot_callbacks.common.utils import dt_naive_to_zone_aware
 
 logger = structlog.get_logger()
 
@@ -108,9 +107,7 @@ async def wsm_sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         type=TransactionType.WATER_VENDING.value,
-        created_at_controller=dt_naive_to_zone_aware(
-            (data.created or data.sended), controller.timezone
-        ),
+        created_at_controller=data.created or data.sended,
         out_liters_1=data.out_liters_1,
         out_liters_2=data.out_liters_2,
         sale_type=data.sale_type,
