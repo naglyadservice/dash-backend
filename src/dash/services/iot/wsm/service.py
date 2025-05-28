@@ -49,7 +49,9 @@ class WsmService(BaseIoTService):
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
         state = await self.iot_storage.get_state(controller.id)
-        return WsmIoTControllerScheme.make(controller, state)
+        energy_state = await self.iot_storage.get_energy_state(controller.id)
+
+        return WsmIoTControllerScheme.make(controller, state, energy_state)
 
     async def send_action(self, data: SendWsmActionRequest) -> None:
         await super().send_action(data)
