@@ -164,7 +164,9 @@ class TasmotaID:
     tasmota_id: str | None
 
 
-@controller_router.post("/{controller_id}/tasmota", status_code=204)
+@controller_router.post(
+    "/{controller_id}/tasmota", status_code=204, dependencies=[bearer_scheme]
+)
 async def setup_tasmota_electric_meter(
     controller_service: FromDishka[ControllerService],
     controller_id: UUID,
@@ -175,7 +177,9 @@ async def setup_tasmota_electric_meter(
     )
 
 
-@controller_router.patch("/{controller_id}", status_code=204)
+@controller_router.patch(
+    "/{controller_id}", status_code=204, dependencies=[bearer_scheme]
+)
 async def edit_controller(
     controller_service: FromDishka[ControllerService],
     controller_id: UUID,
