@@ -60,7 +60,7 @@ async def denomination_callback(
         invoice_id=None,
         amount=amount,
         type=payment_type,
-        status=PaymentStatus.CREATED,
+        status=PaymentStatus.COMPLETED,
         created_at_controller=data.created,
     )
     if controller.checkbox_active:
