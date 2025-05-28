@@ -20,9 +20,9 @@ from dash.presentation.iot_callbacks.denomination import (
     DenominationCallbackPayload,
     denomination_callback_retort,
 )
-from dash.presentation.iot_callbacks.encashment import (
-    EncashmentCallbackPayload,
-    encashment_callback_retort,
+from dash.presentation.iot_callbacks.wsm.encashment import (
+    WsmEncashmentCallbackPayload,
+    wsm_encashment_callback_retort,
 )
 from dash.presentation.iot_callbacks.wsm.sale import (
     WsmSaleCallbackPayload,
@@ -75,7 +75,6 @@ async def test_payment_card_get_callback(
             "balance": int(test_env.customer_1.balance * 100),
             "tariffPerLiter_1": test_env.customer_1.tariff_per_liter_1,
             "tariffPerLiter_2": test_env.customer_1.tariff_per_liter_2,
-            "replenishmentRatio": 100 + (test_env.customer_1.discount_percent or 0),
             "code": 0,
         },
     )
@@ -131,7 +130,7 @@ async def test_encashment_callback(
     user,
     mocker,
 ):
-    payload = EncashmentCallbackPayload(
+    payload = WsmEncashmentCallbackPayload(
         id=1,
         created=datetime(2000, 1, 1),
         coin=[1, 2, 3, 4, 5, 6],
@@ -142,7 +141,7 @@ async def test_encashment_callback(
 
     await deps.wsm_client.dispatcher.encashment._process_callbacks(  # type: ignore
         device_id=str(test_env.controller_1.device_id),
-        decoded_payload=encashment_callback_retort.dump(payload),
+        decoded_payload=wsm_encashment_callback_retort.dump(payload),
         di_container=di_container,
     )
     deps.wsm_client.encashment_ack.assert_called_once_with(

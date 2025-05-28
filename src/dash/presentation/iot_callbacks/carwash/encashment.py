@@ -6,7 +6,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import getLogger
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -20,7 +20,7 @@ logger = getLogger()
 
 
 @dataclass
-class EncashmentCallbackPayload:
+class CarwashEncashmentCallbackPayload:
     id: int
     coin: list[int]
     bill: list[int]
@@ -29,18 +29,18 @@ class EncashmentCallbackPayload:
     sended: datetime | None = None
 
 
-encashment_callback_retort = Retort(recipe=[*datetime_recipe])
+carwash_encashment_callback_retort = Retort(recipe=[*datetime_recipe])
 
 
 @tracer.wrap()
-@parse_payload(retort=encashment_callback_retort)
+@parse_payload(retort=carwash_encashment_callback_retort)
 @request_scope
 @inject
-async def encashment_callback(
+async def carwash_encashment_callback(
     device_id: str,
-    data: EncashmentCallbackPayload,
+    data: CarwashEncashmentCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
-    wsm_client: FromDishka[WsmClient],
+    carwash_client: FromDishka[CarwashClient],
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
     controller = await controller_repository.get_by_device_id(device_id)
@@ -49,7 +49,7 @@ async def encashment_callback(
             "Ignoring encashment request from controller, controller not found by device_id",
             device_id=device_id,
         )
-        await wsm_client.encashment_ack(
+        await carwash_client.encashment_ack(
             device_id=device_id, payload={"id": data.id, "code": 1}
         )
         return
@@ -76,6 +76,6 @@ async def encashment_callback(
     encashment_repository.add(encashment)
     await encashment_repository.commit()
 
-    await wsm_client.encashment_ack(
+    await carwash_client.encashment_ack(
         device_id=device_id, payload={"id": data.id, "code": 0}
     )

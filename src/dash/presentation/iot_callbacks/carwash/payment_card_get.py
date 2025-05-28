@@ -5,7 +5,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import get_logger
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -18,21 +18,18 @@ from dash.presentation.iot_callbacks.common.di_injector import (
 logger = get_logger()
 
 
-retort = Retort()
-
-
 @dataclass
-class PaymentCardGetRequest:
+class CarwashPaymentCardGetRequest:
     request_id: int
     created: str
     card_uid: str
 
 
-payment_card_get_retort = Retort(
+carwash_payment_card_get_retort = Retort(
     recipe=[
         *datetime_recipe,
         name_mapping(
-            PaymentCardGetRequest,
+            CarwashPaymentCardGetRequest,
             map={"card_uid": "cardUID"},
         ),
     ]
@@ -40,15 +37,15 @@ payment_card_get_retort = Retort(
 
 
 @tracer.wrap()
-@parse_payload(retort=payment_card_get_retort)
+@parse_payload(retort=carwash_payment_card_get_retort)
 @request_scope
 @inject
-async def payment_card_get_callback(
+async def carwash_payment_card_get_callback(
     device_id: str,
-    data: PaymentCardGetRequest,
+    data: CarwashPaymentCardGetRequest,
     customer_repository: FromDishka[CustomerRepository],
     controller_repository: FromDishka[ControllerRepository],
-    wsm_client: FromDishka[WsmClient],
+    carwash_client: FromDishka[CarwashClient],
 ) -> None:
     controller = await controller_repository.get_by_device_id(device_id)
 
@@ -58,7 +55,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
-        await wsm_client.payment_card_ack(
+        await carwash_client.payment_card_ack(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -69,7 +66,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             controller_id=controller.id,
         )
-        await wsm_client.payment_card_ack(
+        await carwash_client.payment_card_ack(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -84,7 +81,7 @@ async def payment_card_get_callback(
             device_id=device_id,
             card_id=data.card_uid,
         )
-        await wsm_client.payment_card_ack(
+        await carwash_client.payment_card_ack(
             device_id=device_id, payload={"request_id": data.request_id, "code": 1}
         )
         return
@@ -104,14 +101,12 @@ async def payment_card_get_callback(
         )
         return
 
-    await wsm_client.payment_card_ack(
+    await carwash_client.payment_card_ack(
         device_id=device_id,
         payload={
             "request_id": data.request_id,
             "cardUID": data.card_uid,
             "balance": int(customer.balance * 100),
-            "tariffPerLiter_1": tariff_per_liter_1,
-            "tariffPerLiter_2": tariff_per_liter_2,
             "replenishmentRatio": 100 + (customer.discount_percent or 0),
             "code": 0,
         },
