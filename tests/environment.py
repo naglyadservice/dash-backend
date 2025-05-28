@@ -10,6 +10,12 @@ from dash.models.controllers.controller import ControllerStatus, ControllerType
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
+from tests.context.settings import (
+    carwash_config,
+    carwash_settings,
+    wsm_config,
+    wsm_settings,
+)
 
 
 class TestEnvironment:
@@ -100,6 +106,8 @@ class TestEnvironment:
             type=ControllerType.WATER_VENDING,
             version="1.0.0",
             status=ControllerStatus.ACTIVE,
+            config=wsm_config,
+            settings=wsm_settings,
         )
         self.controller_2 = CarwashController(
             name="Test Controller 2",
@@ -108,6 +116,8 @@ class TestEnvironment:
             type=ControllerType.CARWASH,
             version="1.0.0",
             status=ControllerStatus.ACTIVE,
+            config=carwash_config,
+            settings=carwash_settings,
         )
 
         self.customer_1 = Customer(

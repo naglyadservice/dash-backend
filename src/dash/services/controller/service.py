@@ -222,9 +222,9 @@ class ControllerService:
             raise ControllerNotFoundError
 
         if controller.type is ControllerType.CARWASH:
-            return PublicCarwashScheme.make(controller)
+            return PublicCarwashScheme.model_validate(controller)
         elif controller.type is ControllerType.WATER_VENDING:
-            return PublicWsmScheme.make(controller)
+            return PublicWsmScheme.model_validate(controller)
         else:
             raise ValueError("This controller type is not supported yet")
 
@@ -238,9 +238,9 @@ class ControllerService:
         controller_list = []
         for controller in controllers:
             if controller.type is ControllerType.CARWASH:
-                controller_list.append(PublicCarwashScheme.make(controller))
+                controller_list.append(PublicCarwashScheme.model_validate(controller))
             elif controller.type is ControllerType.WATER_VENDING:
-                controller_list.append(PublicWsmScheme.make(controller))
+                controller_list.append(PublicWsmScheme.model_validate(controller))
             else:
                 raise ValueError("This controller type is not supported yet")
 

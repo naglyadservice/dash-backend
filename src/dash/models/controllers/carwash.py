@@ -13,4 +13,8 @@ class CarwashController(Controller):
         ForeignKey("controllers.id"), primary_key=True
     )
 
+    @property
+    def tariff(self) -> dict[str, int]:
+        return self.settings["tariff"]
+
     __mapper_args__ = {"polymorphic_identity": ControllerType.CARWASH.value}

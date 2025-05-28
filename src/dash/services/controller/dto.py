@@ -161,24 +161,22 @@ class CompanyDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class PublicCarwashScheme(BaseModel):
+class BasePublicControllerScheme(BaseModel):
     id: UUID
     name: str
-    type: Literal[ControllerType.CARWASH]
+    type: ControllerType
     location: LocationDTO | None
     company: CompanyDTO | None
-    tariff: CarwashTariffDTO
+    tariff: BaseModel
+    liqpay_active: bool
+    monopay_active: bool
 
-    @classmethod
-    def make(cls, model: WaterVendingController) -> Self:
-        return cls(
-            id=model.id,
-            name=model.name,
-            type=model.type,
-            location=model.location and LocationDTO.model_validate(model.location),
-            company=model.company and CompanyDTO.model_validate(model.company),
-            tariff=CarwashTariffDTO.model_validate(model.settings["tariff"]),
-        )
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PublicCarwashScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.CARWASH]
+    tariff: CarwashTariffDTO
 
 
 class WsmTariffDTO(BaseModel):
@@ -186,24 +184,9 @@ class WsmTariffDTO(BaseModel):
     tariffPerLiter_2: int
 
 
-class PublicWsmScheme(BaseModel):
-    id: UUID
-    name: str
+class PublicWsmScheme(BasePublicControllerScheme):
     type: Literal[ControllerType.WATER_VENDING]
-    location: LocationDTO | None
-    company: CompanyDTO | None
     tariff: WsmTariffDTO
-
-    @classmethod
-    def make(cls, model: WaterVendingController) -> Self:
-        return cls(
-            id=model.id,
-            name=model.name,
-            type=model.type,
-            location=model.location and LocationDTO.model_validate(model.location),
-            company=model.company and CompanyDTO.model_validate(model.company),
-            tariff=WsmTariffDTO.model_validate(model.settings),
-        )
 
 
 class ReadControllerRequest(BaseModel):

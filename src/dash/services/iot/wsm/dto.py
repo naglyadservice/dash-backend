@@ -102,22 +102,8 @@ class WsmIoTControllerScheme(IoTControllerBaseDTO):
     state: WsmState | None = None
 
     @classmethod
-    def make(
-        cls,
-        controller: WaterVendingController,
-        state: dict[str, Any] | None,
-        energy_state: dict[str, Any] | None,
-    ) -> Self:
-        dto = cls.model_validate(controller, from_attributes=True)
-
-        if state:
-            dto.state = WsmState.model_validate(state)
-            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):
-                dto.alert = "Контроллер не надсилав оновлення більше 5 хвилин"
-        if energy_state:
-            dto.energy_state = EnergyStateDTO.model_validate(energy_state)
-
-        return dto
+    def get_state_dto(cls):
+        return WsmState
 
 
 class WsmActionDTO(BaseModel):

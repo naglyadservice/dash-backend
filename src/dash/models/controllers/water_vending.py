@@ -13,4 +13,11 @@ class WaterVendingController(Controller):
         ForeignKey("controllers.id"), primary_key=True
     )
 
+    @property
+    def tariff(self) -> dict[str, int]:
+        return {
+            "tariffPerLiter_1": self.settings["tariffPerLiter_1"],
+            "tariffPerLiter_2": self.settings["tariffPerLiter_2"],
+        }
+
     __mapper_args__ = {"polymorphic_identity": ControllerType.WATER_VENDING.value}

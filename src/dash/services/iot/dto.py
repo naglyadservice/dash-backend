@@ -1,9 +1,11 @@
-from datetime import datetime
+from abc import abstractmethod
+from datetime import UTC, datetime, timedelta
+from typing import Any, Self
 from uuid import UUID
 
 from pydantic import BaseModel
 
-from dash.models.controllers.controller import ControllerType
+from dash.models.controllers.controller import Controller, ControllerType
 
 
 class ControllerID(BaseModel):
@@ -98,5 +100,28 @@ class IoTControllerBaseDTO(BaseModel):
     tax_code: str | None
     checkbox_active: bool | None
 
-    alert: str | None = None
+    state: BaseModel | None
     energy_state: EnergyStateDTO | None = None
+    alert: str | None = None
+
+    @classmethod
+    @abstractmethod
+    def get_state_dto(cls) -> type[BaseModel]:
+        raise NotImplementedError
+
+    @classmethod
+    def make(
+        cls,
+        model: Controller,
+        state: dict[str, Any] | None,
+        energy_state: dict[str, Any] | None,
+    ) -> Self:
+        dto = cls.model_validate(model, from_attributes=True)
+        if state:
+            dto.state = cls.get_state_dto().model_validate(state)
+            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):
+                dto.alert = "Контролер не надсилав оновлення більше 5 хвилин"
+        if energy_state:
+            dto.energy_state = EnergyStateDTO.model_validate(energy_state)
+
+        return dto
