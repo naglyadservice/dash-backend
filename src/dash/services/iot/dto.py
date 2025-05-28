@@ -99,4 +99,4 @@ class IoTControllerBaseDTO(BaseModel):
     checkbox_active: bool | None
 
     alert: str | None = None
-    energy_state: EnergyStateDTO | None
+    energy_state: EnergyStateDTO | None = None
