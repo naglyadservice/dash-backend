@@ -166,7 +166,7 @@ class PublicCarwashScheme(BaseModel):
     name: str
     type: Literal[ControllerType.CARWASH]
     location: LocationDTO | None
-    company: CompanyDTO
+    company: CompanyDTO | None
     tariff: CarwashTariffDTO
 
     @classmethod
@@ -191,7 +191,7 @@ class PublicWsmScheme(BaseModel):
     name: str
     type: Literal[ControllerType.WATER_VENDING]
     location: LocationDTO | None
-    company: CompanyDTO
+    company: CompanyDTO | None
     tariff: WsmTariffDTO
 
     @classmethod
