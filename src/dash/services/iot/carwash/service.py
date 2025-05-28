@@ -72,25 +72,18 @@ class CarwashService(BaseIoTService):
 
         await self.iot_client.set_settings(
             device_id=controller.device_id,
-            payload=self._prepare_controller_payload(
-                incoming_settings, controller.settings
-            ),
+            payload=self._prepare_settings_payload(controller.settings),
         )
         await self.controller_repository.commit()
 
-    def _prepare_controller_payload(
-        self, updates: dict[str, Any], base: dict[str, Any]
-    ) -> dict[str, Any]:
-        payload = base.copy()
+    @staticmethod
+    def _prepare_settings_payload(settings: dict[str, Any]) -> dict[str, Any]:
+        payload = settings.copy()
 
-        if "servicesRelay" in updates:
-            payload["servicesRelay"] = encode_service_bit_mask(updates["servicesRelay"])
-        if "tariff" in updates:
-            payload["tariff"] = encode_service_int_mask(updates["tariff"])
-        if "servicesPause" in updates:
-            payload["servicesPause"] = encode_service_int_mask(updates["servicesPause"])
-        if "vfdFrequency" in updates:
-            payload["vfdFrequency"] = encode_service_int_mask(updates["vfdFrequency"])
+        payload["servicesRelay"] = encode_service_bit_mask(payload["servicesRelay"])
+        payload["tariff"] = encode_service_int_mask(payload["tariff"])
+        payload["servicesPause"] = encode_service_int_mask(payload["servicesPause"])
+        payload["vfdFrequency"] = encode_service_int_mask(payload["vfdFrequency"])
 
         return payload
 
