@@ -38,11 +38,11 @@ class WsmService(BaseIoTService):
 
         return controller
 
-    async def set_config(self, data: SetWsmConfigRequest) -> None:
-        await super().set_config(data)
+    async def update_config(self, data: SetWsmConfigRequest) -> None:
+        await super().update_config(data)
 
-    async def set_settings(self, data: SetWsmSettingsRequest) -> None:
-        await super().set_settings(data)
+    async def update_settings(self, data: SetWsmSettingsRequest) -> None:
+        await super().update_settings(data)
 
     async def read_controller(self, data: ControllerID) -> WsmIoTControllerScheme:
         controller = await self._get_controller(data.controller_id)

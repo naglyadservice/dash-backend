@@ -45,24 +45,24 @@ async def read_controller(
     return await wsm_service.read_controller(path)
 
 
-@wsm_router.post("/{controller_id}/config", status_code=204)
-async def set_config(
+@wsm_router.patch("/{controller_id}/config", status_code=204)
+async def update_config(
     wsm_service: FromDishka[WsmService],
     data: WsmConfig,
     controller_id: UUID,
 ) -> None:
-    return await wsm_service.set_config(
+    return await wsm_service.update_config(
         SetWsmConfigRequest(controller_id=controller_id, config=data)
     )
 
 
-@wsm_router.post("/{controller_id}/settings", status_code=204)
-async def set_settings(
+@wsm_router.patch("/{controller_id}/settings", status_code=204)
+async def update_settings(
     wsm_service: FromDishka[WsmService],
     data: WsmSettings,
     controller_id: UUID,
 ) -> None:
-    return await wsm_service.set_settings(
+    return await wsm_service.update_settings(
         SetWsmSettingsRequest(controller_id=controller_id, settings=data)
     )
 

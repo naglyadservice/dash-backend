@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from sqlalchemy.orm.attributes import flag_modified
-
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.common.base_client import BaseNpcClient
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -41,7 +39,7 @@ class BaseIoTService(ABC):
     async def healthcheck(self, device_id: str) -> None:
         await self.iot_client.get_state(device_id)
 
-    async def set_config(self, data: SetConfigRequest) -> None:
+    async def update_config(self, data: SetConfigRequest) -> None:
         controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_company_owner(
@@ -53,15 +51,10 @@ class BaseIoTService(ABC):
             device_id=controller.device_id, payload=config_dict
         )
 
-        if controller.config:
-            controller.config.update(config_dict)
-            flag_modified(controller, "config")
-        else:
-            controller.config = config_dict
-
+        controller.config = {**controller.config, **config_dict}
         await self.controller_repository.commit()
 
-    async def set_settings(self, data: SetSettingsRequest) -> None:
+    async def update_settings(self, data: SetSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
 
         await self.identity_provider.ensure_company_owner(
@@ -73,12 +66,7 @@ class BaseIoTService(ABC):
             device_id=controller.device_id, payload=settings_dict
         )
 
-        if controller.settings:
-            controller.settings.update(settings_dict)
-            flag_modified(controller, "settings")
-        else:
-            controller.settings = settings_dict
-
+        controller.settings = {**controller.settings, **settings_dict}
         await self.controller_repository.commit()
 
     async def get_display(self, data: GetDisplayInfoRequest) -> dict[str, str]:

@@ -43,24 +43,24 @@ async def read_controller(
     return await service.read_controller(data)
 
 
-@carwash_router.post("/{controller_id}/config", status_code=204)
-async def set_config(
+@carwash_router.patch("/{controller_id}/config", status_code=204)
+async def update_config(
     service: FromDishka[CarwashService],
     data: CarwashConfig,
     controller_id: UUID,
 ) -> None:
-    await service.set_config(
+    await service.update_config(
         SetCarwashConfigRequest(controller_id=controller_id, config=data)
     )
 
 
-@carwash_router.post("/{controller_id}/settings", status_code=204)
-async def set_settings(
+@carwash_router.patch("/{controller_id}/settings", status_code=204)
+async def update_settings(
     service: FromDishka[CarwashService],
     data: CarwashSettings,
     controller_id: UUID,
 ) -> None:
-    await service.set_settings(
+    await service.update_settings(
         SetCarwashSettingsRequest(controller_id=controller_id, settings=data)
     )
 
