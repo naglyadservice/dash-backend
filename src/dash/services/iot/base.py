@@ -33,8 +33,14 @@ class BaseIoTService(ABC):
         pass
 
     async def init_controller_settings(self, controller: Controller) -> None:
-        controller.config = await self.iot_client.get_config(controller.device_id)
-        controller.settings = await self.iot_client.get_settings(controller.device_id)
+        config = await self.iot_client.get_config(controller.device_id)
+        config.pop("request_id")
+
+        settings = await self.iot_client.get_settings(controller.device_id)
+        settings.pop("request_id")
+
+        controller.config = config
+        controller.settings = settings
 
     async def healthcheck(self, device_id: str) -> None:
         await self.iot_client.get_state(device_id)

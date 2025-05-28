@@ -47,14 +47,17 @@ class CarwashService(BaseIoTService):
         return controller
 
     async def init_controller_settings(self, controller: Controller) -> None:
-        controller.config = await self.iot_client.get_config(controller.device_id)
+        config = await self.iot_client.get_config(controller.device_id)
+        config.pop("request_id")
 
         settings = await self.iot_client.get_settings(controller.device_id)
         settings["servicesRelay"] = decode_service_bit_mask(settings["servicesRelay"])
         settings["tariff"] = decode_service_int_mask(settings["tariff"])
         settings["servicesPause"] = decode_service_int_mask(settings["servicesPause"])
         settings["vfdFrequency"] = decode_service_int_mask(settings["vfdFrequency"])
+        settings.pop("request_id")
 
+        controller.config = config
         controller.settings = settings
 
     async def update_config(self, data: SetCarwashConfigRequest) -> None:
