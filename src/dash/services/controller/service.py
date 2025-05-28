@@ -257,7 +257,7 @@ class ControllerService:
             configured_controller = await self.controller_repository.get_by_tasmota_id(
                 data.tasmota_id
             )
-            if configured_controller != controller:
+            if configured_controller and configured_controller != controller:
                 raise TasmotaIDAlreadyTakenError
 
         controller.tasmota_id = controller.tasmota_id
