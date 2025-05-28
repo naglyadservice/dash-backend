@@ -15,12 +15,15 @@ from dash.infrastructure.db.setup import (
 )
 from dash.infrastructure.iot.carwash.client import CarwashClient
 from dash.infrastructure.iot.carwash.di import get_carwash_client
+from dash.infrastructure.iot.tasmota.client import TasmotaClient
+from dash.infrastructure.iot.tasmota.di import get_tasmota_client
 from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.iot.wsm.di import get_wsm_client
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.encashment import EncashmentRepository
+from dash.infrastructure.repositories.energy_state import EnergyStateRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
@@ -112,6 +115,7 @@ def provide_gateways() -> Provider:
         CompanyRepository,
         IotStorage,
         EncashmentRepository,
+        EnergyStateRepository,
     )
     return provider
 
@@ -128,6 +132,8 @@ def provide_infrastructure() -> Provider:
 
     provider.provide(get_wsm_client, scope=Scope.APP, provides=WsmClient)
     provider.provide(get_carwash_client, scope=Scope.APP, provides=CarwashClient)
+    provider.provide(get_tasmota_client, scope=Scope.APP, provides=TasmotaClient)
+
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)
     provider.provide(CheckboxService, scope=Scope.REQUEST)

@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from dash.services.common.errors.base import ApplicationError, EntityNotFoundError
+from dash.services.common.errors.base import (
+    ApplicationError,
+    ConflictError,
+    EntityNotFoundError,
+)
 
 
 @dataclass
@@ -16,3 +20,8 @@ class ControllerTimeoutError(ApplicationError):
 @dataclass
 class ControllerResponseError(ApplicationError):
     message: str = "Controller response error"
+
+
+@dataclass
+class TasmotaIDAlreadyTakenError(ConflictError):
+    message: str = "Tasmota id already taken"

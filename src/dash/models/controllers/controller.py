@@ -34,6 +34,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str | None] = mapped_column()
     version: Mapped[str] = mapped_column()
     status: Mapped[ControllerStatus]
+    tasmota_id: Mapped[str | None] = mapped_column()
 
     monopay_token: Mapped[str | None] = mapped_column()
     monopay_active: Mapped[bool] = mapped_column(default=False)

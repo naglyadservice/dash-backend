@@ -217,3 +217,16 @@ class ReadPublicControllerListRequest(BaseModel):
 class ReadPublicControllerListResponse(BaseModel):
     controllers: list[PublicCarwashScheme | PublicWsmScheme]
     total: int
+
+
+class SetupTasmotaRequest(ControllerID):
+    tasmota_id: str | None
+
+
+class EditControllerDTO(BaseModel):
+    name: str | None = None
+    version: str | None = None
+
+
+class EditControllerRequest(ControllerID):
+    data: EditControllerDTO

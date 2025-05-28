@@ -15,6 +15,8 @@ from dash.services.controller.dto import (
     AddMonopayCredentialsRequest,
     CheckboxCredentialsDTO,
     CloseEncashmentRequest,
+    EditControllerDTO,
+    EditControllerRequest,
     LiqpayCredentialsDTO,
     LocationID,
     MonopayCredentialsDTO,
@@ -27,6 +29,7 @@ from dash.services.controller.dto import (
     ReadEncashmentListResponse,
     ReadPublicControllerListRequest,
     ReadPublicControllerListResponse,
+    SetupTasmotaRequest,
 )
 from dash.services.controller.service import ControllerService
 
@@ -154,3 +157,30 @@ async def read_controller_public(
     data: ReadControllerRequest = Depends(),
 ) -> PublicWsmScheme | PublicCarwashScheme:
     return await controller_service.read_controller_public(data)
+
+
+@dataclass
+class TasmotaID:
+    tasmota_id: str | None
+
+
+@controller_router.post("/{controller_id}/tasmota", status_code=204)
+async def setup_tasmota_electric_meter(
+    controller_service: FromDishka[ControllerService],
+    controller_id: UUID,
+    data: TasmotaID,
+) -> None:
+    await controller_service.setup_tasmota(
+        SetupTasmotaRequest(controller_id=controller_id, tasmota_id=data.tasmota_id)
+    )
+
+
+@controller_router.patch("/{controller_id}", status_code=204)
+async def edit_controller(
+    controller_service: FromDishka[ControllerService],
+    controller_id: UUID,
+    data: EditControllerDTO,
+) -> None:
+    await controller_service.edit_controller(
+        EditControllerRequest(controller_id=controller_id, data=data)
+    )

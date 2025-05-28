@@ -11,7 +11,10 @@ from dash.models.controllers.controller import Controller, ControllerType
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.errors.controller import (
+    ControllerNotFoundError,
+    TasmotaIDAlreadyTakenError,
+)
 from dash.services.common.errors.encashment import (
     EncashmentAlreadyClosedError,
     EncashmentNotFoundError,
@@ -26,6 +29,7 @@ from dash.services.controller.dto import (
     AddMonopayCredentialsRequest,
     CloseEncashmentRequest,
     ControllerScheme,
+    EditControllerRequest,
     EncashmentScheme,
     PublicCarwashScheme,
     PublicWsmScheme,
@@ -36,6 +40,7 @@ from dash.services.controller.dto import (
     ReadEncashmentListResponse,
     ReadPublicControllerListRequest,
     ReadPublicControllerListResponse,
+    SetupTasmotaRequest,
 )
 from dash.services.iot.factory import IoTServiceFactory
 
@@ -242,3 +247,30 @@ class ControllerService:
         return ReadPublicControllerListResponse(
             controllers=controller_list, total=total
         )
+
+    async def setup_tasmota(self, data: SetupTasmotaRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        if data.tasmota_id:
+            configured_controller = await self.controller_repository.get_by_tasmota_id(
+                data.tasmota_id
+            )
+            if configured_controller != controller:
+                raise TasmotaIDAlreadyTakenError
+
+        controller.tasmota_id = controller.tasmota_id
+        await self.controller_repository.commit()
+
+    async def edit_controller(self, data: EditControllerRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+
+        await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        dict_data = data.data.model_dump(exclude_unset=True)
+        for k, v in dict_data.items():
+            if hasattr(controller, k):
+                setattr(controller, k, v)
+
+        await self.controller_repository.commit()

@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -63,6 +64,20 @@ class SendActionRequest(ControllerID):
     action: BaseModel
 
 
+class EnergyStateDTO(BaseModel):
+    created: datetime
+    energy_today: float
+    energy_yesterday: float
+    energy_total: float
+    energy_total_since: datetime
+    power: float
+    apparent_power: float
+    reactive_power: float
+    power_factor: float
+    voltage: float
+    current: float
+
+
 class IoTControllerBaseDTO(BaseModel):
     id: UUID
     device_id: str
@@ -84,3 +99,4 @@ class IoTControllerBaseDTO(BaseModel):
     checkbox_active: bool | None
 
     alert: str | None = None
+    energy_state: EnergyStateDTO | None

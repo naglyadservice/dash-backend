@@ -60,6 +60,12 @@ class ControllerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
+    async def get_by_tasmota_id(self, tasmota_id: str) -> Controller | None:
+        stmt = select(Controller).where(
+            Controller.tasmota_id == tasmota_id,
+        )
+        return await self.session.scalar(stmt)
+
     async def get_wsm(self, controller_id: UUID) -> WaterVendingController | None:
         stmt = select(WaterVendingController).where(
             WaterVendingController.id == controller_id
