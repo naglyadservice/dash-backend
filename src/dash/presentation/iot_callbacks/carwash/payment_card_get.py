@@ -86,21 +86,6 @@ async def carwash_payment_card_get_callback(
         )
         return
 
-    tariff_per_liter_1 = customer.tariff_per_liter_1 or (
-        controller.settings and controller.settings.get("tariffPerLiter_1")
-    )
-    tariff_per_liter_2 = customer.tariff_per_liter_2 or (
-        controller.settings and controller.settings.get("tariffPerLiter_2")
-    )
-
-    if not tariff_per_liter_1 or not tariff_per_liter_2:
-        logger.info(
-            "Ignoring card_request from controller, tariffPerLiter is not found",
-            device_id=device_id,
-            card_id=data.card_uid,
-        )
-        return
-
     await carwash_client.payment_card_ack(
         device_id=device_id,
         payload={
