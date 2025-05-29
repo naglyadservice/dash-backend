@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import aliased, selectin_polymorphic
+from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models import CarwashTransaction
@@ -126,7 +126,7 @@ class TransactionRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> GetTransactionStatsResponse:
         date_expression = cast(Transaction.created_at, Date).label("date")
-        water_vending_t = aliased(WsmTransaction)
+
         now = datetime.now(UTC)
 
         stmt = (
@@ -142,10 +142,7 @@ class TransactionRepository(BaseRepository):
                 func.sum(Transaction.coin_amount).label("coin"),
                 func.sum(Transaction.qr_amount).label("qr"),
                 func.sum(Transaction.paypass_amount).label("paypass"),
-                func.sum(water_vending_t.out_liters_1).label("out_liters_1"),
-                func.sum(water_vending_t.out_liters_2).label("out_liters_2"),
             )
-            .outerjoin(water_vending_t)
             .where(
                 Transaction.created_at >= now - timedelta(days=data.period),
                 Transaction.created_at <= now,

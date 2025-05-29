@@ -102,8 +102,6 @@ class TransactionStatDTO(BaseModel):
     coin: int
     qr: int
     paypass: int
-    out_liters_1: int | None = None
-    out_liters_2: int | None = None
 
 
 class GetTransactionStatsResponse(BaseModel):
