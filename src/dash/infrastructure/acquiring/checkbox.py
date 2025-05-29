@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, time
+from datetime import datetime, time
 from typing import Any, Literal
 from uuid import UUID
 
@@ -69,6 +69,9 @@ class CheckboxService:
         is_return: bool = False,
     ) -> UUID | None:
         if datetime.now(self.config.timezone).time() > time(23, 45):
+            return None
+
+        if not controller.checkbox_login or not controller.checkbox_password:
             return None
 
         self.token = await self._get_token(

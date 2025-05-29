@@ -29,8 +29,8 @@ def decode_service_bit_mask(
 
 
 def encode_service_int_mask(data: dict[CarwashServiceEnum, int]) -> list[int]:
-    return [data[s] for s in CarwashServiceEnum]
+    return [data[s.value] for s in CarwashServiceEnum]  # type: ignore
 
 
 def decode_service_int_mask(mask: list[int]) -> dict[CarwashServiceEnum, int]:
-    return {CarwashServiceEnum(s): mask[i] for i, s in enumerate(CarwashServiceEnum)}
+    return {s: mask[i] for i, s in enumerate(CarwashServiceEnum)}

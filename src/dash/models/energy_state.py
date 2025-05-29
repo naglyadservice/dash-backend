@@ -12,4 +12,4 @@ class DailyEnergyState(Base, UUIDMixin, CreatedAtMixin):
 
     controller_id: Mapped[UUID] = mapped_column(ForeignKey("controllers.id"))
     energy: Mapped[float] = mapped_column()
-    date: Mapped[date] = mapped_column(Date)
+    date: Mapped["date"] = mapped_column(Date)

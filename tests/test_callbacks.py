@@ -244,7 +244,7 @@ async def test_carwash_sale_callback_with_card_balance_out(
     )
     mocker.patch.object(deps.carwash_client, "sale_ack")
 
-    await deps.carwash_client.dispatcher.sale._process_callbacks(
+    await deps.carwash_client.dispatcher.sale._process_callbacks(  # type: ignore
         device_id=test_env.controller_2.device_id,
         decoded_payload=carwash_sale_callback_retort.dump(payload),
         di_container=request_di_container,

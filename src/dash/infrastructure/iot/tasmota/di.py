@@ -18,5 +18,5 @@ async def get_tasmota_client(
         topic_prefix="tele",
         dispatcher=TasmotaDispatcher(callback_kwargs={"di_container": di_container}),
     ) as client:
-        client.dispatcher.state.register_callback(tasmota_callback)
+        client.dispatcher.state.register_callback(tasmota_callback)  # type: ignore
         yield client

@@ -28,8 +28,8 @@ async def get_wsm_client(
         client.dispatcher.state_info.register_callback(state_info_callback)  # type: ignore
         client.dispatcher.denomination.register_callback(denomination_callback)  # type: ignore
         client.dispatcher.sale.register_callback(wsm_sale_callback)  # type: ignore
-        client.dispatcher.payment_card_get.register_callback(
+        client.dispatcher.payment_card_get.register_callback(  # type: ignore
             wsm_payment_card_get_callback
-        )  # type: ignore
+        )
         client.dispatcher.encashment.register_callback(wsm_encashment_callback)  # type: ignore
         yield client

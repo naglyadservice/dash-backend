@@ -4,6 +4,7 @@ from uuid import UUID
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.encashment import EncashmentRepository
+from dash.infrastructure.repositories.energy_state import EnergyStateRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.controllers.carwash import CarwashController
@@ -31,6 +32,8 @@ from dash.services.controller.dto import (
     ControllerScheme,
     EditControllerRequest,
     EncashmentScheme,
+    GetEnergyStatsRequest,
+    GetEnergyStatsResponse,
     PublicCarwashScheme,
     PublicWsmScheme,
     ReadControllerListRequest,
@@ -51,12 +54,14 @@ class ControllerService:
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
         location_repository: LocationRepository,
+        energy_repository: EnergyStateRepository,
         encashment_repository: EncashmentRepository,
         factory: IoTServiceFactory,
     ):
         self.identity_provider = identity_provider
         self.controller_repository = controller_repository
         self.location_repository = location_repository
+        self.energy_repository = energy_repository
         self.encashment_repository = encashment_repository
         self.factory = factory
 
@@ -274,3 +279,11 @@ class ControllerService:
                 setattr(controller, k, v)
 
         await self.controller_repository.commit()
+
+    async def read_energy_stats(
+        self, data: GetEnergyStatsRequest
+    ) -> GetEnergyStatsResponse:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        return await self.energy_repository.get_stats(data)

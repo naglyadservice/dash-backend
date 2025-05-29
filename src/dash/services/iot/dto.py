@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import UTC, datetime, timedelta
-from typing import Any, Self
+from typing import Any, Self, Type
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -106,7 +106,7 @@ class IoTControllerBaseDTO(BaseModel):
 
     @classmethod
     @abstractmethod
-    def get_state_dto(cls) -> type[BaseModel]:
+    def get_state_dto(cls) -> Type[BaseModel]:
         raise NotImplementedError
 
     @classmethod
@@ -119,7 +119,7 @@ class IoTControllerBaseDTO(BaseModel):
         dto = cls.model_validate(model, from_attributes=True)
         if state:
             dto.state = cls.get_state_dto().model_validate(state)
-            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):
+            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):  # type: ignore
                 dto.alert = "Контролер не надсилав оновлення більше 5 хвилин"
         if energy_state:
             dto.energy_state = EnergyStateDTO.model_validate(energy_state)

@@ -1,4 +1,3 @@
-from datetime import UTC
 from typing import Literal
 from zoneinfo import ZoneInfo
 
@@ -57,7 +56,7 @@ class AppConfig(BaseSettings):
     forwarded_allow_ips: str = Field(default="127.0.0.1")
     enable_datadog: bool = Field(default=False)
     enable_debugpy: bool = Field(default=False)
-    timezone: ZoneInfo = Field(default="Europe/Kiev")
+    timezone: ZoneInfo = Field(default="Europe/Kiev")  # type: ignore
 
     @field_validator("timezone", mode="before")
     @classmethod

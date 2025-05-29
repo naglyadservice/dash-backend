@@ -50,8 +50,8 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     good_code: Mapped[str | None] = mapped_column()
     tax_code: Mapped[str | None] = mapped_column()
 
-    settings: Mapped[dict[str, Any] | None] = mapped_column()
-    config: Mapped[dict[str, Any] | None] = mapped_column()
+    settings: Mapped[dict[str, Any]] = mapped_column()
+    config: Mapped[dict[str, Any]] = mapped_column()
 
     location: Mapped["Location | None"] = relationship(lazy="joined")
 

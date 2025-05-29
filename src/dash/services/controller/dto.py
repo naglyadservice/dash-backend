@@ -213,3 +213,11 @@ class EditControllerDTO(BaseModel):
 
 class EditControllerRequest(ControllerID):
     data: EditControllerDTO
+
+
+class GetEnergyStatsRequest(ControllerID):
+    period: int
+
+
+class GetEnergyStatsResponse(BaseModel):
+    total_energy: float

@@ -35,7 +35,7 @@ class ControllerRepository(BaseRepository):
         stmt = (
             select(Controller).where(Controller.id == controller_id).options(loader_opt)
         )
-        return await self.session.scalar(stmt)
+        return await self.session.scalar(stmt)  # type: ignore
 
     async def get_list_concrete(
         self, location_id: UUID | None = None

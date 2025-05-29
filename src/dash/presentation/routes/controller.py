@@ -17,6 +17,8 @@ from dash.services.controller.dto import (
     CloseEncashmentRequest,
     EditControllerDTO,
     EditControllerRequest,
+    GetEnergyStatsRequest,
+    GetEnergyStatsResponse,
     LiqpayCredentialsDTO,
     LocationID,
     MonopayCredentialsDTO,
@@ -188,3 +190,13 @@ async def edit_controller(
     await controller_service.edit_controller(
         EditControllerRequest(controller_id=controller_id, data=data)
     )
+
+
+@controller_router.get(
+    "/{controller_id}/tasmota/statistics", dependencies=[bearer_scheme]
+)
+async def read_tasmota_stats(
+    controller_service: FromDishka[ControllerService],
+    data: GetEnergyStatsRequest = Depends(),
+) -> GetEnergyStatsResponse:
+    return await controller_service.read_energy_stats(data)
