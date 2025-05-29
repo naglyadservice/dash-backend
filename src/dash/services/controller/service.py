@@ -249,9 +249,9 @@ class ControllerService:
         )
 
     async def setup_tasmota(self, data: SetupTasmotaRequest) -> None:
-        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_superadmin()
 
-        await self.identity_provider.ensure_company_owner(controller.company_id)
+        controller = await self._get_controller(data.controller_id)
 
         if data.tasmota_id:
             configured_controller = await self.controller_repository.get_by_tasmota_id(
@@ -260,7 +260,7 @@ class ControllerService:
             if configured_controller and configured_controller != controller:
                 raise TasmotaIDAlreadyTakenError
 
-        controller.tasmota_id = controller.tasmota_id
+        controller.tasmota_id = data.tasmota_id
         await self.controller_repository.commit()
 
     async def edit_controller(self, data: EditControllerRequest) -> None:
