@@ -9,6 +9,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models import Controller
 from dash.models.controllers.carwash import CarwashController
+from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.carwash.dto import (
@@ -22,7 +23,6 @@ from dash.services.iot.carwash.utils import (
     encode_service_bit_mask,
     encode_service_int_mask,
 )
-from dash.services.iot.dto import ControllerID
 
 logger = getLogger()
 

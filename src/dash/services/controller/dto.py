@@ -1,15 +1,14 @@
 from datetime import datetime
-from typing import Any, Literal, Self
+from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
-from dash.models import WaterVendingController
 from dash.models.controllers.controller import ControllerStatus, ControllerType
+from dash.services.common.dto import ControllerID
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 from dash.services.iot.carwash.dto import CarwashTariffDTO
-from dash.services.iot.dto import ControllerID
 
 
 class BaseControllerFilters(BaseModel):
@@ -146,14 +145,14 @@ class CloseEncashmentRequest(BaseModel):
     received_amount: int
 
 
-class LocationDTO(BaseModel):
+class PublicLocationDTO(BaseModel):
     name: str
     address: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class CompanyDTO(BaseModel):
+class PublicCompanyDTO(BaseModel):
     name: str
     privacy_policy: str | None
     offer_agreement: str | None
@@ -165,8 +164,8 @@ class BasePublicControllerScheme(BaseModel):
     id: UUID
     name: str
     type: ControllerType
-    location: LocationDTO | None
-    company: CompanyDTO | None
+    location: PublicLocationDTO | None
+    company: PublicCompanyDTO | None
     tariff: BaseModel
     liqpay_active: bool
     monopay_active: bool

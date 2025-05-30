@@ -6,10 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from dash.models.controllers.controller import Controller, ControllerType
-
-
-class ControllerID(BaseModel):
-    controller_id: UUID
+from dash.services.common.dto import CompanyDTO, ControllerID, LocationDTO
 
 
 class SetConfigRequest(ControllerID):
@@ -85,6 +82,8 @@ class IoTControllerBaseDTO(BaseModel):
     device_id: str
     name: str
     type: ControllerType
+    location: LocationDTO | None
+    company: CompanyDTO | None
 
     monopay_token: str | None
     monopay_active: bool

@@ -5,12 +5,9 @@ from dash.infrastructure.iot.wsm.client import WsmClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.water_vending import WaterVendingController
-from dash.services.common.errors.controller import (
-    ControllerNotFoundError,
-    ControllerTimeoutError,
-)
+from dash.services.common.dto import ControllerID
+from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.base import BaseIoTService
-from dash.services.iot.dto import ControllerID
 from dash.services.iot.wsm.dto import (
     SendWsmActionRequest,
     SetWsmConfigRequest,

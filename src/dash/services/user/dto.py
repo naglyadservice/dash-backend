@@ -1,9 +1,10 @@
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, model_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
 
 from dash.models.admin_user import AdminRole
+from dash.services.common.dto import LocationDTO
 from dash.services.common.errors.base import ValidationError
 
 
@@ -19,17 +20,14 @@ class CreateUserResponse(BaseModel):
     password: str
 
 
-class LocationDTO(BaseModel):
-    id: UUID
-    name: str
-
-
 class UserDTO(BaseModel):
     id: UUID
     name: str
     email: EmailStr
     role: AdminRole
     locations: list[LocationDTO] | None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReadUserListResponse(BaseModel):

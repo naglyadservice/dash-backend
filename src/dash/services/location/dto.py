@@ -26,7 +26,7 @@ class LocationOwnerDTO(BaseModel):
     email: str
 
 
-class CompanyDTO(BaseModel):
+class LocationCompanyDTO(BaseModel):
     id: UUID
     name: str
 
@@ -35,7 +35,7 @@ class LocationScheme(BaseModel):
     id: UUID
     name: str
     address: str | None
-    company: CompanyDTO
+    company: LocationCompanyDTO
 
 
 class ReadLocationListRequest(Pagination):

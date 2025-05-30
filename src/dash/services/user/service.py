@@ -135,5 +135,5 @@ class UserService:
             raise AccessForbiddenError
 
         return ReadUserListResponse(
-            users=[UserDTO.model_validate(user, from_attributes=True) for user in users]
+            users=[UserDTO.model_validate(user) for user in users]
         )
