@@ -8,7 +8,7 @@ from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
@@ -77,7 +77,7 @@ async def wsm_sale_callback(
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
-    wsm_client: FromDishka[WsmClient],
+    wsm_client: FromDishka[WsmIoTClient],
 ) -> None:
     controller = await controller_repository.get_by_device_id(device_id)
 

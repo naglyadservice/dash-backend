@@ -4,7 +4,7 @@ from uuid import UUID
 from structlog import getLogger
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models import Controller
@@ -33,7 +33,7 @@ class CarwashService(BaseIoTService):
         controller_repository: ControllerRepository,
         identity_provider: IdProvider,
         iot_storage: IotStorage,
-        carwash_client: CarwashClient,
+        carwash_client: CarwashIoTClient,
     ):
         super().__init__(carwash_client, identity_provider, controller_repository)
         self.iot_storage = iot_storage

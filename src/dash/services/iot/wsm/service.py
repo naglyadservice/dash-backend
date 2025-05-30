@@ -1,13 +1,12 @@
 from uuid import UUID
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
-    ControllerTimeoutError,
 )
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.dto import ControllerID
@@ -25,7 +24,7 @@ class WsmService(BaseIoTService):
         controller_repository: ControllerRepository,
         identity_provider: IdProvider,
         iot_storage: IotStorage,
-        wsm_client: WsmClient,
+        wsm_client: WsmIoTClient,
     ):
         super().__init__(wsm_client, identity_provider, controller_repository)
         self.iot_storage = iot_storage

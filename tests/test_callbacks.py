@@ -8,8 +8,8 @@ import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dash.infrastructure.iot.carwash.client import CarwashClient
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IotStorage
 from dash.presentation.iot_callbacks.carwash.sale import (
@@ -36,16 +36,16 @@ pytestmark = pytest.mark.usefixtures("create_tables")
 @dataclass
 class CallbackDependencies:
     iot_storage: IotStorage
-    wsm_client: WsmClient
-    carwash_client: CarwashClient
+    wsm_client: WsmIoTClient
+    carwash_client: CarwashIoTClient
 
 
 @pytest.fixture
 async def deps(request_di_container: AsyncContainer) -> CallbackDependencies:
     return CallbackDependencies(
         iot_storage=await request_di_container.get(IotStorage),
-        wsm_client=await request_di_container.get(WsmClient),
-        carwash_client=await request_di_container.get(CarwashClient),
+        wsm_client=await request_di_container.get(WsmIoTClient),
+        carwash_client=await request_di_container.get(CarwashIoTClient),
     )
 
 
@@ -58,14 +58,14 @@ async def test_payment_card_get_callback(
 ):
     mocker.patch.object(deps.wsm_client, "payment_card_ack")
 
-    await deps.wsm_client.dispatcher.payment_card_get._process_callbacks(  # type: ignore
+    await deps.wsm_client.dispatcher.payment_card_get._process_callbacks(
         device_id=str(test_env.controller_1.device_id),
         decoded_payload={
             "request_id": 1,
             "created": "2000-01-01T12:00:00",
             "cardUID": test_env.customer_1.card_id,
         },
-        di_container=di_container,
+        di_container=di_container,  # type: ignore
     )
     deps.wsm_client.payment_card_ack.assert_called_once_with(
         device_id=str(test_env.controller_1.device_id),
@@ -139,10 +139,10 @@ async def test_encashment_callback(
     )
     mocker.patch.object(deps.wsm_client, "encashment_ack")
 
-    await deps.wsm_client.dispatcher.encashment._process_callbacks(  # type: ignore
+    await deps.wsm_client.dispatcher.encashment._process_callbacks(
         device_id=str(test_env.controller_1.device_id),
         decoded_payload=wsm_encashment_callback_retort.dump(payload),
-        di_container=di_container,
+        di_container=di_container,  # type: ignore
     )
     deps.wsm_client.encashment_ack.assert_called_once_with(
         device_id=str(test_env.controller_1.device_id),
@@ -178,10 +178,10 @@ async def test_wsm_sale_callback_with_card_balance_out(
     )
     mocker.patch.object(deps.wsm_client, "sale_ack")
 
-    await deps.wsm_client.dispatcher.sale._process_callbacks(  # type: ignore
+    await deps.wsm_client.dispatcher.sale._process_callbacks(
         device_id=test_env.controller_1.device_id,
         decoded_payload=wsm_sale_callback_retort.dump(payload),
-        di_container=request_di_container,
+        di_container=request_di_container,  # type: ignore
     )
     deps.wsm_client.sale_ack.assert_called_once_with(
         test_env.controller_1.device_id, payload.id
@@ -207,10 +207,10 @@ async def test_denomination_callback(
     mocker.patch.object(payment_repository, "add")
     mocker.patch.object(payment_repository, "commit")
 
-    await deps.wsm_client.dispatcher.denomination._process_callbacks(  # type: ignore
+    await deps.wsm_client.dispatcher.denomination._process_callbacks(
         device_id=test_env.controller_1.device_id,
         decoded_payload=denomination_callback_retort.dump(payload),
-        di_container=request_di_container,
+        di_container=request_di_container, # type: ignore
     )
     payment_repository.add.assert_called_once()
     payment_repository.commit.assert_called_once()
@@ -244,10 +244,10 @@ async def test_carwash_sale_callback_with_card_balance_out(
     )
     mocker.patch.object(deps.carwash_client, "sale_ack")
 
-    await deps.carwash_client.dispatcher.sale._process_callbacks(  # type: ignore
+    await deps.carwash_client.dispatcher.sale._process_callbacks(
         device_id=test_env.controller_2.device_id,
         decoded_payload=carwash_sale_callback_retort.dump(payload),
-        di_container=request_di_container,
+        di_container=request_di_container, # type: ignore
     )
     deps.carwash_client.sale_ack.assert_called_once_with(
         test_env.controller_2.device_id, payload.id

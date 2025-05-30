@@ -1,5 +1,5 @@
-from dash.infrastructure.iot.common.base_client import BaseNpcClient
+from dash.infrastructure.iot.common.base_iot import BaseIoTClient
 
 
-class WsmClient(BaseNpcClient):
+class WsmIoTClient(BaseIoTClient):
     pass

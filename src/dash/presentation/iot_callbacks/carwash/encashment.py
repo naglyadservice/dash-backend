@@ -6,7 +6,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import getLogger
 
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -40,7 +40,7 @@ async def carwash_encashment_callback(
     device_id: str,
     data: CarwashEncashmentCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
-    carwash_client: FromDishka[CarwashClient],
+    carwash_client: FromDishka[CarwashIoTClient],
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
     controller = await controller_repository.get_by_device_id(device_id)

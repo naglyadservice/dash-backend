@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.common.base_client import BaseNpcClient
+from dash.infrastructure.iot.common.base_iot import BaseIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models import Controller
 from dash.services.iot.dto import (
@@ -20,7 +20,7 @@ from dash.services.iot.dto import (
 class BaseIoTService(ABC):
     def __init__(
         self,
-        iot_client: BaseNpcClient,
+        iot_client: BaseIoTClient,
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
     ) -> None:

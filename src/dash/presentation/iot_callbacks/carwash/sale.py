@@ -8,7 +8,7 @@ from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
@@ -79,7 +79,7 @@ async def carwash_sale_callback(
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
-    carwash_client: FromDishka[CarwashClient],
+    carwash_client: FromDishka[CarwashIoTClient],
 ) -> None:
     controller = await controller_repository.get_carwash_by_device_id(device_id)
 

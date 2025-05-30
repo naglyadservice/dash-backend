@@ -1,5 +1,5 @@
-from dash.infrastructure.iot.common.base_client import BaseNpcClient
+from dash.infrastructure.iot.common.base_iot import BaseIoTClient
 
 
-class CarwashClient(BaseNpcClient):
+class CarwashIoTClient(BaseIoTClient):
     pass

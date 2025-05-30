@@ -6,9 +6,9 @@ from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
-from dash.infrastructure.iot.carwash.client import CarwashClient
-from dash.infrastructure.iot.tasmota.client import TasmotaClient
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
+from dash.infrastructure.iot.mqtt.client import MqttClient
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.main.config import Config
 from dash.main.di import setup_di
 from dash.main.logging.access import access_logs_middleware
@@ -19,9 +19,9 @@ from dash.presentation.routes.root import root_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     di_container: AsyncContainer = app.state.dishka_container
-    await di_container.get(WsmClient)
-    await di_container.get(CarwashClient)
-    await di_container.get(TasmotaClient)
+    await di_container.get(WsmIoTClient)
+    await di_container.get(CarwashIoTClient)
+    await di_container.get(MqttClient)
 
     yield
 

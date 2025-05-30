@@ -6,7 +6,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import getLogger
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -40,7 +40,7 @@ async def wsm_encashment_callback(
     device_id: str,
     data: WsmEncashmentCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
-    wsm_client: FromDishka[WsmClient],
+    wsm_client: FromDishka[WsmIoTClient],
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
     controller = await controller_repository.get_by_device_id(device_id)

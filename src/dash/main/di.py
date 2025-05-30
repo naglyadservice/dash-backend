@@ -13,11 +13,11 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.carwash.di import get_carwash_client
-from dash.infrastructure.iot.tasmota.client import TasmotaClient
-from dash.infrastructure.iot.tasmota.di import get_tasmota_client
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.mqtt.client import MqttClient
+from dash.infrastructure.iot.mqtt.di import get_mqtt_client
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.iot.wsm.di import get_wsm_client
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -130,9 +130,9 @@ def provide_infrastructure() -> Provider:
     provider.provide(AuthService, scope=Scope.REQUEST)
     provider.provide(IdProvider, scope=Scope.REQUEST)
 
-    provider.provide(get_wsm_client, scope=Scope.APP, provides=WsmClient)
-    provider.provide(get_carwash_client, scope=Scope.APP, provides=CarwashClient)
-    provider.provide(get_tasmota_client, scope=Scope.APP, provides=TasmotaClient)
+    provider.provide(get_wsm_client, scope=Scope.APP, provides=WsmIoTClient)
+    provider.provide(get_carwash_client, scope=Scope.APP, provides=CarwashIoTClient)
+    provider.provide(get_mqtt_client, scope=Scope.APP, provides=MqttClient)
 
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)
