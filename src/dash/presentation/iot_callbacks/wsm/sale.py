@@ -106,6 +106,7 @@ async def wsm_sale_callback(
         free_amount=data.add_free,
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
+        card_amount=0,
         type=TransactionType.WATER_VENDING.value,
         created_at_controller=data.created or data.sended,
         out_liters_1=data.out_liters_1,
@@ -123,9 +124,11 @@ async def wsm_sale_callback(
         if customer is not None:
             card_balance_in = cast(int, data.card_balance_in)
             card_balance_out = cast(int, data.card_balance_out)
+            card_amount = card_balance_in - card_balance_out
 
-            customer.balance -= Decimal(card_balance_in - card_balance_out) / 100
+            customer.balance -= Decimal(card_amount) / 100
             transaction.customer_id = customer.id
+            transaction.card_amount = card_amount
         else:
             logger.error(
                 "Customer not found",

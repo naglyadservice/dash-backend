@@ -34,6 +34,7 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     free_amount: Mapped[int] = mapped_column()
     qr_amount: Mapped[int] = mapped_column()
     paypass_amount: Mapped[int] = mapped_column()
+    card_amount: Mapped[int] = mapped_column()
     type: Mapped[TransactionType] = mapped_column()
     created_at_controller: Mapped[datetime] = mapped_column()
     sale_type: Mapped[str] = mapped_column()

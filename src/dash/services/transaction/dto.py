@@ -51,6 +51,7 @@ class TransactionBase(BaseModel):
     free_amount: int
     qr_amount: int
     paypass_amount: int
+    card_amount: int
     created_at: datetime
     sale_type: Literal["no", "money", "card"]
     created_at_controller: datetime
