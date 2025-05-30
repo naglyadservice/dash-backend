@@ -56,7 +56,12 @@ async def wsm_payment_card_get_callback(
             card_id=data.card_uid,
         )
         await wsm_client.payment_card_ack(
-            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "code": 1,
+            },
         )
         return
 
@@ -67,7 +72,12 @@ async def wsm_payment_card_get_callback(
             controller_id=controller.id,
         )
         await wsm_client.payment_card_ack(
-            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "code": 1,
+            },
         )
         return
 
@@ -82,7 +92,12 @@ async def wsm_payment_card_get_callback(
             card_id=data.card_uid,
         )
         await wsm_client.payment_card_ack(
-            device_id=device_id, payload={"request_id": data.request_id, "code": 1}
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "code": 1,
+            },
         )
         return
 
