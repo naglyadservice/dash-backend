@@ -37,21 +37,21 @@ class CheckboxService:
         self,
         method: Literal["GET", "POST"],
         endpoint: str,
-        data: dict | None = None,
+        json: dict | None = None,
         additional_headers: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int]:
         return await self.api_client.make_request(
             method=method,
             url=self.base_url + endpoint,
             headers=self._get_headers(additional_headers),
-            json=data,
+            json=json,
         )
 
     async def _get_token(self, login: str, password: str) -> str | None:
         response, status = await self._make_request(
             method="POST",
             endpoint="/cashier/signin",
-            data={"login": login, "password": password},
+            json={"login": login, "password": password},
         )
         return response.get("access_token")
 
@@ -114,7 +114,7 @@ class CheckboxService:
             response, status = await self._make_request(
                 method="POST",
                 endpoint="/receipts/sell",
-                data=data,
+                json=data,
             )
             if status == 400 and response["message"] == "Зміну не відкрито":
                 await self._open_shift(controller)

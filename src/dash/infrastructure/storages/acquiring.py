@@ -10,7 +10,7 @@ class AcquiringStorage:
         self.modified_date_key = "monopay:modified_date:{invoice_id}"
         self.monopay_token_key = "monopay:token:{invoice_id}"
 
-        self.ttl = 60 * 60 * 24 * 7
+        self.ttl = 60 * 60 * 24
 
     async def set_monopay_token(self, token: str, invoice_id: str) -> None:
         await self.redis.set(
