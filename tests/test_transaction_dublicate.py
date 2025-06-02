@@ -21,6 +21,7 @@ def create_transaction(test_env: TestEnvironment):
         free_amount=400,
         qr_amount=500,
         paypass_amount=600,
+        card_amount=0,
         type=TransactionType.WATER_VENDING.value,
         created_at_controller=datetime(2020, 1, 1),
         out_liters_1=1000,

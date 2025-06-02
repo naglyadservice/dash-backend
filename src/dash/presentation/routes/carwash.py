@@ -19,10 +19,10 @@ from dash.services.iot.dto import (
     ClearPaymentsRequest,
     ControllerID,
     FreePaymentDTO,
-    GetDisplayInfoRequest,
     PaymentClearOptionsDTO,
     QRPaymentDTO,
     RebootControllerRequest,
+    RebootDelayDTO,
     SendFreePaymentRequest,
     SendQRPaymentRequest,
 )
@@ -79,9 +79,12 @@ async def send_action(
 @carwash_router.post("/{controller_id}/reboot", status_code=204)
 async def reboot_controller(
     service: FromDishka[CarwashService],
-    data: RebootControllerRequest = Depends(),
+    data: RebootDelayDTO,
+    controller_id: UUID,
 ) -> None:
-    await service.reboot_controller(data)
+    await service.reboot_controller(
+        RebootControllerRequest(controller_id=controller_id, delay=data.delay)
+    )
 
 
 @carwash_router.post("/{controller_id}/payments/qr", status_code=204)

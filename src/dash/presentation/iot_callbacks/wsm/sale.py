@@ -8,7 +8,7 @@ from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
-from dash.infrastructure.iot.wsm.client import WsmClient
+from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
@@ -77,45 +77,32 @@ async def wsm_sale_callback(
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
-    wsm_client: FromDishka[WsmClient],
+    wsm_client: FromDishka[WsmIoTClient],
 ) -> None:
+    dict_data = wsm_sale_callback_retort.dump(data)
     controller = await controller_repository.get_by_device_id(device_id)
 
     if controller is None:
         logger.info(
-            "Ignoring sale from controller, company_id not found", device_id=device_id
+            "Wsm sale request ignored: controller not found",
+            device_id=device_id,
+            data=dict_data,
         )
         return
 
     company_id = controller.company_id
     if company_id is None:
         logger.info(
-            "Ignoring sale from controller, company_id is None",
+            "Wsm sale request ignored: company_id is None",
             device_id=device_id,
             controller_id=controller.id,
+            data=dict_data,
         )
         return
 
-    transaction = WsmTransaction(
-        controller_transaction_id=data.id,
-        controller_id=controller.id,
-        location_id=controller.location_id,
-        coin_amount=data.add_coin,
-        bill_amount=data.add_bill,
-        prev_amount=data.add_prev,
-        free_amount=data.add_free,
-        qr_amount=data.add_qr,
-        paypass_amount=data.add_pp,
-        card_amount=0,
-        type=TransactionType.WATER_VENDING.value,
-        created_at_controller=data.created or data.sended,
-        out_liters_1=data.out_liters_1,
-        out_liters_2=data.out_liters_2,
-        sale_type=data.sale_type,
-        card_balance_in=data.card_balance_in,
-        card_balance_out=data.card_balance_out,
-        card_uid=data.card_uid,
-    )
+    customer_id = None
+    card_amount = 0
+
     if data.sale_type == "card":
         customer = await customer_repository.get_by_card_id(
             company_id=company_id,
@@ -127,27 +114,43 @@ async def wsm_sale_callback(
             card_amount = card_balance_in - card_balance_out
 
             customer.balance -= Decimal(card_amount) / 100
-            transaction.customer_id = customer.id
-            transaction.card_amount = card_amount
+            customer_id = customer.id
+            card_amount = card_balance_in - card_balance_out
         else:
             logger.error(
-                "Customer not found",
+                "Wsm sale request ignored: customer not found",
                 device_id=device_id,
                 controller_id=controller.id,
                 company_id=company_id,
                 card_id=data.card_uid,
+                data=dict_data,
             )
+
+    transaction = WsmTransaction(
+        controller_transaction_id=data.id,
+        controller_id=controller.id,
+        location_id=controller.location_id,
+        customer_id=customer_id,
+        coin_amount=data.add_coin,
+        bill_amount=data.add_bill,
+        prev_amount=data.add_prev,
+        free_amount=data.add_free,
+        qr_amount=data.add_qr,
+        paypass_amount=data.add_pp,
+        card_amount=card_amount,
+        type=TransactionType.WATER_VENDING.value,
+        created_at_controller=data.created or data.sended,
+        out_liters_1=data.out_liters_1,
+        out_liters_2=data.out_liters_2,
+        sale_type=data.sale_type,
+        card_balance_in=data.card_balance_in,
+        card_balance_out=data.card_balance_out,
+        card_uid=data.card_uid,
+    )
 
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
     if not was_inserted:
-        logger.error(
-            "Transaction not inserted",
-            device_id=device_id,
-            controller_id=controller.id,
-            company_id=company_id,
-            card_id=data.card_uid,
-        )
         return
 
     await transaction_repository.commit()
@@ -157,8 +160,6 @@ async def wsm_sale_callback(
         "Sale ack sent",
         device_id=device_id,
         controller_id=controller.id,
-        company_id=company_id,
-        card_id=data.card_uid,
+        transaction_id=transaction.id,
         controller_transaction_id=data.id,
-        was_inserted=was_inserted,
     )

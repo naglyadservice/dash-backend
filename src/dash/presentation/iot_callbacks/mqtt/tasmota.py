@@ -1,14 +1,13 @@
-from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
-from structlog import getLogger
+from structlog import get_logger
 
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.energy_state import EnergyStateRepository
-from dash.infrastructure.storages.iot import IotStorage
+from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.energy_state import DailyEnergyState
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -19,7 +18,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
 )
 from dash.services.iot.dto import EnergyStateDTO
 
-logger = getLogger()
+logger = get_logger()
 
 
 tasmota_callback_retort = Retort(
@@ -54,14 +53,22 @@ async def tasmota_callback(
     data: EnergyStateDTO,
     controller_repository: FromDishka[ControllerRepository],
     energy_repository: FromDishka[EnergyStateRepository],
-    iot_storage: FromDishka[IotStorage],
+    iot_storage: FromDishka[IoTStorage],
 ) -> None:
-    logger.info("tasmota callback", data=data, device_id=device_id)
-
     controller = await controller_repository.get_by_tasmota_id(device_id)
 
     if controller is None:
+        logger.info(
+            "Energy state ignored: controller not found", data=data, device_id=device_id
+        )
         return
+
+    logger.info(
+        "Energy state received",
+        data=data,
+        device_id=device_id,
+        controller_id=controller.id,
+    )
 
     day_ago_date = (data.created - timedelta(days=1)).date()
 

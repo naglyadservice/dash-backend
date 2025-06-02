@@ -1,12 +1,12 @@
 from typing import Any
 from uuid import UUID
 
-from structlog import getLogger
+from structlog import get_logger
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.infrastructure.storages.iot import IotStorage
+from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Controller
 from dash.models.controllers.carwash import CarwashController
 from dash.services.common.dto import ControllerID
@@ -24,7 +24,7 @@ from dash.services.iot.carwash.utils import (
     encode_service_int_mask,
 )
 
-logger = getLogger()
+logger = get_logger()
 
 
 class CarwashService(BaseIoTService):
@@ -32,10 +32,12 @@ class CarwashService(BaseIoTService):
         self,
         controller_repository: ControllerRepository,
         identity_provider: IdProvider,
-        iot_storage: IotStorage,
-        carwash_client: CarwashClient,
+        iot_storage: IoTStorage,
+        carwash_client: CarwashIoTClient,
     ):
-        super().__init__(carwash_client, identity_provider, controller_repository)
+        super().__init__(
+            carwash_client, identity_provider, controller_repository, iot_storage
+        )
         self.iot_storage = iot_storage
 
     async def _get_controller(self, controller_id: UUID) -> CarwashController:
@@ -94,7 +96,9 @@ class CarwashService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        state = await self.iot_storage.get_state(controller.id)
-        energy_state = await self.iot_storage.get_energy_state(controller.id)
-
-        return CarwashIoTControllerScheme.make(controller, state, energy_state)
+        return CarwashIoTControllerScheme.make(
+            model=controller,
+            state=await self.iot_storage.get_state(controller.id),
+            energy_state=await self.iot_storage.get_energy_state(controller.id),
+            is_online=await self._check_online(controller),
+        )

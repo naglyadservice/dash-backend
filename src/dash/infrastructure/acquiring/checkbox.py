@@ -3,14 +3,14 @@ from typing import Any, Literal
 from uuid import UUID
 
 import uuid_utils.compat
-from structlog import getLogger
+from structlog import get_logger
 
 from dash.infrastructure.api_client import APIClient
 from dash.main.config import AppConfig
 from dash.models import Controller
 from dash.models.payment import Payment, PaymentType
 
-logger = getLogger()
+logger = get_logger()
 
 
 class CheckboxService:

@@ -17,7 +17,9 @@ async def test_public_scheme(test_env: TestEnvironment):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_iot_scheme(test_env: TestEnvironment):
-    WsmIoTControllerScheme.make(test_env.controller_1, wsm_state, mock_energy_state)
+    WsmIoTControllerScheme.make(
+        test_env.controller_1, wsm_state, mock_energy_state, True
+    )
     CarwashIoTControllerScheme.make(
-        test_env.controller_2, carwash_state, mock_energy_state
+        test_env.controller_2, carwash_state, mock_energy_state, False
     )

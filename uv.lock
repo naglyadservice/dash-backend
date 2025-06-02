@@ -328,7 +328,7 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "greenlet", specifier = ">=3.1.1" },
     { name = "httpx", specifier = ">=0.28.1" },
-    { name = "npc-iot", git = "https://github.com/naglyadservice/npc-iot" },
+    { name = "npc-iot", git = "https://github.com/naglyadservice/npc-iot.git?rev=49f12da2e2a68d4e1184486fa479404089f2e307" },
     { name = "orjson", specifier = ">=3.10.15" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.4" },
@@ -768,8 +768,8 @@ wheels = [
 
 [[package]]
 name = "npc-iot"
-version = "0.1.12"
-source = { git = "https://github.com/naglyadservice/npc-iot#c76ac58ff7f88814db95d8b467877340ce65bc90" }
+version = "0.2.2"
+source = { git = "https://github.com/naglyadservice/npc-iot.git?rev=49f12da2e2a68d4e1184486fa479404089f2e307#49f12da2e2a68d4e1184486fa479404089f2e307" }
 dependencies = [
     { name = "mqttproto" },
 ]

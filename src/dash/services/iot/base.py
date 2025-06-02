@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from dash.infrastructure.auth.id_provider import IdProvider
-from dash.infrastructure.iot.common.base_client import BaseNpcClient
+from dash.infrastructure.iot.common.base_client import BaseIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Controller
 from dash.services.iot.dto import (
     ClearPaymentsRequest,
@@ -20,13 +22,15 @@ from dash.services.iot.dto import (
 class BaseIoTService(ABC):
     def __init__(
         self,
-        iot_client: BaseNpcClient,
+        iot_client: BaseIoTClient,
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
+        iot_storage: IoTStorage,
     ) -> None:
         self.iot_client = iot_client
         self.identity_provider = identity_provider
         self.controller_repository = controller_repository
+        self.iot_storage = iot_storage
 
     @abstractmethod
     async def _get_controller(self, controller_id: UUID) -> Controller:
@@ -143,3 +147,14 @@ class BaseIoTService(ABC):
             device_id=controller.device_id,
             payload=data.action.model_dump(exclude_unset=True),
         )
+
+    async def _check_online(self, controller: Controller) -> bool:
+        broker_online = await self.iot_storage.is_online(controller.device_id)
+        state = await self.iot_storage.get_state(controller.id)
+
+        if state and datetime.fromisoformat(state["created"]) + timedelta(
+            minutes=3
+        ) < datetime.now(UTC):
+            return False
+
+        return broker_online

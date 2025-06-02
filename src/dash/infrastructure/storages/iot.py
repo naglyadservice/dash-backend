@@ -6,11 +6,12 @@ from uuid import UUID
 from redis.asyncio import Redis
 
 
-class IotStorage:
+class IoTStorage:
     def __init__(self, redis: Redis) -> None:
         self.redis = redis
         self.state_key = "iot:state:{controller_id}"
         self.energy_state_key = "iot:energy_state:{controller_id}"
+        self.online_key = "iot:online:{device_id}"
 
     async def set_state(self, state: dict[str, Any], controller_id: UUID) -> None:
         await self.redis.setex(
@@ -41,3 +42,14 @@ class IotStorage:
         if energy_state:
             return json.loads(energy_state)
         return None
+
+    async def set_online(self, online: bool, device_id: str) -> None:
+        await self.redis.setex(
+            name=self.online_key.format(device_id=device_id),
+            value=json.dumps(online),
+            time=timedelta(days=365),
+        )
+
+    async def is_online(self, device_id: str) -> bool:
+        is_online = await self.redis.get(self.online_key.format(device_id=device_id))
+        return json.loads(is_online)

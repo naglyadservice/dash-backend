@@ -4,9 +4,9 @@ from datetime import datetime
 from adaptix import Retort
 from ddtrace.trace import tracer
 from dishka import FromDishka
-from structlog import getLogger
+from structlog import get_logger
 
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -16,7 +16,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     request_scope,
 )
 
-logger = getLogger()
+logger = get_logger()
 
 
 @dataclass
@@ -40,19 +40,28 @@ async def carwash_encashment_callback(
     device_id: str,
     data: CarwashEncashmentCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
-    carwash_client: FromDishka[CarwashClient],
+    carwash_client: FromDishka[CarwashIoTClient],
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
+    dict_data = carwash_encashment_callback_retort.dump(data)
+
     controller = await controller_repository.get_by_device_id(device_id)
     if not controller:
         logger.info(
-            "Ignoring encashment request from controller, controller not found by device_id",
+            "Carwash encashment request ignored: controller not found",
             device_id=device_id,
+            data=dict_data,
         )
         await carwash_client.encashment_ack(
             device_id=device_id, payload={"id": data.id, "code": 1}
         )
         return
+
+    logger.info(
+        "Carwash encashment request received",
+        device_id=device_id,
+        data=carwash_encashment_callback_retort.dump(data),
+    )
 
     encashment = Encashment(
         controller_id=controller.id,

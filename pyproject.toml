@@ -87,4 +87,4 @@ exclude = [
 ]
 
 [tool.uv.sources]
-npc-iot = { git = "https://github.com/naglyadservice/npc-iot" }
+npc-iot = { git = "https://github.com/naglyadservice/npc-iot.git", rev = "49f12da2e2a68d4e1184486fa479404089f2e307" }

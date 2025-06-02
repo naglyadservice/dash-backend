@@ -99,9 +99,9 @@ class IoTControllerBaseDTO(BaseModel):
     tax_code: str | None
     checkbox_active: bool | None
 
+    is_online: bool = True
     state: BaseModel | None
     energy_state: EnergyStateDTO | None = None
-    alert: str | None = None
 
     @classmethod
     @abstractmethod
@@ -114,12 +114,13 @@ class IoTControllerBaseDTO(BaseModel):
         model: Controller,
         state: dict[str, Any] | None,
         energy_state: dict[str, Any] | None,
+        is_online: bool,
     ) -> Self:
         dto = cls.model_validate(model, from_attributes=True)
+        dto.is_online = is_online
+
         if state:
             dto.state = cls.get_state_dto().model_validate(state)
-            if dto.state.created + timedelta(minutes=5) < datetime.now(UTC):  # type: ignore
-                dto.alert = "Контролер не надсилав оновлення більше 5 хвилин"
         if energy_state:
             dto.energy_state = EnergyStateDTO.model_validate(energy_state)
 

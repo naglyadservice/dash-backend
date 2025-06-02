@@ -102,6 +102,7 @@ class TestEnvironment:
         self.controller_1 = WaterVendingController(
             name="Test Controller 1",
             device_id="test_device_id_1",
+            tasmota_id="test_tasmota_id_1",
             location_id=self.location_1.id,
             type=ControllerType.WATER_VENDING,
             version="1.0.0",

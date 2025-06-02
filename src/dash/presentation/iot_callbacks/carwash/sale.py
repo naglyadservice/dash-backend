@@ -8,7 +8,7 @@ from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
-from dash.infrastructure.iot.carwash.client import CarwashClient
+from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
@@ -79,46 +79,31 @@ async def carwash_sale_callback(
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
-    carwash_client: FromDishka[CarwashClient],
+    carwash_client: FromDishka[CarwashIoTClient],
 ) -> None:
+    dict_data = carwash_sale_callback_retort.dump(data)
     controller = await controller_repository.get_carwash_by_device_id(device_id)
 
     if controller is None:
         logger.info(
-            "Ignoring sale from controller, company_id not found", device_id=device_id
+            "Carwash sale request ignored: controller not found",
+            device_id=device_id,
+            data=dict_data,
         )
         return
 
     company_id = controller.company_id
     if company_id is None:
         logger.info(
-            "Ignoring sale from controller, company_id is None",
+            "Carwash sale request ignored: company_id is None",
             device_id=device_id,
             controller_id=controller.id,
+            data=dict_data,
         )
         return
 
-    transaction = CarwashTransaction(
-        controller_transaction_id=data.id,
-        controller_id=controller.id,
-        location_id=controller.location_id,
-        coin_amount=data.add_coin,
-        bill_amount=data.add_bill,
-        prev_amount=data.add_prev,
-        free_amount=data.add_free,
-        qr_amount=data.add_qr,
-        paypass_amount=data.add_pp,
-        card_amount=0,
-        type=TransactionType.CARWASH.value,
-        created_at_controller=data.created or data.sended,
-        sale_type=data.sale_type,
-        services_sold_seconds=decode_service_int_mask(data.services_sold),
-        tariff=decode_service_int_mask(data.tariff),
-        card_balance_in=data.card_balance_in,
-        card_balance_out=data.card_balance_out,
-        card_uid=data.card_uid,
-        replenishment_ratio=data.replenishment_ratio,
-    )
+    customer_id = None
+    card_amount = 0
 
     if data.sale_type == "card":
         customer = await customer_repository.get_by_card_id(
@@ -131,27 +116,50 @@ async def carwash_sale_callback(
             card_amount = card_balance_in - card_balance_out
 
             customer.balance -= Decimal(card_amount) / 100
-            transaction.customer_id = customer.id
-            transaction.card_amount = card_amount
+            customer_id = customer.id
+            card_amount = card_balance_in - card_balance_out
         else:
             logger.error(
-                "Customer not found",
+                "Carwash sale request ignored: customer not found",
                 device_id=device_id,
                 controller_id=controller.id,
                 company_id=company_id,
                 card_id=data.card_uid,
+                data=dict_data,
             )
+
+    logger.info(
+        "Carwash sale request received",
+        device_id=device_id,
+        data=dict_data,
+    )
+
+    transaction = CarwashTransaction(
+        controller_transaction_id=data.id,
+        controller_id=controller.id,
+        location_id=controller.location_id,
+        customer_id=customer_id,
+        coin_amount=data.add_coin,
+        bill_amount=data.add_bill,
+        prev_amount=data.add_prev,
+        free_amount=data.add_free,
+        qr_amount=data.add_qr,
+        paypass_amount=data.add_pp,
+        card_amount=card_amount,
+        type=TransactionType.CARWASH.value,
+        created_at_controller=data.created or data.sended,
+        sale_type=data.sale_type,
+        services_sold_seconds=decode_service_int_mask(data.services_sold),
+        tariff=decode_service_int_mask(data.tariff),
+        card_balance_in=data.card_balance_in,
+        card_balance_out=data.card_balance_out,
+        card_uid=data.card_uid,
+        replenishment_ratio=data.replenishment_ratio,
+    )
 
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
     if not was_inserted:
-        logger.error(
-            "Transaction not inserted",
-            device_id=device_id,
-            controller_id=controller.id,
-            company_id=company_id,
-            card_id=data.card_uid,
-        )
         return
 
     await transaction_repository.commit()
@@ -161,8 +169,6 @@ async def carwash_sale_callback(
         "Sale ack sent",
         device_id=device_id,
         controller_id=controller.id,
-        company_id=company_id,
-        card_id=data.card_uid,
+        transaction_id=transaction.id,
         controller_transaction_id=data.id,
-        was_inserted=was_inserted,
     )

@@ -4,6 +4,7 @@ from datetime import datetime
 from adaptix import Retort
 from ddtrace.trace import tracer
 from dishka import FromDishka
+from structlog import get_logger
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -15,6 +16,8 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
+
+logger = get_logger()
 
 
 @dataclass
@@ -38,21 +41,30 @@ async def denomination_callback(
     payment_repository: FromDishka[PaymentRepository],
     checkbox_service: FromDishka[CheckboxService],
 ) -> None:
+    dict_data = denomination_callback_retort.dump(data)
     controller = await controller_repository.get_by_device_id(device_id)
 
     if controller is None:
+        logger.info(
+            "Denomination request ignored: controller not found",
+            device_id=device_id,
+            data=dict_data,
+        )
         return
 
-    if data.bill:
+    logger.info(
+        "Denomination request received",
+        device_id=device_id,
+        data=dict_data,
+    )
+
+    if data.bill is not None:
         amount = data.bill
         payment_type = PaymentType.BILL
 
-    elif data.coin:
+    else:
         amount = data.coin
         payment_type = PaymentType.COIN
-
-    else:
-        return
 
     payment = Payment(
         controller_id=controller.id,
