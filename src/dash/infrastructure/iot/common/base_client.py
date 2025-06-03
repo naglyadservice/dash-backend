@@ -11,6 +11,7 @@ from dash.services.common.errors.controller import (
 
 class BaseIoTDispatcher(BaseDispatcher):
     state_info = MessageHandler(topic="/+/server/state/info")
+    state = MessageHandler(topic="/+/server/state", is_result=True)
     config = MessageHandler(topic="/+/server/config", is_result=True)
     setting = MessageHandler(topic="/+/server/setting", is_result=True)
     display = MessageHandler(topic="/+/server/display", is_result=True)
