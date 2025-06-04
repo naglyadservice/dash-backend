@@ -156,7 +156,7 @@ class CarwashState(BaseModel):
         "winter",
         "blackening",
     ]
-    timer: time
+    timer: str
     summa: float
     depositBoxSensor: bool
     doorSensor: bool
