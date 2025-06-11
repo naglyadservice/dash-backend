@@ -14,6 +14,7 @@ from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.carwash.dto import (
     CarwashIoTControllerScheme,
+    GetCarwashDisplayResponse,
     SetCarwashConfigRequest,
     SetCarwashSettingsRequest,
 )
@@ -23,8 +24,45 @@ from dash.services.iot.carwash.utils import (
     encode_service_bit_mask,
     encode_service_int_mask,
 )
+from dash.services.iot.dto import GetDisplayInfoRequest
 
 logger = get_logger()
+
+# Human-readable labels for display information that the controller returns
+MODE_LABELS: dict[int, str] = {
+    0x00: "Логотип",
+    0x01: "Очікування оплати",
+    0x02: "Двері відкриті",
+    0x03: "Блокування",
+    0x04: "Сервісний режим 0",
+    0x05: "Сервісний режим 1",
+    0x06: "Сервісний режим 2",
+    0x07: "Продажа готівкою",
+    0x08: "Подяка",
+    0x09: "Оплата PayPass 0",
+    0x0A: "Оплата PayPass 1",
+    0x0B: "Продажа карткою 0",
+    0x0C: "Продажа карткою 1",
+    0x0D: "Продажа карткою 2",
+    0x0E: "Продажа карткою 3",
+    0x0F: "Інкасація",
+    0x10: "Перевірка при старі",
+    0x80: "Реклама",
+}
+
+SERVICE_LABELS: dict[int, str] = {
+    0: "Піна",
+    1: "Екстра піна",
+    2: "Вода під тиском",
+    3: "Тепла вода",
+    4: "Осмос",
+    5: "Воск",
+    6: "Зима",
+    7: "Чорніння",
+    8: "Максимум",
+    128: "Пауза",
+    255: "Без послуги",
+}
 
 
 class CarwashService(BaseIoTService):
@@ -101,4 +139,20 @@ class CarwashService(BaseIoTService):
             state=await self.iot_storage.get_state(controller.id),
             energy_state=await self.iot_storage.get_energy_state(controller.id),
             is_online=await self._check_online(controller),
+        )
+
+    async def get_display(
+        self, data: GetDisplayInfoRequest
+    ) -> GetCarwashDisplayResponse:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        display_info = await self.iot_client.get_display(controller.device_id)
+        print(display_info)
+
+        return GetCarwashDisplayResponse(
+            mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
+            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            summa=display_info.get("summa", 0),
+            time=display_info.get("time", 0),
         )

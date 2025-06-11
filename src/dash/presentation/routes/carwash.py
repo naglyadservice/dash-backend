@@ -10,6 +10,7 @@ from dash.services.iot.carwash.dto import (
     CarwashConfig,
     CarwashIoTControllerScheme,
     CarwashSettings,
+    GetCarwashDisplayResponse,
     SendCarwashActionRequest,
     SetCarwashConfigRequest,
     SetCarwashSettingsRequest,
@@ -19,6 +20,7 @@ from dash.services.iot.dto import (
     ClearPaymentsRequest,
     ControllerID,
     FreePaymentDTO,
+    GetDisplayInfoRequest,
     PaymentClearOptionsDTO,
     QRPaymentDTO,
     RebootControllerRequest,
@@ -120,9 +122,9 @@ async def clear_payments(
     )
 
 
-# @carwash_router.get("/{controller_id}/display")
-# async def get_display_info(
-#     service: FromDishka[CarwashService],
-#     data: GetDisplayInfoRequest = Depends(),
-# ) -> dict[str, str]:
-#     return await service.get_display(data)
+@carwash_router.get("/{controller_id}/display")
+async def get_display_info(
+    service: FromDishka[CarwashService],
+    data: GetDisplayInfoRequest = Depends(),
+) -> GetCarwashDisplayResponse:
+    return await service.get_display(data)

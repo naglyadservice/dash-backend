@@ -205,3 +205,10 @@ class CarwashActionDTO(BaseModel):
 
 class SendCarwashActionRequest(SendActionRequest):
     action: CarwashActionDTO
+
+
+class GetCarwashDisplayResponse(BaseModel):
+    mode: str
+    service: str
+    summa: int
+    time: int
