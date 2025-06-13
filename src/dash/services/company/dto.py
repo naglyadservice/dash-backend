@@ -40,6 +40,8 @@ class CompanyScheme(BaseModel):
     id: UUID
     name: str
     owner: CompanyOwnerDTO
+    offer_agreement: str | None
+    privacy_policy: str | None
 
 
 class ReadCompanyListResponse(BaseModel):
