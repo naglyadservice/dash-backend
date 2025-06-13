@@ -99,7 +99,7 @@ async def user(
     request_di_container: AsyncContainer,
     test_env: TestEnvironment,
     mocker: Mock,
-) -> AdminUser:
+):
     token_processor = await request_di_container.get(JWTTokenProcessor)
 
     if request.param == "superadmin":
@@ -112,6 +112,10 @@ async def user(
         user = test_env.location_admin_1
     elif request.param == "location_admin_2":
         user = test_env.location_admin_2
+    elif request.param == "customer_1":
+        user = test_env.customer_1
+    elif request.param == "customer_2":
+        user = test_env.customer_2
     else:
         raise ValueError(f"Invalid role: {request.param}")
 

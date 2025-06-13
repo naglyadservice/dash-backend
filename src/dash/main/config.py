@@ -92,6 +92,10 @@ class LoggingConfig(BaseSettings, env_prefix="LOG_"):
     colorize: bool = Field(default=...)
 
 
+class SMSConfig(BaseSettings, env_prefix="SMS_"):
+    api_key: str = Field(default=...)
+
+
 class Config(BaseSettings):
     db: DbConfig = DbConfig()
     redis: RedisConfig = RedisConfig()
@@ -101,3 +105,4 @@ class Config(BaseSettings):
     liqpay: LiqpayConfig = LiqpayConfig()
     logging: LoggingConfig = LoggingConfig()
     jwt: JWTConfig = JWTConfig()
+    sms: SMSConfig = SMSConfig()

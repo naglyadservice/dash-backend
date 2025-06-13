@@ -12,8 +12,8 @@ class Customer(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "customers"
 
     company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"))
-    email: Mapped[str | None] = mapped_column(index=True)
     name: Mapped[str | None] = mapped_column()
+    phone_number: Mapped[str] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()
     card_id: Mapped[str | None] = mapped_column()
     balance: Mapped[Decimal] = mapped_column(
@@ -26,14 +26,13 @@ class Customer(Base, UUIDMixin, TimestampMixin):
         Numeric(10, 2, asdecimal=True)
     )
     birth_date: Mapped[date | None] = mapped_column()
-    phone_number: Mapped[str | None] = mapped_column()
     discount_percent: Mapped[int | None] = mapped_column()
 
     __table_args__ = (
         UniqueConstraint(
             "company_id",
-            "email",
-            name="uix_customer_company_email",
+            "phone_number",
+            name="uix_customer_company_phone_number",
         ),
         UniqueConstraint(
             "company_id",
@@ -41,7 +40,8 @@ class Customer(Base, UUIDMixin, TimestampMixin):
             name="uix_customer_company_card_id",
         ),
         CheckConstraint(
-            "email IS NOT NULL OR card_id IS NOT NULL", name="cc_customer_identity"
+            "phone_number IS NOT NULL OR card_id IS NOT NULL",
+            name="cc_customer_identity",
         ),
         Index("ix_customer_company_id", "company_id", "id"),
     )

@@ -21,3 +21,8 @@ class CardIdAlreadyTakenError(ConflictError):
 @dataclass
 class CustomerNotFoundError(EntityNotFoundError):
     message: str = "Customer not found"
+
+
+@dataclass
+class PhoneNumberAlreadyTakenError(ConflictError):
+    message: str = "Phone number already taken"

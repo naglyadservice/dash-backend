@@ -3,6 +3,7 @@ from decimal import Decimal
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.models import CarwashController, Customer
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
@@ -23,25 +24,26 @@ class TestEnvironment:
 
     async def create_test_env(self, request_di_container: AsyncContainer):
         db_session = await request_di_container.get(AsyncSession)
+        password_processor = await request_di_container.get(PasswordProcessor)
 
         self.superadmin = AdminUser(
             name="Test Superadmin",
             email="test_superadmin@test.com",
-            password_hash="test",
+            password_hash=password_processor.hash("test"),
             role=AdminRole.SUPERADMIN,
         )
 
         self.company_owner_1 = AdminUser(
             name="Test Company Owner",
             email="test_company_owner@test.com",
-            password_hash="test",
+            password_hash=password_processor.hash("test"),
             role=AdminRole.COMPANY_OWNER,
         )
 
         self.company_owner_2 = AdminUser(
             name="Test Company Owner 1",
             email="test_company_owner_1@test.com",
-            password_hash="test",
+            password_hash=password_processor.hash("test"),
             role=AdminRole.COMPANY_OWNER,
         )
 
@@ -77,7 +79,7 @@ class TestEnvironment:
             company_id=self.company_1.id,
             name="Test Location Admin",
             email="test_location_admin_1@test.com",
-            password_hash="test",
+            password_hash=password_processor.hash("test"),
             role=AdminRole.LOCATION_ADMIN,
         )
 
@@ -85,7 +87,7 @@ class TestEnvironment:
             company_id=self.company_2.id,
             name="Test Location Admin 2",
             email="test_location_admin_2@test.com",
-            password_hash="test",
+            password_hash=password_processor.hash("test"),
             role=AdminRole.LOCATION_ADMIN,
         )
 
@@ -123,19 +125,21 @@ class TestEnvironment:
 
         self.customer_1 = Customer(
             company_id=self.company_1.id,
-            email="test_customer_1@test.com",
+            phone_number="test_phone_number_1",
             name="Test Customer 1",
             card_id="test_card_id",
             tariff_per_liter_1=10,
             tariff_per_liter_2=20,
             balance=Decimal("100.00"),
+            password_hash=password_processor.hash("test"),
         )
         self.customer_2 = Customer(
             company_id=self.company_2.id,
-            email="test_customer_2@test.com",
+            phone_number="test_phone_number_2",
             name="Test Customer 2",
             card_id="test_card_id_2",
             balance=Decimal("200.00"),
+            password_hash=password_processor.hash("test"),
         )
 
         db_session.add_all(

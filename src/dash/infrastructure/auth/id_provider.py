@@ -4,10 +4,12 @@ from fastapi import Request
 
 from dash.infrastructure.auth.errors import JWTTokenError, UserNotFoundError
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
+from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.services.common.errors.base import AccessDeniedError, AccessForbiddenError
+from dash.services.common.errors.user import CustomerNotFoundError
 
 
 class IdProvider:
@@ -16,11 +18,13 @@ class IdProvider:
         request: Request,
         session_storage: SessionStorage,
         user_repository: UserRepository,
+        customer_repository: CustomerRepository,
         token_processor: JWTTokenProcessor,
     ) -> None:
         self.jwt_token = self._fetch_token(request)
         self.session_storage = session_storage
         self.user_repository = user_repository
+        self.customer_repository = customer_repository
         self.token_processor = token_processor
 
         self._user: AdminUser
@@ -45,6 +49,18 @@ class IdProvider:
 
         self._user = user
         return user
+
+    async def authorize_customer(self):
+        if await self.session_storage.is_blacklisted(self.jwt_token):
+            raise JWTTokenError("Token has been revoked")
+
+        customer_id = self.token_processor.validate_access_token(self.jwt_token)
+        customer = await self.customer_repository.get(customer_id)
+
+        if not customer:
+            raise CustomerNotFoundError
+
+        return customer
 
     async def ensure_superadmin(self) -> None:
         await self.authorize()

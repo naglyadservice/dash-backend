@@ -4,10 +4,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.types import ExceptionHandler
 
-from dash.infrastructure.auth.errors import AuthError
+from dash.infrastructure.auth.errors import AuthError, InvalidVerificationCodeError
 from dash.services.common.errors.base import (
     AccessDeniedError,
     AccessForbiddenError,
+    ConflictError,
     EntityNotFoundError,
     ValidationError,
 )
@@ -15,7 +16,10 @@ from dash.services.common.errors.controller import (
     ControllerResponseError,
     ControllerTimeoutError,
 )
-from dash.services.common.errors.user import EmailAlreadyTakenError
+from dash.services.common.errors.user import (
+    EmailAlreadyTakenError,
+    PhoneNumberAlreadyTakenError,
+)
 
 
 def build_response(status_code: int, message: str) -> JSONResponse:
@@ -32,8 +36,24 @@ def email_already_taken_error_handler(
     return build_response(409, exc.message)
 
 
+def phone_number_already_taken_error_handler(
+    request: Request, exc: PhoneNumberAlreadyTakenError
+) -> JSONResponse:
+    return build_response(409, exc.message)
+
+
+def conflict_error_handler(request: Request, exc: ConflictError) -> JSONResponse:
+    return build_response(409, exc.message)
+
+
 def authentication_error_handler(request: Request, exc: AuthError) -> JSONResponse:
     return build_response(401, exc.message)
+
+
+def invalid_verification_code_error_handler(
+    request: Request, exc: InvalidVerificationCodeError
+) -> JSONResponse:
+    return build_response(400, exc.message)
 
 
 def not_found_error_handler(request: Request, exc: EntityNotFoundError) -> JSONResponse:
@@ -71,6 +91,7 @@ def validation_error_handler(request: Request, exc: ValidationError) -> JSONResp
 def setup_exception_handlers(app: FastAPI) -> None:
     exc_handler_list: list[tuple[type[Exception], function]] = [
         (EmailAlreadyTakenError, email_already_taken_error_handler),
+        (PhoneNumberAlreadyTakenError, phone_number_already_taken_error_handler),
         (AuthError, authentication_error_handler),
         (EntityNotFoundError, not_found_error_handler),
         (ControllerResponseError, controller_response_error_handler),
@@ -78,6 +99,8 @@ def setup_exception_handlers(app: FastAPI) -> None:
         (AccessDeniedError, access_denied_error_handler),
         (AccessForbiddenError, access_forbidden_error_handler),
         (ValidationError, validation_error_handler),
+        (ConflictError, conflict_error_handler),
+        (InvalidVerificationCodeError, invalid_verification_code_error_handler),
     ]
     for exc, handler in exc_handler_list:
         register_handler(app, exc, handler)

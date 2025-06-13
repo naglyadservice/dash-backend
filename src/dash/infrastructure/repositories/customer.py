@@ -15,13 +15,6 @@ class CustomerRepository(BaseRepository):
         result = await self.session.execute(stmt)
         return result.scalar_one()
 
-    async def get_by_email(self, company_id: UUID, email: str) -> Customer | None:
-        stmt = select(Customer).where(
-            Customer.email == email,
-            Customer.company_id == company_id,
-        )
-        return await self.session.scalar(stmt)
-
     async def get_by_card_id(self, company_id: UUID, card_id: str) -> Customer | None:
         stmt = select(Customer).where(
             Customer.card_id == card_id,
@@ -29,10 +22,19 @@ class CustomerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
-    async def exists(self, company_id: UUID, email: str) -> bool:
+    async def get_by_phone(
+        self, company_id: UUID, phone_number: str
+    ) -> Customer | None:
+        stmt = select(Customer).where(
+            Customer.phone_number == phone_number,
+            Customer.company_id == company_id,
+        )
+        return await self.session.scalar(stmt)
+
+    async def exists(self, company_id: UUID, phone_number: str) -> bool:
         stmt = select(
             exists().where(
-                Customer.email == email,
+                Customer.phone_number == phone_number,
                 Customer.company_id == company_id,
             )
         )

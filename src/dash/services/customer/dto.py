@@ -11,9 +11,8 @@ class BaseCustomer(BaseModel):
     company_id: UUID
     card_id: str
     balance: float
-    email: EmailStr | None
+    phone_number: str
     birth_date: date | None
-    phone_number: str | None
     discount_percent: int | None
     tariff_per_liter_1: float | None
     tariff_per_liter_2: float | None
@@ -28,12 +27,8 @@ class CreateCustomerResponse(BaseModel):
 
 
 class EditCustomerDTO(BaseModel):
-    name: str | None = None
-    email: EmailStr | None = None
     card_id: str | None = None
     balance: float | None = None
-    birth_date: date | None = None
-    phone_number: str | None = None
     discount_percent: int | None = None
     tariff_per_liter_1: float | None = None
     tariff_per_liter_2: float | None = None
@@ -61,3 +56,25 @@ class ReadCustomerListRequest(Pagination):
 class ReadCustomerListResponse(BaseModel):
     customers: list[CustomerScheme]
     total: int
+
+
+class ChangeCustomerPasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+class CustomerProfileResponse(BaseModel):
+    name: str | None
+    balance: float
+    tariff_per_liter_1: float | None
+    tariff_per_liter_2: float | None
+    birth_date: date | None
+    discount_percent: int | None
+    card_id: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateCustomerProfileRequest(BaseModel):
+    name: str | None = None
+    birth_date: date | None = None

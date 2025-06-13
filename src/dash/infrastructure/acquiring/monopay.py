@@ -81,7 +81,6 @@ class MonopayService:
             json=json,
         )
         if status != 200:
-            print(response)
             raise HTTPException(status_code=503, detail="Failed to connect to Monobank")
 
         return response

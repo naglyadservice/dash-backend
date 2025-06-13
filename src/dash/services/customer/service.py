@@ -1,32 +1,40 @@
 from typing import Sequence
 
 from dash.infrastructure.auth.id_provider import IdProvider
+from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.customer import Customer
-from dash.services.common.errors.base import AccessForbiddenError
+from dash.services.common.errors.base import AccessForbiddenError, ValidationError
 from dash.services.common.errors.user import (
     CardIdAlreadyTakenError,
     CustomerNotFoundError,
     EmailAlreadyTakenError,
 )
 from dash.services.customer.dto import (
+    ChangeCustomerPasswordRequest,
     CreateCustomerRequest,
     CreateCustomerResponse,
+    CustomerProfileResponse,
     CustomerScheme,
     DeleteCustomerRequest,
     EditCustomerRequest,
     ReadCustomerListRequest,
     ReadCustomerListResponse,
+    UpdateCustomerProfileRequest,
 )
 
 
 class CustomerService:
     def __init__(
-        self, customer_repository: CustomerRepository, identity_provider: IdProvider
+        self,
+        customer_repository: CustomerRepository,
+        identity_provider: IdProvider,
+        password_processor: PasswordProcessor,
     ) -> None:
         self.customer_repository = customer_repository
         self.identity_provider = identity_provider
+        self.password_processor = password_processor
 
     async def _get_customers_by_role(
         self, data: ReadCustomerListRequest, user: AdminUser
@@ -71,14 +79,16 @@ class CustomerService:
     ) -> CreateCustomerResponse:
         user = await self.identity_provider.authorize()
 
-        if (
-            not user.company_id == data.company_id
-            and user.role is AdminRole.LOCATION_ADMIN
-        ):
+        if user.role is AdminRole.LOCATION_ADMIN:
+            if user.company_id != data.company_id:
+                raise AccessForbiddenError
+        else:
             await self.identity_provider.ensure_company_owner(data.company_id)
 
-        if data.email is not None:
-            if await self.customer_repository.exists(data.company_id, data.email):
+        if data.phone_number is not None:
+            if await self.customer_repository.exists(
+                data.company_id, data.phone_number
+            ):
                 raise EmailAlreadyTakenError
 
         if data.card_id is not None:
@@ -122,4 +132,27 @@ class CustomerService:
         await self.identity_provider.ensure_company_owner(customer.company_id)
 
         await self.customer_repository.delete(customer)
+        await self.customer_repository.commit()
+
+    async def change_password(self, data: ChangeCustomerPasswordRequest) -> None:
+        customer = await self.identity_provider.authorize_customer()
+
+        if not customer.password_hash or not self.password_processor.verify(
+            data.current_password, customer.password_hash
+        ):
+            raise ValidationError("Invalid current password")
+
+        customer.password_hash = self.password_processor.hash(data.new_password)
+        await self.customer_repository.commit()
+
+    async def read_profile(self) -> CustomerProfileResponse:
+        customer = await self.identity_provider.authorize_customer()
+        return CustomerProfileResponse.model_validate(customer)
+
+    async def update_profile(self, data: UpdateCustomerProfileRequest) -> None:
+        customer = await self.identity_provider.authorize_customer()
+        if data.name is not None:
+            customer.name = data.name
+        if data.birth_date is not None:
+            customer.birth_date = data.birth_date
         await self.customer_repository.commit()

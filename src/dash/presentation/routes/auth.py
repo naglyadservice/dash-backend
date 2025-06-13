@@ -11,26 +11,20 @@ from dash.infrastructure.auth.auth_service import (
     LoginResponse,
 )
 from dash.infrastructure.auth.dto import (
+    CompleteCustomerRegistrationRequest,
+    CompletePasswordResetRequest,
+    CustomerRegistrationResponse,
     LogoutRequest,
     RefreshTokenRequest,
     RefreshTokenResponse,
+    RegisterCustomerRequest,
+    StartPasswordResetRequest,
 )
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.models.admin_user import AdminRole
 from dash.presentation.bearer import bearer_scheme
 
 auth_router = APIRouter(prefix="/auth", tags=["AUTH"], route_class=DishkaRoute)
-
-
-# @auth_router.post(
-#     "/register",
-#     status_code=201,
-#     responses={409: {"description": "Email already registered"}},
-# )
-# async def register(
-#     data: RegisterUserRequest, auth_service: FromDishka[AuthService]
-# ) -> RegisterUserResponse:
-#     return await auth_service.register(data)
 
 
 @auth_router.post(
@@ -82,3 +76,56 @@ async def logout(
     auth_service: FromDishka[AuthService], idp: FromDishka[IdProvider]
 ) -> None:
     await auth_service.logout(LogoutRequest(access_token=idp.jwt_token))
+
+
+@auth_router.post(
+    "/customer/register/start",
+    status_code=204,
+    responses={409: {"description": "Phone number already taken"}},
+)
+async def start_customer_registration(
+    data: RegisterCustomerRequest,
+    auth_service: FromDishka[AuthService],
+) -> None:
+    await auth_service.start_customer_registration(data)
+
+
+@auth_router.post(
+    "/customer/register/complete",
+    responses={
+        400: {"description": "Invalid verification code"},
+        409: {"description": "Phone number already taken"},
+    },
+)
+async def complete_customer_registration(
+    data: CompleteCustomerRegistrationRequest,
+    auth_service: FromDishka[AuthService],
+) -> CustomerRegistrationResponse:
+    return await auth_service.complete_customer_registration(data)
+
+
+@auth_router.post(
+    "/customer/password-reset/start",
+    status_code=204,
+    responses={404: {"description": "Customer not found"}},
+)
+async def start_password_reset(
+    data: StartPasswordResetRequest,
+    auth_service: FromDishka[AuthService],
+) -> None:
+    await auth_service.start_password_reset(data)
+
+
+@auth_router.post(
+    "/customer/password-reset/complete",
+    status_code=204,
+    responses={
+        400: {"description": "Invalid verification code"},
+        404: {"description": "Customer not found"},
+    },
+)
+async def complete_password_reset(
+    data: CompletePasswordResetRequest,
+    auth_service: FromDishka[AuthService],
+) -> None:
+    await auth_service.complete_password_reset(data)

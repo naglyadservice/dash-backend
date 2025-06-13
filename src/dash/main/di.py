@@ -7,6 +7,7 @@ from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
+from dash.infrastructure.auth.sms_sender import SMSClient
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.db.setup import (
     get_async_engine,
@@ -32,6 +33,7 @@ from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
+from dash.infrastructure.storages.verification import VerificationStorage
 from dash.main.config import (
     AppConfig,
     Config,
@@ -41,6 +43,7 @@ from dash.main.config import (
     MonopayConfig,
     MqttConfig,
     RedisConfig,
+    SMSConfig,
 )
 from dash.services.company.service import CompanyService
 from dash.services.controller.service import ControllerService
@@ -65,6 +68,7 @@ def provide_configs() -> Provider:
     provider.from_context(MonopayConfig, scope=Scope.APP)
     provider.from_context(LiqpayConfig, scope=Scope.APP)
     provider.from_context(JWTConfig, scope=Scope.APP)
+    provider.from_context(SMSConfig, scope=Scope.APP)
 
     return provider
 
@@ -112,6 +116,7 @@ def provide_gateways() -> Provider:
         AcquiringStorage,
         LocationRepository,
         SessionStorage,
+        VerificationStorage,
         CompanyRepository,
         IoTStorage,
         EncashmentRepository,
@@ -138,6 +143,8 @@ def provide_infrastructure() -> Provider:
     provider.provide(LiqpayService, scope=Scope.REQUEST)
     provider.provide(CheckboxService, scope=Scope.REQUEST)
 
+    provider.provide(SMSClient, scope=Scope.REQUEST)
+
     return provider
 
 
@@ -163,5 +170,6 @@ def setup_di(config: Config) -> AsyncContainer:
             MonopayConfig: config.monopay,
             LiqpayConfig: config.liqpay,
             JWTConfig: config.jwt,
+            SMSConfig: config.sms,
         },
     )

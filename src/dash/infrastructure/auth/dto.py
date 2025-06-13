@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from uuid import UUID
 
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 @dataclass
@@ -23,6 +24,13 @@ class LoginRequest:
 
 
 @dataclass
+class LoginCustomerRequest:
+    company_id: UUID
+    phone_number: str
+    password: str
+
+
+@dataclass
 class LoginResponse:
     access_token: str
     refresh_token: str
@@ -41,3 +49,30 @@ class LogoutRequest:
 @dataclass
 class RefreshTokenResponse:
     access_token: str
+
+
+class RegisterCustomerRequest(BaseModel):
+    phone_number: str
+    password: str
+    company_id: UUID
+
+
+@dataclass
+class CompleteCustomerRegistrationRequest:
+    code: str
+
+
+@dataclass
+class CustomerRegistrationResponse:
+    access_token: str
+    refresh_token: str
+
+
+class StartPasswordResetRequest(BaseModel):
+    phone_number: str
+    company_id: UUID
+
+
+class CompletePasswordResetRequest(BaseModel):
+    code: str
+    new_password: str
