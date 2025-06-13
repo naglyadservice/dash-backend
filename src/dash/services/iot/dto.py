@@ -80,6 +80,7 @@ class EnergyStateDTO(BaseModel):
 class IoTControllerBaseDTO(BaseModel):
     id: UUID
     device_id: str
+    tasmota_id: str | None
     name: str
     type: ControllerType
     location: LocationDTO | None
