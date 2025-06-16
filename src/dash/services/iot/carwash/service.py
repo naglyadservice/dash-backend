@@ -9,6 +9,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Controller
 from dash.models.controllers.carwash import CarwashController
+from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.base import BaseIoTService
@@ -72,11 +73,13 @@ class CarwashService(BaseIoTService):
         identity_provider: IdProvider,
         iot_storage: IoTStorage,
         carwash_client: CarwashIoTClient,
+        check_online_interactor: CheckOnlineInteractor,
     ):
         super().__init__(
             carwash_client, identity_provider, controller_repository, iot_storage
         )
         self.iot_storage = iot_storage
+        self.check_online = check_online_interactor
 
     async def _get_controller(self, controller_id: UUID) -> CarwashController:
         controller = await self.controller_repository.get_carwash(controller_id)
@@ -138,7 +141,7 @@ class CarwashService(BaseIoTService):
             model=controller,
             state=await self.iot_storage.get_state(controller.id),
             energy_state=await self.iot_storage.get_energy_state(controller.id),
-            is_online=await self._check_online(controller),
+            is_online=await self.check_online(controller),
         )
 
     async def get_display(

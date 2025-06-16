@@ -8,6 +8,7 @@ from structlog import get_logger
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
+from dash.infrastructure.storages.carwash_session import CarwashSessionStorage
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
     inject,
@@ -46,6 +47,7 @@ async def carwash_payment_card_get_callback(
     customer_repository: FromDishka[CustomerRepository],
     controller_repository: FromDishka[ControllerRepository],
     carwash_client: FromDishka[CarwashIoTClient],
+    session_storage: FromDishka[CarwashSessionStorage],
 ) -> None:
     dict_data = carwash_payment_card_get_retort.dump(data)
 
@@ -81,6 +83,20 @@ async def carwash_payment_card_get_callback(
                 "request_id": data.request_id,
                 "cardUID": data.card_uid,
                 "code": 1,
+            },
+        )
+        return
+
+    # If controller busy, always return 0 balance
+    if await session_storage.is_active(controller.id):
+        await carwash_client.payment_card_ack(
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "balance": 0,
+                "replenishmentRatio": 100,
+                "code": 0,
             },
         )
         return

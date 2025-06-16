@@ -17,6 +17,8 @@ from dash.services.iot.carwash.dto import (
 )
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.dto import (
+    BlockingDTO,
+    BlockingRequest,
     ClearPaymentsRequest,
     ControllerID,
     FreePaymentDTO,
@@ -75,6 +77,17 @@ async def send_action(
 ) -> None:
     await service.send_action(
         SendCarwashActionRequest(controller_id=controller_id, action=data)
+    )
+
+
+@carwash_router.post("/{controller_id}/blocking", status_code=204)
+async def blocking(
+    service: FromDishka[CarwashService],
+    data: BlockingDTO,
+    controller_id: UUID,
+) -> None:
+    await service.blocking(
+        BlockingRequest(controller_id=controller_id, blocking=data.blocking)
     )
 
 

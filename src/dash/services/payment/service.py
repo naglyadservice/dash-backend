@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Sequence
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
@@ -6,9 +5,8 @@ from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
-from dash.models import Controller
 from dash.models.admin_user import AdminRole, AdminUser
-from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.models.payment import Payment
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.payment.dto import (
     GetPaymentStatsRequest,

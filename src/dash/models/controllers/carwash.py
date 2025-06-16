@@ -17,4 +17,8 @@ class CarwashController(Controller):
     def tariff(self) -> dict[str, int]:
         return self.settings["tariff"]
 
+    @property
+    def time_one_pay(self) -> int:
+        return self.settings["timeOnePay"]
+
     __mapper_args__ = {"polymorphic_identity": ControllerType.CARWASH.value}

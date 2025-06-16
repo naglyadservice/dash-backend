@@ -1,10 +1,14 @@
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, Literal, Self
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from dash.models.controllers.controller import ControllerStatus, ControllerType
+from dash.models.controllers.controller import (
+    Controller,
+    ControllerStatus,
+    ControllerType,
+)
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
@@ -42,8 +46,13 @@ class ControllerScheme(BaseModel):
     name: str
     type: ControllerType
     status: ControllerStatus
+    is_online: bool = False
 
-    model_config = ConfigDict(from_attributes=True)
+    @classmethod
+    def make(cls, controller: Controller, is_online: bool) -> Self:
+        dto = cls.model_validate(controller, from_attributes=True)
+        dto.is_online = is_online
+        return dto
 
 
 class ReadControllerResponse(BaseModel):

@@ -10,7 +10,11 @@ from dash.services.common.errors.controller import (
     ControllerNotFoundError,
     TasmotaIDAlreadyTakenError,
 )
-from dash.services.controller.dto import GetEnergyStatsRequest, SetupTasmotaRequest
+from dash.services.controller.dto import (
+    GetEnergyStatsRequest,
+    ReadControllerListRequest,
+    SetupTasmotaRequest,
+)
 from dash.services.controller.service import ControllerService
 from tests.environment import TestEnvironment
 
@@ -80,3 +84,14 @@ async def test_read_energy_stats(
                 period=1,
             )
         )
+
+
+@pytest.mark.parametrize("user", ("superadmin",), indirect=["user"])
+@pytest.mark.asyncio(loop_scope="session")
+async def test_read_controllers(
+    request_di_container: AsyncContainer, test_env: TestEnvironment, user
+):
+    controller_service = await request_di_container.get(ControllerService)
+
+    response = await controller_service.read_controllers(ReadControllerListRequest())
+    assert len(response.controllers) == 2

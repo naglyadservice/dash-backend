@@ -1,13 +1,11 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
 from enum import StrEnum
-from typing import Any, Literal, Self
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
-    EnergyStateDTO,
     IoTControllerBaseDTO,
     SendActionRequest,
     SetConfigRequest,
@@ -108,7 +106,6 @@ class WsmIoTControllerScheme(IoTControllerBaseDTO):
 
 class WsmActionDTO(BaseModel):
     Pour: Literal["Start_1", "Start_2", "Stop"] | None = None
-    Blocking: bool | None = None
 
 
 class SendWsmActionRequest(SendActionRequest):

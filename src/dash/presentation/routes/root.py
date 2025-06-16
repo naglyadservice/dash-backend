@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from dash.presentation.routes.acquiring import acquiring_router
 from dash.presentation.routes.auth import auth_router
 from dash.presentation.routes.carwash import carwash_router
+from dash.presentation.routes.carwash_customer import router as customer_carwash_router
 from dash.presentation.routes.companies import company_router
 from dash.presentation.routes.controller import controller_router
 from dash.presentation.routes.customer import customer_router
@@ -24,6 +25,7 @@ root_router.include_router(user_router)
 root_router.include_router(location_router)
 root_router.include_router(company_router)
 root_router.include_router(customer_router)
+root_router.include_router(customer_carwash_router)
 
 
 @root_router.get("/health")

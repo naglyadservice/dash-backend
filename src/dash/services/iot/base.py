@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from dash.infrastructure.auth.id_provider import IdProvider
@@ -8,6 +7,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Controller
 from dash.services.iot.dto import (
+    BlockingRequest,
     ClearPaymentsRequest,
     GetDisplayInfoRequest,
     RebootControllerRequest,
@@ -132,6 +132,12 @@ class BaseIoTService(ABC):
             payload={"addFree": {"amount": data.payment.amount}},
         )
 
+    async def send_free_payment_infra(self, device_id: str, amount: int) -> None:
+        await self.iot_client.set_payment(
+            device_id=device_id,
+            payload={"addFree": {"amount": amount}},
+        )
+
     async def clear_payments(self, data: ClearPaymentsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
@@ -145,16 +151,19 @@ class BaseIoTService(ABC):
         await self.identity_provider.ensure_location_admin(controller.location_id)
         await self.iot_client.set_action(
             device_id=controller.device_id,
-            payload=data.action.model_dump(exclude_unset=True),
+            payload=data.action.model_dump(),
         )
 
-    async def _check_online(self, controller: Controller) -> bool:
-        broker_online = await self.iot_storage.is_online(controller.device_id)
-        state = await self.iot_storage.get_state(controller.id)
+    async def send_action_infra(self, device_id: str, payload: dict) -> None:
+        await self.iot_client.set_action(
+            device_id=device_id,
+            payload=payload,
+        )
 
-        if state and datetime.fromisoformat(state["created"]) + timedelta(
-            minutes=3
-        ) < datetime.now(UTC):
-            return False
-
-        return broker_online
+    async def blocking(self, data: BlockingRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+        await self.iot_client.set_action(
+            device_id=controller.device_id,
+            payload={"Blocking": data.blocking},
+        )

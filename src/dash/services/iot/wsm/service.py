@@ -5,6 +5,7 @@ from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.controllers.water_vending import WaterVendingController
+from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.base import BaseIoTService
@@ -23,11 +24,13 @@ class WsmService(BaseIoTService):
         identity_provider: IdProvider,
         iot_storage: IoTStorage,
         wsm_client: WsmIoTClient,
+        check_online_interactor: CheckOnlineInteractor,
     ):
         super().__init__(
             wsm_client, identity_provider, controller_repository, iot_storage
         )
         self.iot_storage = iot_storage
+        self.check_online = check_online_interactor
 
     async def _get_controller(self, controller_id: UUID) -> WaterVendingController:
         controller = await self.controller_repository.get_wsm(controller_id)
@@ -51,7 +54,7 @@ class WsmService(BaseIoTService):
             model=controller,
             state=await self.iot_storage.get_state(controller.id),
             energy_state=await self.iot_storage.get_energy_state(controller.id),
-            is_online=await self._check_online(controller),
+            is_online=await self.check_online(controller),
         )
 
     async def send_action(self, data: SendWsmActionRequest) -> None:

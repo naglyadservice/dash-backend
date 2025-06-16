@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from uuid import UUID
 
 from dishka import FromDishka
@@ -7,6 +6,8 @@ from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.iot.dto import (
+    BlockingDTO,
+    BlockingRequest,
     ClearPaymentsRequest,
     ControllerID,
     FreePaymentDTO,
@@ -75,6 +76,17 @@ async def send_action(
 ) -> None:
     return await wsm_service.send_action(
         SendWsmActionRequest(controller_id=controller_id, action=data)
+    )
+
+
+@wsm_router.post("/{controller_id}/blocking", status_code=204)
+async def blocking(
+    wsm_service: FromDishka[WsmService],
+    data: BlockingDTO,
+    controller_id: UUID,
+) -> None:
+    return await wsm_service.blocking(
+        BlockingRequest(controller_id=controller_id, blocking=data.blocking)
     )
 
 

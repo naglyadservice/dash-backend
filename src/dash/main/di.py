@@ -30,6 +30,7 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.acquiring import AcquiringStorage
+from dash.infrastructure.storages.carwash_session import CarwashSessionStorage
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
@@ -45,9 +46,11 @@ from dash.main.config import (
     RedisConfig,
     SMSConfig,
 )
+from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.company.service import CompanyService
 from dash.services.controller.service import ControllerService
 from dash.services.customer.service import CustomerService
+from dash.services.iot.carwash.customer_service import CustomerCarwashService
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.factory import IoTServiceFactory
 from dash.services.iot.wsm.service import WsmService
@@ -98,8 +101,10 @@ def provide_services() -> Provider:
         UserService,
         CompanyService,
         CustomerService,
+        CustomerCarwashService,
         CarwashService,
         IoTServiceFactory,
+        CheckOnlineInteractor,
     )
     return provider
 
@@ -119,6 +124,7 @@ def provide_gateways() -> Provider:
         VerificationStorage,
         CompanyRepository,
         IoTStorage,
+        CarwashSessionStorage,
         EncashmentRepository,
         EnergyStateRepository,
     )

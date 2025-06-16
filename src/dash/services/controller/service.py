@@ -11,6 +11,7 @@ from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller, ControllerType
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
+from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
@@ -57,6 +58,7 @@ class ControllerService:
         energy_repository: EnergyStateRepository,
         encashment_repository: EncashmentRepository,
         factory: IoTServiceFactory,
+        check_online_interactor: CheckOnlineInteractor,
     ):
         self.identity_provider = identity_provider
         self.controller_repository = controller_repository
@@ -64,6 +66,7 @@ class ControllerService:
         self.energy_repository = energy_repository
         self.encashment_repository = encashment_repository
         self.factory = factory
+        self.check_online = check_online_interactor
 
     async def _get_controller(self, controller_id: UUID) -> Controller:
         controller = await self.controller_repository.get(controller_id)
@@ -105,7 +108,7 @@ class ControllerService:
 
         return ReadControllerResponse(
             controllers=[
-                ControllerScheme.model_validate(controller)
+                ControllerScheme.make(controller, await self.check_online(controller))
                 for controller in controllers
             ],
             total=total,

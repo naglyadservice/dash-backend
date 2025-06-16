@@ -31,7 +31,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     device_id: Mapped[str] = mapped_column(unique=True)
     location_id: Mapped[UUID | None] = mapped_column(ForeignKey("locations.id"))
     type: Mapped[ControllerType] = mapped_column()
-    name: Mapped[str | None] = mapped_column()
+    name: Mapped[str] = mapped_column()
     version: Mapped[str] = mapped_column()
     status: Mapped[ControllerStatus]
     tasmota_id: Mapped[str | None] = mapped_column()

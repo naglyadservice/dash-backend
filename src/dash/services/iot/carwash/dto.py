@@ -1,15 +1,11 @@
-from datetime import UTC, datetime, time, timedelta
+from datetime import datetime
 from enum import IntEnum, StrEnum
-from typing import Any, Literal, Self
-from uuid import UUID
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from dash.models.controllers.carwash import CarwashController
-from dash.models.controllers.controller import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
-    EnergyStateDTO,
     IoTControllerBaseDTO,
     SendActionRequest,
     SetConfigRequest,
@@ -200,7 +196,6 @@ class CarwashActionDTO(BaseModel):
         ]
         | None
     ) = None
-    Blocking: bool | None = None
 
 
 class SendCarwashActionRequest(SendActionRequest):

@@ -1,5 +1,3 @@
-from typing import Any
-
 from npc_iot.base import BaseClient, BaseDispatcher, MessageHandler
 
 

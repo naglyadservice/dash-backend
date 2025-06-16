@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
 from typing import Any, Self, Type
 from uuid import UUID
 
@@ -61,6 +61,14 @@ class ClearPaymentsRequest(ControllerID):
 
 class SendActionRequest(ControllerID):
     action: BaseModel
+
+
+class BlockingDTO(BaseModel):
+    blocking: bool
+
+
+class BlockingRequest(ControllerID, BlockingDTO):
+    pass
 
 
 class EnergyStateDTO(BaseModel):

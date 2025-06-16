@@ -52,4 +52,4 @@ class IoTStorage:
 
     async def is_online(self, device_id: str) -> bool:
         is_online = await self.redis.get(self.online_key.format(device_id=device_id))
-        return json.loads(is_online)
+        return json.loads(is_online) if is_online else False

@@ -11,12 +11,16 @@ class VerificationStorage:
         self.redis = redis
         self.registration_key = "registration:{}"
         self.reset_key = "password_reset:{}"
+        self.registration_ttl = 300
+        self.reset_ttl = 300
 
     async def set_registration_code(
-        self, code: str, data: RegisterCustomerRequest, ttl: int = 300
+        self, code: str, data: RegisterCustomerRequest
     ) -> None:
         await self.redis.setex(
-            self.registration_key.format(code), ttl, data.model_dump_json()
+            name=self.registration_key.format(code),
+            time=self.registration_ttl,
+            value=data.model_dump_json(),
         )
 
     async def verify_registration_code(
@@ -33,10 +37,12 @@ class VerificationStorage:
     async def registration_code_exists(self, code: str) -> bool:
         return await self.redis.exists(self.registration_key.format(code)) > 0
 
-    async def set_reset_code(
-        self, code: str, data: StartPasswordResetRequest, ttl: int = 300
-    ) -> None:
-        await self.redis.setex(self.reset_key.format(code), ttl, data.model_dump_json())
+    async def set_reset_code(self, code: str, data: StartPasswordResetRequest) -> None:
+        await self.redis.setex(
+            name=self.reset_key.format(code),
+            time=self.reset_ttl,
+            value=data.model_dump_json(),
+        )
 
     async def verify_reset_code(self, code: str) -> StartPasswordResetRequest | None:
         raw = await self.redis.get(self.reset_key.format(code))

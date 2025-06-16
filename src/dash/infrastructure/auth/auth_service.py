@@ -110,11 +110,7 @@ class AuthService:
             message=f"Код для верифікації: {code}. Якщо ви не запрошували код, проігноруйте це SMS повідомлення.",
         )
 
-        await self.verification_storage.set_registration_code(
-            code=code,
-            data=data,
-            ttl=300,
-        )
+        await self.verification_storage.set_registration_code(code, data)
 
     async def complete_customer_registration(
         self, data: CompleteCustomerRegistrationRequest
@@ -160,11 +156,7 @@ class AuthService:
             message=f"Код для зміни паролю: {code}.",
         )
 
-        await self.verification_storage.set_reset_code(
-            code=code,
-            data=data,
-            ttl=300,
-        )
+        await self.verification_storage.set_reset_code(code, data)
 
     async def complete_password_reset(self, data: CompletePasswordResetRequest) -> None:
         stored_data = await self.verification_storage.verify_reset_code(data.code)

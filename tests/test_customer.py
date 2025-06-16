@@ -12,7 +12,6 @@ from dash.infrastructure.auth.dto import (
     CompleteCustomerRegistrationRequest,
     CompletePasswordResetRequest,
     LoginCustomerRequest,
-    LoginRequest,
     RegisterCustomerRequest,
     StartPasswordResetRequest,
 )
