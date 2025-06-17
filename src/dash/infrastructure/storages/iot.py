@@ -17,7 +17,7 @@ class IoTStorage:
         await self.redis.setex(
             name=self.state_key.format(controller_id=controller_id),
             value=json.dumps(state),
-            time=timedelta(days=1),
+            time=timedelta(days=365),
         )
 
     async def get_state(self, controller_id: UUID) -> dict[str, Any] | None:
