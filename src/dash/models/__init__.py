@@ -1,7 +1,12 @@
 from .admin_user import AdminUser
 from .base import Base
 from .company import Company
-from .controllers import CarwashController, Controller, WaterVendingController
+from .controllers import (
+    CarwashController,
+    Controller,
+    FiscalizerController,
+    WaterVendingController,
+)
 from .customer import Customer
 from .encashment import Encashment
 from .energy_state import DailyEnergyState
@@ -10,6 +15,7 @@ from .location_admin import LocationAdmin
 from .payment import Payment
 from .transactions import (
     CarwashTransaction,
+    FiscalizerTransaction,
     Transaction,
     TransactionType,
     VacuumTransaction,
@@ -34,6 +40,7 @@ __all__ = [
     "WsmTransaction",
     "Encashment",
     "DailyEnergyState",
+    "FiscalizerController",
 ]
 from adaptix.type_tools import exec_type_checking
 
@@ -49,6 +56,7 @@ from . import (
 )
 from .controllers import carwash as carwash_c
 from .controllers import controller
+from .controllers import fiscalizer as fiscalizer_c
 from .controllers import vacuum as vacuum_c
 from .controllers import water_vending as water_vending_c
 from .transactions import carwash as carwash_t
@@ -72,3 +80,4 @@ exec_type_checking(carwash_t)
 exec_type_checking(vacuum_t)
 exec_type_checking(encashment)
 exec_type_checking(energy_state)
+exec_type_checking(fiscalizer_c)

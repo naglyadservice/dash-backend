@@ -7,6 +7,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
+from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.main.config import Config
@@ -21,6 +22,7 @@ async def lifespan(app: FastAPI):
     di_container: AsyncContainer = app.state.dishka_container
     await di_container.get(WsmIoTClient)
     await di_container.get(CarwashIoTClient)
+    await di_container.get(FiscalizerIoTClient)
     await di_container.get(MqttClient)
 
     yield

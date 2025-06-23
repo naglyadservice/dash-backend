@@ -9,6 +9,7 @@ from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
+from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.payment import PaymentRepository
@@ -21,6 +22,10 @@ from dash.presentation.iot_callbacks.common.di_injector import default_retort
 from dash.presentation.iot_callbacks.denomination import (
     DenominationCallbackPayload,
     denomination_callback_retort,
+)
+from dash.presentation.iot_callbacks.fiscalizer.sale import (
+    FiscalizerSaleCallbackPayload,
+    fiscalizer_sale_callback_retort,
 )
 from dash.presentation.iot_callbacks.mqtt.tasmota import tasmota_callback_retort
 from dash.presentation.iot_callbacks.wsm.encashment import (
@@ -41,6 +46,7 @@ pytestmark = pytest.mark.usefixtures("create_tables")
 class CallbackDependencies:
     iot_storage: IoTStorage
     wsm_client: WsmIoTClient
+    fiscalizer_client: FiscalizerIoTClient
     carwash_client: CarwashIoTClient
     mqtt_client: MqttClient
 
@@ -50,6 +56,7 @@ async def deps(request_di_container: AsyncContainer) -> CallbackDependencies:
     return CallbackDependencies(
         iot_storage=await request_di_container.get(IoTStorage),
         wsm_client=await request_di_container.get(WsmIoTClient),
+        fiscalizer_client=await request_di_container.get(FiscalizerIoTClient),
         carwash_client=await request_di_container.get(CarwashIoTClient),
         mqtt_client=await request_di_container.get(MqttClient),
     )
@@ -323,4 +330,31 @@ async def test_tasmota_callback(
     state = await deps.iot_storage.get_energy_state(test_env.controller_1.id)
     assert state == default_retort.dump(
         tasmota_callback_retort.load(payload, EnergyStateDTO)
+    )
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_fiscalizer_sale_callback(
+    deps: CallbackDependencies,
+    request_di_container: AsyncContainer,
+    test_env: TestEnvironment,
+    mocker: Mock,
+):
+    payload = FiscalizerSaleCallbackPayload(
+        id=1,
+        created=datetime(2022, 1, 1),
+        add_coin=1,
+        add_bill=2,
+        add_free=4,
+        add_qr=5,
+    )
+    mocker.patch.object(deps.fiscalizer_client, "sale_ack")
+
+    await deps.fiscalizer_client.dispatcher.sale._process_callbacks(  # type: ignore
+        device_id=test_env.controller_3.device_id,
+        decoded_payload=fiscalizer_sale_callback_retort.dump(payload),
+        di_container=request_di_container,  # type: ignore
+    )
+    deps.fiscalizer_client.sale_ack.assert_called_once_with(
+        test_env.controller_3.device_id, payload.id
     )

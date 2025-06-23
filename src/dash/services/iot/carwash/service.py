@@ -75,9 +75,7 @@ class CarwashService(BaseIoTService):
         carwash_client: CarwashIoTClient,
         check_online_interactor: CheckOnlineInteractor,
     ):
-        super().__init__(
-            carwash_client, identity_provider, controller_repository, iot_storage
-        )
+        super().__init__(carwash_client, identity_provider, controller_repository)
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
 

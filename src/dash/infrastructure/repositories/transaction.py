@@ -68,13 +68,7 @@ class TransactionRepository(BaseRepository):
             Transaction, [WsmTransaction, CarwashTransaction]
         )
 
-        stmt = (
-            select(Transaction)
-            .order_by(Transaction.created_at.desc())
-            .offset(data.offset)
-            .limit(data.limit)
-            .options(loader_opt)
-        )
+        stmt = select(Transaction).options(loader_opt)
 
         if data.company_id is not None:
             stmt = stmt.join(Location).where(Location.company_id == data.company_id)
@@ -92,6 +86,7 @@ class TransactionRepository(BaseRepository):
             stmt.order_by(Transaction.created_at.desc())
             .offset(data.offset)
             .limit(data.limit)
+            .order_by(Transaction.created_at.desc())
         )
 
         paginated = (await self.session.scalars(paginated_stmt)).unique().all()

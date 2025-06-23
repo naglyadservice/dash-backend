@@ -60,12 +60,12 @@ class TransactionBase(BaseModel):
     card_balance_out: int | None
     card_uid: str | None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class WsmTransactionScheme(TransactionBase):
     out_liters_1: int
     out_liters_2: int
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class CarwashServicesSoldDTO(ServicesIntListDTO):
@@ -77,10 +77,14 @@ class CarwashTransactionScheme(TransactionBase):
     tariff: CarwashTariffDTO
     replenishment_ratio: int | None
 
-    model_config = ConfigDict(from_attributes=True)
+
+class FiscalizerTransactionScheme(TransactionBase):
+    pass
 
 
-TRANSACTION_SCHEME_TYPE = WsmTransactionScheme | CarwashTransactionScheme
+TRANSACTION_SCHEME_TYPE = (
+    WsmTransactionScheme | CarwashTransactionScheme | FiscalizerTransactionScheme
+)
 
 
 class ReadTransactionListRequest(Pagination, BaseTransactionFilters):

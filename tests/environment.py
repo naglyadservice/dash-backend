@@ -8,12 +8,15 @@ from dash.models import CarwashController, Customer
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
 from dash.models.controllers.controller import ControllerStatus, ControllerType
+from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from tests.context.settings import (
     carwash_config,
     carwash_settings,
+    fiscalizer_config,
+    fiscalizer_settings,
     wsm_config,
     wsm_settings,
 )
@@ -122,6 +125,16 @@ class TestEnvironment:
             config=carwash_config,
             settings=carwash_settings,
         )
+        self.controller_3 = FiscalizerController(
+            name="Test Controller 3",
+            device_id="test_device_id_3",
+            location_id=self.location_1.id,
+            type=ControllerType.FISCALIZER,
+            version="1.0.0",
+            status=ControllerStatus.ACTIVE,
+            config=fiscalizer_config,
+            settings=fiscalizer_settings,
+        )
 
         self.customer_1 = Customer(
             company_id=self.company_1.id,
@@ -147,6 +160,7 @@ class TestEnvironment:
                 self.superadmin,
                 self.controller_1,
                 self.controller_2,
+                self.controller_3,
                 LocationAdmin(
                     location_id=self.location_1.id, user_id=self.location_admin_1.id
                 ),

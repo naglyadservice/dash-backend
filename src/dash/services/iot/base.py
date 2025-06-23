@@ -4,7 +4,6 @@ from uuid import UUID
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.common.base_client import BaseIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Controller
 from dash.services.iot.dto import (
     BlockingRequest,
@@ -25,12 +24,10 @@ class BaseIoTService(ABC):
         iot_client: BaseIoTClient,
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
-        iot_storage: IoTStorage,
     ) -> None:
         self.iot_client = iot_client
         self.identity_provider = identity_provider
         self.controller_repository = controller_repository
-        self.iot_storage = iot_storage
 
     @abstractmethod
     async def _get_controller(self, controller_id: UUID) -> Controller:

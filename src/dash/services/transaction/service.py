@@ -10,6 +10,7 @@ from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.transaction.dto import (
     CarwashTransactionScheme,
+    FiscalizerTransactionScheme,
     GetTransactionStatsRequest,
     GetTransactionStatsResponse,
     ReadTransactionListRequest,
@@ -77,6 +78,10 @@ class TransactionService:
             elif transaction.type is TransactionType.CARWASH:
                 transaction_list.append(
                     CarwashTransactionScheme.model_validate(transaction)
+                )
+            elif transaction.type is TransactionType.FISCALIZER:
+                transaction_list.append(
+                    FiscalizerTransactionScheme.model_validate(transaction)
                 )
             else:
                 raise ValueError("Unknown transaction type")

@@ -9,6 +9,7 @@ from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller, ControllerType
+from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
@@ -127,6 +128,9 @@ class ControllerService:
 
         if data.type is ControllerType.VACUUM:
             controller = VacuumController(**base_controller)
+
+        if data.type is ControllerType.FISCALIZER:
+            controller = FiscalizerController(**base_controller)
 
         await self.factory.get(controller.type).init_controller_settings(controller)
 
