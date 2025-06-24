@@ -37,6 +37,7 @@ from dash.services.controller.dto import (
     GetEnergyStatsRequest,
     GetEnergyStatsResponse,
     PublicCarwashScheme,
+    PublicFiscalizerScheme,
     PublicWsmScheme,
     ReadControllerListRequest,
     ReadControllerRequest,
@@ -253,6 +254,10 @@ class ControllerService:
                 controller_list.append(PublicCarwashScheme.model_validate(controller))
             elif controller.type is ControllerType.WATER_VENDING:
                 controller_list.append(PublicWsmScheme.model_validate(controller))
+            elif controller.type is ControllerType.FISCALIZER:
+                controller_list.append(
+                    PublicFiscalizerScheme.model_validate(controller)
+                )
             else:
                 raise ValueError("This controller type is not supported yet")
 

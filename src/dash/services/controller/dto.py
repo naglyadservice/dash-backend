@@ -176,7 +176,6 @@ class BasePublicControllerScheme(BaseModel):
     type: ControllerType
     location: PublicLocationDTO | None
     company: PublicCompanyDTO | None
-    tariff: BaseModel
     liqpay_active: bool
     monopay_active: bool
 
@@ -196,6 +195,10 @@ class WsmTariffDTO(BaseModel):
 class PublicWsmScheme(BasePublicControllerScheme):
     type: Literal[ControllerType.WATER_VENDING]
     tariff: WsmTariffDTO
+
+
+class PublicFiscalizerScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.FISCALIZER]
 
 
 class ReadControllerRequest(BaseModel):
