@@ -44,6 +44,7 @@ class ControllerScheme(BaseModel):
     device_id: str
     location_id: UUID | None
     name: str
+    version: str
     type: ControllerType
     status: ControllerStatus
     is_online: bool = False

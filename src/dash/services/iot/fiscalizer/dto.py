@@ -37,9 +37,11 @@ class FiscalizerSettings(BaseModel):
     simlatorMC_pulse_price: int | None = None
     bill_pulse_price: int | None = None
     coin_pulse_price: int | None = None
-    simulatorMC_table: list[int] | None = Field(min_length=24, max_length=24)
-    bill_table: list[int] | None = Field(min_length=24, max_length=24)
-    coin_table: list[int] | None = Field(min_length=16, max_length=16)
+    simulatorMC_table: list[int] | None = Field(
+        default=None, min_length=24, max_length=24
+    )
+    bill_table: list[int] | None = Field(default=None, min_length=24, max_length=24)
+    coin_table: list[int] | None = Field(default=None, min_length=16, max_length=16)
     fiscalizationTime: int | None = None
 
 
