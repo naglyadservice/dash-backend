@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.controller.dto import (
+    PUBLIC_SCHEME_TYPE,
     AddCheckboxCredentialsRequest,
     AddControllerLocationRequest,
     AddControllerRequest,
@@ -157,7 +158,7 @@ async def read_controller_list_public(
 async def read_controller_public(
     controller_service: FromDishka[ControllerService],
     data: ReadControllerRequest = Depends(),
-) -> PublicWsmScheme | PublicCarwashScheme:
+) -> PUBLIC_SCHEME_TYPE:
     return await controller_service.read_controller_public(data)
 
 
