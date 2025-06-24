@@ -24,6 +24,7 @@ from dash.services.common.errors.encashment import (
 )
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.controller.dto import (
+    PUBLIC_SCHEME_TYPE,
     AddCheckboxCredentialsRequest,
     AddControllerLocationRequest,
     AddControllerRequest,
@@ -229,7 +230,7 @@ class ControllerService:
 
     async def read_controller_public(
         self, data: ReadControllerRequest
-    ) -> PublicWsmScheme | PublicCarwashScheme:
+    ) -> PUBLIC_SCHEME_TYPE:
         controller = await self.controller_repository.get_concrete(data.controller_id)
         if not controller:
             raise ControllerNotFoundError
@@ -238,6 +239,8 @@ class ControllerService:
             return PublicCarwashScheme.model_validate(controller)
         elif controller.type is ControllerType.WATER_VENDING:
             return PublicWsmScheme.model_validate(controller)
+        elif controller.type is ControllerType.FISCALIZER:
+            return PublicFiscalizerScheme.model_validate(controller)
         else:
             raise ValueError("This controller type is not supported yet")
 

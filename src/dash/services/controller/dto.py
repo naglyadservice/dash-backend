@@ -201,6 +201,9 @@ class PublicFiscalizerScheme(BasePublicControllerScheme):
     type: Literal[ControllerType.FISCALIZER]
 
 
+PUBLIC_SCHEME_TYPE = PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme
+
+
 class ReadControllerRequest(BaseModel):
     controller_id: UUID
 
@@ -210,7 +213,7 @@ class ReadPublicControllerListRequest(BaseModel):
 
 
 class ReadPublicControllerListResponse(BaseModel):
-    controllers: list[PublicCarwashScheme | PublicWsmScheme]
+    controllers: list[PUBLIC_SCHEME_TYPE]
     total: int
 
 
