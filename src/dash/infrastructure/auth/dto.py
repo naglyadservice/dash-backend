@@ -52,6 +52,7 @@ class RefreshTokenResponse:
 
 
 class RegisterCustomerRequest(BaseModel):
+    name: str
     phone_number: str
     password: str
     company_id: UUID

@@ -125,6 +125,7 @@ class AuthService:
             raise PhoneNumberAlreadyTakenError
 
         customer = Customer(
+            name=user_data.name,
             company_id=user_data.company_id,
             phone_number=user_data.phone_number,
             password_hash=self.password_processor.hash(user_data.password),
