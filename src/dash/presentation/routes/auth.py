@@ -14,6 +14,7 @@ from dash.infrastructure.auth.dto import (
     CompleteCustomerRegistrationRequest,
     CompletePasswordResetRequest,
     CustomerRegistrationResponse,
+    LoginCustomerRequest,
     LogoutRequest,
     RefreshTokenRequest,
     RefreshTokenResponse,
@@ -36,6 +37,17 @@ async def login(
     auth_service: FromDishka[AuthService],
 ) -> LoginResponse:
     return await auth_service.authenticate(data)
+
+
+@auth_router.post(
+    "/customer/login",
+    responses={401: {"description": "Invalid email or password"}},
+)
+async def login_customer(
+    data: LoginCustomerRequest,
+    auth_service: FromDishka[AuthService],
+) -> LoginResponse:
+    return await auth_service.authenticate_customer(data)
 
 
 @dataclass

@@ -23,8 +23,6 @@ from dash.services.controller.dto import (
     LiqpayCredentialsDTO,
     LocationID,
     MonopayCredentialsDTO,
-    PublicCarwashScheme,
-    PublicWsmScheme,
     ReadControllerListRequest,
     ReadControllerRequest,
     ReadControllerResponse,
