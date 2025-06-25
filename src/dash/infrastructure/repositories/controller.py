@@ -31,7 +31,8 @@ class ControllerRepository(BaseRepository):
         self, controller_id: UUID
     ) -> WaterVendingController | CarwashController | None:
         loader_opt = selectin_polymorphic(
-            Controller, [WaterVendingController, CarwashController]
+            Controller,
+            [WaterVendingController, CarwashController, FiscalizerController],
         )
         stmt = (
             select(Controller).where(Controller.id == controller_id).options(loader_opt)
@@ -42,7 +43,8 @@ class ControllerRepository(BaseRepository):
         self, location_id: UUID | None = None
     ) -> tuple[Sequence[CarwashController | WaterVendingController], int]:
         loader_opt = selectin_polymorphic(
-            Controller, [WaterVendingController, CarwashController]
+            Controller,
+            [WaterVendingController, CarwashController, FiscalizerController],
         )
         stmt = select(Controller)
         if location_id:

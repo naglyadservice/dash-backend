@@ -13,6 +13,7 @@ from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
+from dash.models.transactions.fiscalizer import FiscalizerTransaction
 from dash.models.transactions.transaction import Transaction
 from dash.models.transactions.water_vending import WsmTransaction
 from dash.services.transaction.dto import (
@@ -65,7 +66,7 @@ class TransactionRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> tuple[Sequence[Transaction], int]:
         loader_opt = selectin_polymorphic(
-            Transaction, [WsmTransaction, CarwashTransaction]
+            Transaction, [WsmTransaction, CarwashTransaction, FiscalizerTransaction]
         )
 
         stmt = select(Transaction).options(loader_opt)
