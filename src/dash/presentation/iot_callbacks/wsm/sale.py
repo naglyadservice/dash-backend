@@ -152,12 +152,13 @@ async def wsm_sale_callback(
 
     if not was_inserted:
         logger.info(
-            "Wsm transaction was not inserted",
+            "Wsm transaction was not inserted due to conflict",
             device_id=device_id,
             controller_id=controller.id,
             transaction_id=transaction.id,
             data=dict_data,
         )
+        await wsm_client.sale_ack(device_id, data.id)
         return
 
     await transaction_repository.commit()

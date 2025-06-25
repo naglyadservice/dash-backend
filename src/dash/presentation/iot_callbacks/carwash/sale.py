@@ -160,6 +160,14 @@ async def carwash_sale_callback(
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
     if not was_inserted:
+        logger.info(
+            "Carwash transaction was not inserted due to conflict",
+            device_id=device_id,
+            controller_id=controller.id,
+            transaction_id=transaction.id,
+            data=dict_data,
+        )
+        await carwash_client.sale_ack(device_id, data.id)
         return
 
     await transaction_repository.commit()
@@ -171,4 +179,5 @@ async def carwash_sale_callback(
         controller_id=controller.id,
         transaction_id=transaction.id,
         controller_transaction_id=data.id,
+        data=dict_data,
     )

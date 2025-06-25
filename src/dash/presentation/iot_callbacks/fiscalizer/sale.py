@@ -10,6 +10,7 @@ from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models import FiscalizerTransaction
+from dash.models.controllers import fiscalizer
 from dash.models.transactions.transaction import TransactionType
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -95,6 +96,14 @@ async def fiscalizer_sale_callback(
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
     if not was_inserted:
+        logger.info(
+            "Fiscalizer transaction was not inserted due to conflict",
+            device_id=device_id,
+            controller_id=controller.id,
+            transaction_id=transaction.id,
+            data=dict_data,
+        )
+        await fiscalizer_client.sale_ack(device_id, data.id)
         return
 
     await transaction_repository.commit()
@@ -106,4 +115,5 @@ async def fiscalizer_sale_callback(
         controller_id=controller.id,
         transaction_id=transaction.id,
         controller_transaction_id=data.id,
+        data=dict_data,
     )
