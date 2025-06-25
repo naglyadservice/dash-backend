@@ -7,11 +7,11 @@ from dash.services.common.pagination import Pagination
 
 
 class BaseCustomer(BaseModel):
-    name: str
     company_id: UUID
-    card_id: str
     balance: float
     phone_number: str
+    name: str | None
+    card_id: str | None
     birth_date: date | None
     discount_percent: int | None
     tariff_per_liter_1: float | None
