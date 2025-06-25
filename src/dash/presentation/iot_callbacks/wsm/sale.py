@@ -151,6 +151,13 @@ async def wsm_sale_callback(
     was_inserted = await transaction_repository.insert_with_conflict_ignore(transaction)
 
     if not was_inserted:
+        logger.info(
+            "Wsm transaction was not inserted",
+            device_id=device_id,
+            controller_id=controller.id,
+            transaction_id=transaction.id,
+            data=dict_data,
+        )
         return
 
     await transaction_repository.commit()
@@ -162,4 +169,5 @@ async def wsm_sale_callback(
         controller_id=controller.id,
         transaction_id=transaction.id,
         controller_transaction_id=data.id,
+        data=dict_data,
     )
