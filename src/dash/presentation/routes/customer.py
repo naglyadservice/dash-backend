@@ -41,6 +41,29 @@ async def read_customers(
     return await service.read_customers(data)
 
 
+@customer_router.get("/me")
+async def get_customer_profile(
+    service: FromDishka[CustomerService],
+) -> CustomerProfileResponse:
+    return await service.read_profile()
+
+
+@customer_router.patch("/me", status_code=204)
+async def update_customer_profile(
+    service: FromDishka[CustomerService],
+    data: UpdateCustomerProfileRequest,
+) -> None:
+    await service.update_profile(data)
+
+
+@customer_router.patch("/me/password", status_code=204)
+async def change_customer_password(
+    service: FromDishka[CustomerService],
+    data: ChangeCustomerPasswordRequest,
+) -> None:
+    await service.change_password(data)
+
+
 @customer_router.patch("/{id}", status_code=204)
 async def edit_customer(
     service: FromDishka[CustomerService], data: EditCustomerDTO, id: UUID
@@ -53,26 +76,3 @@ async def delete_customer(
     service: FromDishka[CustomerService], data: DeleteCustomerRequest = Depends()
 ) -> None:
     await service.delete_customer(data)
-
-
-@customer_router.get("/me", dependencies=[bearer_scheme])
-async def get_customer_profile(
-    service: FromDishka[CustomerService],
-) -> CustomerProfileResponse:
-    return await service.read_profile()
-
-
-@customer_router.patch("/me", dependencies=[bearer_scheme], status_code=204)
-async def update_customer_profile(
-    service: FromDishka[CustomerService],
-    data: UpdateCustomerProfileRequest,
-) -> None:
-    await service.update_profile(data)
-
-
-@customer_router.patch("/me/password", status_code=204, dependencies=[bearer_scheme])
-async def change_customer_password(
-    service: FromDishka[CustomerService],
-    data: ChangeCustomerPasswordRequest,
-) -> None:
-    await service.change_password(data)
