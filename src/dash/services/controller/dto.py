@@ -176,6 +176,7 @@ class BasePublicControllerScheme(BaseModel):
     id: UUID
     name: str
     type: ControllerType
+    device_id: str
     location: PublicLocationDTO | None
     company: PublicCompanyDTO | None
     liqpay_active: bool
