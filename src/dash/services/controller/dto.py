@@ -156,6 +156,7 @@ class CloseEncashmentRequest(BaseModel):
 
 
 class PublicLocationDTO(BaseModel):
+    id: UUID
     name: str
     address: str | None
 
@@ -163,6 +164,7 @@ class PublicLocationDTO(BaseModel):
 
 
 class PublicCompanyDTO(BaseModel):
+    id: UUID
     name: str
     privacy_policy: str | None
     offer_agreement: str | None
