@@ -91,6 +91,7 @@ class IoTControllerBaseDTO(BaseModel):
     tasmota_id: str | None
     name: str
     type: ControllerType
+    qr: str
     version: str
     location: LocationDTO | None
     company: CompanyDTO | None

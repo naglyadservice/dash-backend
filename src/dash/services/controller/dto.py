@@ -177,6 +177,7 @@ class BasePublicControllerScheme(BaseModel):
     name: str
     type: ControllerType
     device_id: str
+    qr: str
     location: PublicLocationDTO | None
     company: PublicCompanyDTO | None
     liqpay_active: bool
