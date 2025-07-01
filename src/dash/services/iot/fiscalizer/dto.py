@@ -34,7 +34,7 @@ class InterfaceDTO(BaseModel):
 
 class FiscalizerSettings(BaseModel):
     interface: InterfaceDTO | None = None
-    simlatorMC_pulse_price: int | None = None
+    simulatorMC_pulse_price: int | None = None
     bill_pulse_price: int | None = None
     coin_pulse_price: int | None = None
     simulatorMC_table: list[int] | None = Field(
