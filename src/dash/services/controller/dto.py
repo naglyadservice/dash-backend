@@ -46,6 +46,7 @@ class ControllerScheme(BaseModel):
     name: str
     version: str
     type: ControllerType
+    qr: str
     status: ControllerStatus
     is_online: bool = False
 
