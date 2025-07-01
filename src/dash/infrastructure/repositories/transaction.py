@@ -64,7 +64,9 @@ class TransactionRepository(BaseRepository):
         self,
         data: ReadTransactionListRequest,
         whereclause: ColumnElement[Any] | None = None,
-    ) -> tuple[Sequence[Transaction], int]:
+    ) -> tuple[
+        Sequence[WsmTransaction | CarwashTransaction | FiscalizerTransaction], int
+    ]:
         loader_opt = selectin_polymorphic(
             Transaction, [WsmTransaction, CarwashTransaction, FiscalizerTransaction]
         )
@@ -93,7 +95,7 @@ class TransactionRepository(BaseRepository):
         paginated = (await self.session.scalars(paginated_stmt)).unique().all()
         total = await self._get_count(stmt)
 
-        return paginated, total
+        return paginated, total  # type: ignore
 
     async def get_list_all(
         self, data: ReadTransactionListRequest

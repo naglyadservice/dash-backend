@@ -49,6 +49,7 @@ from dash.services.controller.dto import (
     ReadPublicControllerListResponse,
     SetupTasmotaRequest,
 )
+from dash.services.controller.utils import generate_qr
 from dash.services.iot.factory import IoTServiceFactory
 
 
@@ -120,19 +121,20 @@ class ControllerService:
     async def add_controller(self, data: AddControllerRequest) -> AddControllerResponse:
         await self.identity_provider.ensure_superadmin()
 
-        base_controller = data.model_dump()
+        controller_dict = data.model_dump()
+        qr = await self._generate_unique_qr(data.type)
 
         if data.type is ControllerType.WATER_VENDING:
-            controller = WaterVendingController(**base_controller)
+            controller = WaterVendingController(**controller_dict, qr=qr)
 
         if data.type is ControllerType.CARWASH:
-            controller = CarwashController(**base_controller)
+            controller = CarwashController(**controller_dict, qr=qr)
 
         if data.type is ControllerType.VACUUM:
-            controller = VacuumController(**base_controller)
+            controller = VacuumController(**controller_dict, qr=qr)
 
         if data.type is ControllerType.FISCALIZER:
-            controller = FiscalizerController(**base_controller)
+            controller = FiscalizerController(**controller_dict, qr=qr)
 
         await self.factory.get(controller.type).init_controller_settings(controller)
 
@@ -140,6 +142,13 @@ class ControllerService:
         await self.controller_repository.commit()
 
         return AddControllerResponse(id=controller.id)
+
+    async def _generate_unique_qr(self, controller_type: ControllerType) -> str:
+        qr = generate_qr(controller_type)
+        while await self.controller_repository.exists_by_qr(qr):
+            qr = generate_qr(controller_type)
+
+        return qr
 
     async def add_monopay_credentials(self, data: AddMonopayCredentialsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
@@ -231,7 +240,7 @@ class ControllerService:
     async def read_controller_public(
         self, data: ReadControllerRequest
     ) -> PUBLIC_SCHEME_TYPE:
-        controller = await self.controller_repository.get_concrete(data.controller_id)
+        controller = await self.controller_repository.get_concrete_by_qr(data.qr)
         if not controller:
             raise ControllerNotFoundError
 

@@ -80,7 +80,7 @@ async def test_payment_card_get_callback(
         },
         di_container=di_container,  # type: ignore
     )
-    deps.wsm_client.payment_card_ack.assert_called_once_with(
+    deps.wsm_client.payment_card_ack.assert_called_once_with(  # type: ignore
         device_id=str(test_env.controller_1.device_id),
         payload={
             "request_id": 1,
@@ -152,12 +152,12 @@ async def test_encashment_callback(
     )
     mocker.patch.object(deps.wsm_client, "encashment_ack")
 
-    await deps.wsm_client.dispatcher.encashment._process_callbacks(  # type: ignore
+    await deps.wsm_client.dispatcher.encashment._process_callbacks(
         device_id=str(test_env.controller_1.device_id),
         decoded_payload=wsm_encashment_callback_retort.dump(payload),
         di_container=di_container,  # type: ignore
     )
-    deps.wsm_client.encashment_ack.assert_called_once_with(
+    deps.wsm_client.encashment_ack.assert_called_once_with(  # type: ignore
         device_id=str(test_env.controller_1.device_id),
         payload={"id": 1, "code": 0},
     )
@@ -196,7 +196,7 @@ async def test_wsm_sale_callback_with_card_balance_out(
         decoded_payload=wsm_sale_callback_retort.dump(payload),
         di_container=request_di_container,  # type: ignore
     )
-    deps.wsm_client.sale_ack.assert_called_once_with(
+    deps.wsm_client.sale_ack.assert_called_once_with(  # type: ignore
         test_env.controller_1.device_id, payload.id
     )
 
@@ -225,8 +225,8 @@ async def test_denomination_callback(
         decoded_payload=denomination_callback_retort.dump(payload),
         di_container=request_di_container,  # type: ignore
     )
-    payment_repository.add.assert_called_once()
-    payment_repository.commit.assert_called_once()
+    payment_repository.add.assert_called_once()  # type: ignore
+    payment_repository.commit.assert_called_once()  # type: ignore
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -262,7 +262,7 @@ async def test_carwash_sale_callback_with_card_balance_out(
         decoded_payload=carwash_sale_callback_retort.dump(payload),
         di_container=request_di_container,  # type: ignore
     )
-    deps.carwash_client.sale_ack.assert_called_once_with(
+    deps.carwash_client.sale_ack.assert_called_once_with(  # type: ignore
         test_env.controller_2.device_id, payload.id
     )
 
@@ -355,6 +355,6 @@ async def test_fiscalizer_sale_callback(
         decoded_payload=fiscalizer_sale_callback_retort.dump(payload),
         di_container=request_di_container,  # type: ignore
     )
-    deps.fiscalizer_client.sale_ack.assert_called_once_with(
+    deps.fiscalizer_client.sale_ack.assert_called_once_with(  # type: ignore
         test_env.controller_3.device_id, payload.id
     )

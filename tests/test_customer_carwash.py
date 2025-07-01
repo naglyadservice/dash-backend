@@ -72,13 +72,13 @@ async def test_start_and_finish_session(
     await deps.service.start_session(start_req)
     assert await deps.session_storage.is_active(controller_id)
     assert auth_customer.balance == old_balance - Decimal(start_req.amount / 100)
-    deps.carwash_client.set_payment.assert_called_once()
+    deps.carwash_client.set_payment.assert_called_once()  # type: ignore
 
     mode_req = SelectCarwashModeRequest(
         controller_id=controller_id, mode=CarwashActionDTO(Service="Foam")
     )
     await deps.service.select_mode(mode_req)
-    deps.carwash_client.set_action.assert_called_once()
+    deps.carwash_client.set_action.assert_called_once()  # type: ignore
 
     finish_req = FinishCarwashSessionRequest(controller_id=controller_id)
     await deps.service.finish_session(finish_req)

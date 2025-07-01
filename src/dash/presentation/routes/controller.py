@@ -152,7 +152,7 @@ async def read_controller_list_public(
     return await controller_service.read_controller_list_public(data)
 
 
-@controller_router.get("/public/{controller_id}")
+@controller_router.get("/public/{qr}")
 async def read_controller_public(
     controller_service: FromDishka[ControllerService],
     data: ReadControllerRequest = Depends(),

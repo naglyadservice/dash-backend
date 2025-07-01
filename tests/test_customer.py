@@ -132,13 +132,14 @@ async def test_customer_registration(
     )
 
     dto = RegisterCustomerRequest(
+        name="test",
         phone_number="test",
         password="test",
         company_id=test_env.company_1.id,
     )
 
     await deps.auth.start_customer_registration(dto)
-    deps.auth.sms_client.send_sms.assert_called_once()
+    deps.auth.sms_client.send_sms.assert_called_once()  # type: ignore
 
     await deps.auth.complete_customer_registration(
         CompleteCustomerRegistrationRequest(code="1111")

@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Callable, cast
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -89,7 +89,7 @@ def validation_error_handler(request: Request, exc: ValidationError) -> JSONResp
 
 
 def setup_exception_handlers(app: FastAPI) -> None:
-    exc_handler_list: list[tuple[type[Exception], function]] = [
+    exc_handler_list: list[tuple[type[Exception], Callable]] = [
         (EmailAlreadyTakenError, email_already_taken_error_handler),
         (PhoneNumberAlreadyTakenError, phone_number_already_taken_error_handler),
         (AuthError, authentication_error_handler),

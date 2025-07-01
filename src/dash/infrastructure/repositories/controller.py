@@ -1,7 +1,7 @@
 from typing import Any, Sequence
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, select
+from sqlalchemy import ColumnElement, exists, select
 from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
@@ -29,7 +29,7 @@ class ControllerRepository(BaseRepository):
 
     async def get_concrete(
         self, controller_id: UUID
-    ) -> WaterVendingController | CarwashController | None:
+    ) -> WaterVendingController | CarwashController | FiscalizerController | None:
         loader_opt = selectin_polymorphic(
             Controller,
             [WaterVendingController, CarwashController, FiscalizerController],
@@ -41,7 +41,9 @@ class ControllerRepository(BaseRepository):
 
     async def get_list_concrete(
         self, location_id: UUID | None = None
-    ) -> tuple[Sequence[CarwashController | WaterVendingController], int]:
+    ) -> tuple[
+        Sequence[CarwashController | WaterVendingController | FiscalizerController], int
+    ]:
         loader_opt = selectin_polymorphic(
             Controller,
             [WaterVendingController, CarwashController, FiscalizerController],
@@ -62,6 +64,20 @@ class ControllerRepository(BaseRepository):
             Controller.device_id == device_id,
         )
         return await self.session.scalar(stmt)
+
+    async def exists_by_qr(self, qr: str) -> bool:
+        stmt = select(exists().where(Controller.qr == qr))
+        return (await self.session.execute(stmt)).scalar_one()
+
+    async def get_concrete_by_qr(
+        self, qr: str
+    ) -> WaterVendingController | CarwashController | FiscalizerController | None:
+        loader_opt = selectin_polymorphic(
+            Controller,
+            [WaterVendingController, CarwashController, FiscalizerController],
+        )
+        stmt = select(Controller).where(Controller.qr == qr).options(loader_opt)
+        return await self.session.scalar(stmt)  # type: ignore
 
     async def get_by_tasmota_id(self, tasmota_id: str) -> Controller | None:
         stmt = select(Controller).where(

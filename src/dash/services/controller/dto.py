@@ -208,7 +208,7 @@ PUBLIC_SCHEME_TYPE = PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerSch
 
 
 class ReadControllerRequest(BaseModel):
-    controller_id: UUID
+    qr: str
 
 
 class ReadPublicControllerListRequest(BaseModel):

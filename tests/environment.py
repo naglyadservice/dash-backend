@@ -114,6 +114,7 @@ class TestEnvironment:
             status=ControllerStatus.ACTIVE,
             config=wsm_config,
             settings=wsm_settings,
+            qr="test_qr_1",
         )
         self.controller_2 = CarwashController(
             name="Test Controller 2",
@@ -124,6 +125,7 @@ class TestEnvironment:
             status=ControllerStatus.ACTIVE,
             config=carwash_config,
             settings=carwash_settings,
+            qr="test_qr_2",
         )
         self.controller_3 = FiscalizerController(
             name="Test Controller 3",
@@ -134,6 +136,7 @@ class TestEnvironment:
             status=ControllerStatus.ACTIVE,
             config=fiscalizer_config,
             settings=fiscalizer_settings,
+            qr="test_qr_3",
         )
 
         self.customer_1 = Customer(
