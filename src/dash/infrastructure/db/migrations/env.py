@@ -6,13 +6,13 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from dash.main.config import DbConfig
+from dash.main.config import Config
 from dash.models.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-config.set_main_option(name="sqlalchemy.url", value=DbConfig().build_dsn())
+config.set_main_option(name="sqlalchemy.url", value=Config().postgres.build_dsn())
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

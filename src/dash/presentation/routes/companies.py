@@ -2,7 +2,7 @@ from uuid import UUID
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.company.dto import (
@@ -11,6 +11,8 @@ from dash.services.company.dto import (
     EditCompanyDTO,
     EditCompanyRequest,
     ReadCompanyListResponse,
+    UploadLogoRequest,
+    UploadLogoResponse,
 )
 from dash.services.company.service import CompanyService
 
@@ -41,3 +43,10 @@ async def edit_company(
     service: FromDishka[CompanyService], company_id: UUID, data: EditCompanyDTO
 ) -> None:
     await service.edit_company(EditCompanyRequest(company_id=company_id, data=data))
+
+
+@company_router.post("/{company_id}/logo")
+async def upload_logo(
+    service: FromDishka[CompanyService], data: UploadLogoRequest = Depends()
+) -> UploadLogoResponse:
+    return await service.upload_logo(data)

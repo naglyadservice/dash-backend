@@ -1,6 +1,7 @@
 from typing import Any
 from uuid import UUID
 
+from fastapi import UploadFile
 from pydantic import BaseModel, model_validator
 
 from dash.services.common.errors.base import ValidationError
@@ -42,6 +43,7 @@ class CompanyScheme(BaseModel):
     owner: CompanyOwnerDTO
     offer_agreement: str | None
     privacy_policy: str | None
+    logo_key: str | None
 
 
 class ReadCompanyListResponse(BaseModel):
@@ -57,3 +59,12 @@ class EditCompanyDTO(BaseModel):
 class EditCompanyRequest(BaseModel):
     company_id: UUID
     data: EditCompanyDTO
+
+
+class UploadLogoRequest(BaseModel):
+    company_id: UUID
+    file: UploadFile
+
+
+class UploadLogoResponse(BaseModel):
+    logo_key: str

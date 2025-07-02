@@ -31,6 +31,7 @@ from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.repositories.user import UserRepository
+from dash.infrastructure.s3 import S3Service
 from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.infrastructure.storages.carwash_session import CarwashSessionStorage
 from dash.infrastructure.storages.iot import IoTStorage
@@ -40,12 +41,13 @@ from dash.infrastructure.storages.verification import VerificationStorage
 from dash.main.config import (
     AppConfig,
     Config,
-    DbConfig,
     JWTConfig,
     LiqpayConfig,
     MonopayConfig,
     MqttConfig,
+    PostgresConfig,
     RedisConfig,
+    S3Config,
     SMSConfig,
 )
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
@@ -67,7 +69,7 @@ def provide_configs() -> Provider:
     provider = Provider(scope=Scope.APP)
 
     provider.from_context(Config, scope=Scope.APP)
-    provider.from_context(DbConfig, scope=Scope.APP)
+    provider.from_context(PostgresConfig, scope=Scope.APP)
     provider.from_context(RedisConfig, scope=Scope.APP)
     provider.from_context(AppConfig, scope=Scope.APP)
     provider.from_context(MqttConfig, scope=Scope.APP)
@@ -75,6 +77,7 @@ def provide_configs() -> Provider:
     provider.from_context(LiqpayConfig, scope=Scope.APP)
     provider.from_context(JWTConfig, scope=Scope.APP)
     provider.from_context(SMSConfig, scope=Scope.APP)
+    provider.from_context(S3Config, scope=Scope.APP)
 
     return provider
 
@@ -157,6 +160,7 @@ def provide_infrastructure() -> Provider:
     provider.provide(CheckboxService, scope=Scope.REQUEST)
 
     provider.provide(SMSClient, scope=Scope.REQUEST)
+    provider.provide(S3Service, scope=Scope.REQUEST)
 
     return provider
 
@@ -176,7 +180,7 @@ def setup_di(config: Config) -> AsyncContainer:
         *get_providers(),
         context={
             Config: config,
-            DbConfig: config.db,
+            PostgresConfig: config.postgres,
             RedisConfig: config.redis,
             AppConfig: config.app,
             MqttConfig: config.mqtt,
@@ -184,5 +188,6 @@ def setup_di(config: Config) -> AsyncContainer:
             LiqpayConfig: config.liqpay,
             JWTConfig: config.jwt,
             SMSConfig: config.sms,
+            S3Config: config.s3,
         },
     )

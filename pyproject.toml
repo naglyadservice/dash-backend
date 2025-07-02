@@ -39,6 +39,7 @@ dependencies = [
     "asgi-correlation-id>=4.3.4",
     "uvloop>=0.21.0",
     "debugpy>=1.8.14",
+    "aioboto3>=15.0.0",
 ]
 
 [project.optional-dependencies]

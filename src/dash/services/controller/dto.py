@@ -169,6 +169,7 @@ class PublicCompanyDTO(BaseModel):
     name: str
     privacy_policy: str | None
     offer_agreement: str | None
+    logo_key: str | None
 
     model_config = ConfigDict(from_attributes=True)
 

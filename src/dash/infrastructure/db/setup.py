@@ -7,10 +7,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from dash.main.config import DbConfig
+from dash.main.config import PostgresConfig
 
 
-async def get_async_engine(config: DbConfig) -> AsyncGenerator[AsyncEngine, None]:
+async def get_async_engine(config: PostgresConfig) -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(config.build_dsn())
 
     yield engine

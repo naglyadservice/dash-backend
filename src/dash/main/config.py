@@ -1,23 +1,21 @@
+import os
 from typing import Literal
 from zoneinfo import ZoneInfo
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings as _BaseSettings
-from pydantic_settings import SettingsConfigDict
+from pydantic import BaseModel, Field, field_validator
+from pydantic_settings import BaseSettings
+
+# Printing all environment variables
+for key, value in os.environ.items():
+    print(f"{key}={value}")
 
 
-class BaseSettings(_BaseSettings):
-    model_config = SettingsConfigDict(
-        extra="ignore", env_file=".env", env_file_encoding="utf-8"
-    )
-
-
-class DbConfig(BaseSettings, env_prefix="POSTGRES_"):
-    host: str = Field(default=...)
-    port: int = Field(default=...)
-    user: str = Field(default=...)
-    password: str = Field(default=...)
-    db: str = Field(default=...)
+class PostgresConfig(BaseModel):
+    host: str
+    port: int
+    user: str
+    password: str
+    db: str
 
     def build_dsn(self) -> str:
         # import here to avoid import sqlalchemy before datadog integration
@@ -34,29 +32,29 @@ class DbConfig(BaseSettings, env_prefix="POSTGRES_"):
         return url.render_as_string(hide_password=False)
 
 
-class RedisConfig(BaseSettings, env_prefix="REDIS_"):
-    host: str = Field(default=...)
-    port: int = Field(default=...)
-    password: str = Field(default=...)
+class RedisConfig(BaseModel):
+    host: str
+    port: int
+    password: str
 
 
-class MqttConfig(BaseSettings, env_prefix="MQTT_"):
-    host: str = Field(default=...)
-    port: int = Field(default=...)
-    username: str = Field(default=...)
-    password: str = Field(default=...)
+class MqttConfig(BaseModel):
+    host: str
+    port: int
+    username: str
+    password: str
     client_id: str | None = Field(default=None)
 
 
-class AppConfig(BaseSettings):
-    host: str = Field(default="127.0.0.1")
-    port: int = Field(default=8000)
-    allowed_origins: list[str] = Field(default=...)
-    proxy_headers: bool = Field(default=False)
-    forwarded_allow_ips: str = Field(default="127.0.0.1")
-    enable_datadog: bool = Field(default=False)
-    enable_debugpy: bool = Field(default=False)
-    timezone: ZoneInfo = Field(default="Europe/Kiev")  # type: ignore
+class AppConfig(BaseModel):
+    host: str
+    port: int
+    allowed_origins: list[str]
+    proxy_headers: bool = False
+    forwarded_allow_ips: str = "127.0.0.1"
+    enable_datadog: bool
+    enable_debugpy: bool
+    timezone: ZoneInfo
 
     @field_validator("timezone", mode="before")
     @classmethod
@@ -64,45 +62,63 @@ class AppConfig(BaseSettings):
         return ZoneInfo(v)
 
 
-class MonopayConfig(BaseSettings, env_prefix="MONOPAY_"):
-    webhook_url: str = Field(default=...)
-    redirect_url: str = Field(default=...)
+class MonopayConfig(BaseModel):
+    webhook_url: str
+    redirect_url: str
 
 
-class LiqpayConfig(BaseSettings, env_prefix="LIQPAY_"):
-    webhook_url: str = Field(default=...)
-    redirect_url: str = Field(default=...)
+class LiqpayConfig(BaseModel):
+    webhook_url: str
+    redirect_url: str
 
 
-class JWTConfig(BaseSettings, env_prefix="JWT_"):
-    access_secret: str = Field(default=...)
-    access_algorithm: str = Field(default=...)
-    access_expire_minutes: int = Field(default=...)
-    refresh_secret: str = Field(default=...)
-    refresh_algorithm: str = Field(default=...)
-    refresh_expire_days: int = Field(default=...)
+class JWTConfig(BaseModel):
+    access_secret: str
+    access_algorithm: str
+    access_expire_minutes: int
+    refresh_secret: str
+    refresh_algorithm: str
+    refresh_expire_days: int
 
 
 LoggingLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
-class LoggingConfig(BaseSettings, env_prefix="LOG_"):
-    level: LoggingLevel = Field(default=...)
-    json_mode: bool = Field(default=...)
-    colorize: bool = Field(default=...)
+class LoggingConfig(BaseModel):
+    level: LoggingLevel
+    json_mode: bool
+    colorize: bool
 
 
-class SMSConfig(BaseSettings, env_prefix="SMS_"):
-    api_key: str = Field(default=...)
+class SMSConfig(BaseModel):
+    api_key: str
+
+
+class S3Config(BaseModel):
+    bucket_name: str
 
 
 class Config(BaseSettings):
-    db: DbConfig = DbConfig()
-    redis: RedisConfig = RedisConfig()
-    app: AppConfig = AppConfig()
-    mqtt: MqttConfig = MqttConfig()
-    monopay: MonopayConfig = MonopayConfig()
-    liqpay: LiqpayConfig = LiqpayConfig()
-    logging: LoggingConfig = LoggingConfig()
-    jwt: JWTConfig = JWTConfig()
-    sms: SMSConfig = SMSConfig()
+    # Mock init to avoid lint error when creating config from env
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    postgres: PostgresConfig
+    redis: RedisConfig
+    app: AppConfig
+    mqtt: MqttConfig
+    monopay: MonopayConfig
+    liqpay: LiqpayConfig
+    logging: LoggingConfig
+    jwt: JWTConfig
+    sms: SMSConfig
+    s3: S3Config
+
+    model_config = {
+        "arbitrary_types_allowed": True,
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "ignore",
+        "env_nested_delimiter": "__",
+    }
