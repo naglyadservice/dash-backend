@@ -5,7 +5,13 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.services.iot.dto import ControllerID, RebootControllerRequest, RebootDelayDTO
+from dash.services.iot.dto import (
+    ControllerID,
+    FreePaymentDTO,
+    RebootControllerRequest,
+    RebootDelayDTO,
+    SendFreePaymentRequest,
+)
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerConfig,
     FiscalizerIoTControllerScheme,
@@ -61,4 +67,15 @@ async def reboot_controller(
 ) -> None:
     await service.reboot_controller(
         RebootControllerRequest(controller_id=controller_id, delay=data.delay)
+    )
+
+
+@fiscalizer_router.post("/{controller_id}/payments/free", status_code=204)
+async def send_free_payment(
+    service: FromDishka[FiscalizerService],
+    data: FreePaymentDTO,
+    controller_id: UUID,
+) -> None:
+    await service.send_free_payment(
+        SendFreePaymentRequest(controller_id=controller_id, payment=data)
     )
