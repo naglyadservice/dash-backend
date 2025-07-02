@@ -16,6 +16,7 @@ from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
     SelectCarwashModeRequest,
     StartCarwashSessionRequest,
+    StartCarwashSessionResponse,
 )
 from dash.services.iot.carwash.service import CarwashService
 
@@ -41,7 +42,9 @@ class CustomerCarwashService:
             raise ControllerNotFoundError
         return controller
 
-    async def start_session(self, data: StartCarwashSessionRequest) -> None:
+    async def start_session(
+        self, data: StartCarwashSessionRequest
+    ) -> StartCarwashSessionResponse:
         customer = await self.id_provider.authorize_customer()
 
         if await self.session_storage.is_active(data.controller_id):
@@ -64,6 +67,8 @@ class CustomerCarwashService:
         await self.session_storage.set_session(
             data.controller_id, customer.id, controller.time_one_pay
         )
+
+        return StartCarwashSessionResponse(timeout=controller.time_one_pay)
 
     async def select_mode(self, data: SelectCarwashModeRequest) -> None:
         customer = await self.id_provider.authorize_customer()
