@@ -58,7 +58,7 @@ async def finish_session(
     await service.finish_session(data)
 
 
-@router.post("/{controller_id}/summa")
+@router.get("/{controller_id}/summa")
 async def get_summa(
     service: FromDishka[CustomerCarwashService],
     data: GetCarwashSummaRequest = Depends(),
