@@ -108,8 +108,8 @@ class CustomerCarwashService:
 
         controller = await self._get_controller(data.controller_id)
 
-        display_info = await self.carwash_service.get_display(
-            GetDisplayInfoRequest(controller_id=controller.id)
+        display_info = await self.carwash_service.get_display_infra(
+            device_id=controller.device_id
         )
 
         return GetCarwashSummaResponse(summa=display_info.summa)

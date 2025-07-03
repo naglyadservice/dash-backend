@@ -156,3 +156,13 @@ class CarwashService(BaseIoTService):
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
         )
+
+    async def get_display_infra(self, device_id: str) -> GetCarwashDisplayResponse:
+        display_info = await self.iot_client.get_display(device_id)
+
+        return GetCarwashDisplayResponse(
+            mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
+            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            summa=display_info.get("summa", 0),
+            time=display_info.get("time", 0),
+        )
