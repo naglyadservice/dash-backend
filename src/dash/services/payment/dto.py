@@ -46,6 +46,16 @@ class PaymentScheme(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PublicPaymentScheme(BaseModel):
+    id: UUID
+    amount: int
+    created_at: datetime
+    type: PaymentType
+    receipt_id: UUID | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class ReadPaymentListRequest(Pagination, BasePaymentFilters):
     pass
 
@@ -56,11 +66,11 @@ class ReadPaymentListResponse(BaseModel):
 
 
 class ReadPublicPaymentListRequest(BaseModel):
-    controller_id: UUID
+    qr: str
 
 
 class ReadPublicPaymentListResponse(BaseModel):
-    payments: list[PaymentScheme]
+    payments: list[PublicPaymentScheme]
 
 
 class GetPaymentStatsRequest(BasePaymentFilters):

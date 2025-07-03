@@ -9,8 +9,8 @@ from dash.presentation.bearer import bearer_scheme
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
     SelectCarwashModeRequest,
+    SelectCarwashModeResponse,
     StartCarwashSessionRequest,
-    StartCarwashSessionResponse,
 )
 from dash.services.iot.carwash.customer_service import CustomerCarwashService
 from dash.services.iot.carwash.dto import CarwashActionDTO
@@ -28,22 +28,22 @@ class AmountDTO:
     amount: int
 
 
-@router.post("/{controller_id}/start")
+@router.post("/{controller_id}/start", status_code=204)
 async def start_session(
     service: FromDishka[CustomerCarwashService], data: AmountDTO, controller_id: UUID
-) -> StartCarwashSessionResponse:
-    return await service.start_session(
+) -> None:
+    await service.start_session(
         StartCarwashSessionRequest(controller_id=controller_id, amount=data.amount)
     )
 
 
-@router.post("/{controller_id}/mode", status_code=204)
+@router.post("/{controller_id}/mode")
 async def select_mode(
     service: FromDishka[CustomerCarwashService],
     data: CarwashActionDTO,
     controller_id: UUID,
-) -> None:
-    await service.select_mode(
+) -> SelectCarwashModeResponse:
+    return await service.select_mode(
         SelectCarwashModeRequest(controller_id=controller_id, mode=data)
     )
 

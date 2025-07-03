@@ -12,6 +12,7 @@ from dash.services.payment.dto import (
     GetPaymentStatsRequest,
     GetPaymentStatsResponse,
     PaymentScheme,
+    PublicPaymentScheme,
     ReadPaymentListRequest,
     ReadPaymentListResponse,
     ReadPublicPaymentListRequest,
@@ -73,11 +74,11 @@ class PaymentService:
     async def read_payments_public(
         self, data: ReadPublicPaymentListRequest
     ) -> ReadPublicPaymentListResponse:
-        payments, _ = await self.payment_repository.get_list_all(
-            ReadPaymentListRequest(controller_id=data.controller_id, limit=5)
-        )
+        payments = await self.payment_repository.get_list_public(data=data, limit=5)
         return ReadPublicPaymentListResponse(
-            payments=[PaymentScheme.model_validate(payment) for payment in payments]
+            payments=[
+                PublicPaymentScheme.model_validate(payment) for payment in payments
+            ]
         )
 
     async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:

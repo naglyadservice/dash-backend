@@ -27,5 +27,9 @@ class SelectCarwashModeRequest(BaseModel):
     mode: CarwashActionDTO
 
 
+class SelectCarwashModeResponse(BaseModel):
+    timeout: int
+
+
 class FinishCarwashSessionRequest(BaseModel):
     controller_id: UUID

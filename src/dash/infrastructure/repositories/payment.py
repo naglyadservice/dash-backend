@@ -15,6 +15,7 @@ from dash.services.payment.dto import (
     GetPaymentStatsResponse,
     PaymentStatDTO,
     ReadPaymentListRequest,
+    ReadPublicPaymentListRequest,
 )
 
 
@@ -73,6 +74,18 @@ class PaymentRepository(BaseRepository):
             select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_list(data, whereclause)
+
+    async def get_list_public(
+        self, data: ReadPublicPaymentListRequest, limit: int
+    ) -> Sequence[Payment]:
+        stmt = (
+            select(Payment)
+            .join(Controller)
+            .where(Controller.qr == data.qr)
+            .order_by(Payment.created_at.desc())
+            .limit(limit)
+        )
+        return (await self.session.scalars(stmt)).unique().all()
 
     async def _get_stats(
         self,
