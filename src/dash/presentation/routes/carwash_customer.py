@@ -8,6 +8,8 @@ from fastapi import APIRouter, Depends
 from dash.presentation.bearer import bearer_scheme
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
+    GetCarwashSummaRequest,
+    GetCarwashSummaResponse,
     SelectCarwashModeRequest,
     SelectCarwashModeResponse,
     StartCarwashSessionRequest,
@@ -54,3 +56,11 @@ async def finish_session(
     data: FinishCarwashSessionRequest = Depends(),
 ) -> None:
     await service.finish_session(data)
+
+
+@router.post("/{controller_id}/summa")
+async def get_summa(
+    service: FromDishka[CustomerCarwashService],
+    data: GetCarwashSummaRequest = Depends(),
+) -> GetCarwashSummaResponse:
+    return await service.get_summa(data)

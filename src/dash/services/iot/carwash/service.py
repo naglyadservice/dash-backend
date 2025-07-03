@@ -149,7 +149,6 @@ class CarwashService(BaseIoTService):
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
         display_info = await self.iot_client.get_display(controller.device_id)
-        print(display_info)
 
         return GetCarwashDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),

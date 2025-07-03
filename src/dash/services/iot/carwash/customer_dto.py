@@ -1,13 +1,11 @@
-from uuid import UUID
-
 from pydantic import BaseModel, field_validator
 
+from dash.services.common.dto import ControllerID
 from dash.services.common.errors.base import ValidationError
 from dash.services.iot.carwash.dto import CarwashActionDTO
 
 
-class StartCarwashSessionRequest(BaseModel):
-    controller_id: UUID
+class StartCarwashSessionRequest(ControllerID):
     amount: int
 
     @field_validator("amount")
@@ -22,8 +20,7 @@ class StartCarwashSessionResponse(BaseModel):
     timeout: int
 
 
-class SelectCarwashModeRequest(BaseModel):
-    controller_id: UUID
+class SelectCarwashModeRequest(ControllerID):
     mode: CarwashActionDTO
 
 
@@ -31,5 +28,13 @@ class SelectCarwashModeResponse(BaseModel):
     timeout: int
 
 
-class FinishCarwashSessionRequest(BaseModel):
-    controller_id: UUID
+class FinishCarwashSessionRequest(ControllerID):
+    pass
+
+
+class GetCarwashSummaRequest(ControllerID):
+    pass
+
+
+class GetCarwashSummaResponse(BaseModel):
+    summa: int

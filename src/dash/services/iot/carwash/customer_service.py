@@ -14,11 +14,14 @@ from dash.services.common.errors.customer_carwash import (
 )
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
+    GetCarwashSummaRequest,
+    GetCarwashSummaResponse,
     SelectCarwashModeRequest,
     SelectCarwashModeResponse,
     StartCarwashSessionRequest,
 )
 from dash.services.iot.carwash.service import CarwashService
+from dash.services.iot.dto import GetDisplayInfoRequest
 
 
 class CustomerCarwashService:
@@ -95,3 +98,18 @@ class CustomerCarwashService:
             raise CarwashSessionNotFoundError
 
         await self.session_storage.delete_session(data.controller_id)
+
+    async def get_summa(self, data: GetCarwashSummaRequest) -> GetCarwashSummaResponse:
+        customer = await self.id_provider.authorize_customer()
+        customer_session = await self.session_storage.get_session(data.controller_id)
+
+        if customer_session != customer.id:
+            raise CarwashSessionNotFoundError
+
+        controller = await self._get_controller(data.controller_id)
+
+        display_info = await self.carwash_service.get_display(
+            GetDisplayInfoRequest(controller_id=controller.id)
+        )
+
+        return GetCarwashSummaResponse(summa=display_info.summa)
