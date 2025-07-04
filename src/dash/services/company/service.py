@@ -12,7 +12,9 @@ from dash.services.company.dto import (
     CreateCompanyRequest,
     CreateCompanyResponse,
     EditCompanyRequest,
+    PublicCompanyScheme,
     ReadCompanyListResponse,
+    ReadCompanyPublicRequest,
     UploadLogoRequest,
     UploadLogoResponse,
 )
@@ -53,6 +55,7 @@ class CompanyService:
             owner_id=owner_id,
             offer_agreement=data.offer_agreement,
             privacy_policy=data.privacy_policy,
+            about=data.about,
         )
         self.company_repository.add(company)
         await self.company_repository.commit()
@@ -104,3 +107,13 @@ class CompanyService:
         await self.company_repository.commit()
 
         return UploadLogoResponse(logo_key=logo_key)
+
+    async def read_public_company(self, data: ReadCompanyPublicRequest):
+        await self.identity_provider.authorize_customer()
+
+        company = await self.company_repository.get(data.company_id)
+
+        if not company:
+            raise CompanyNotFoundError
+
+        return PublicCompanyScheme.model_validate(company)

@@ -2,7 +2,7 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import UploadFile
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.services.common.errors.base import ValidationError
 from dash.services.user.dto import CreateUserRequest, CreateUserResponse
@@ -14,6 +14,7 @@ class CreateCompanyRequest(BaseModel):
     new_owner: CreateUserRequest | None = None
     offer_agreement: str | None = None
     privacy_policy: str | None = None
+    about: str | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -43,6 +44,7 @@ class CompanyScheme(BaseModel):
     owner: CompanyOwnerDTO
     offer_agreement: str | None
     privacy_policy: str | None
+    about: str | None
     logo_key: str | None
 
 
@@ -54,6 +56,7 @@ class EditCompanyDTO(BaseModel):
     name: str | None = None
     offer_agreement: str | None = None
     privacy_policy: str | None = None
+    about: str | None = None
 
 
 class EditCompanyRequest(BaseModel):
@@ -68,3 +71,17 @@ class UploadLogoRequest(BaseModel):
 
 class UploadLogoResponse(BaseModel):
     logo_key: str
+
+
+class ReadCompanyPublicRequest(BaseModel):
+    company_id: UUID
+
+
+class PublicCompanyScheme(BaseModel):
+    name: str
+    privacy_policy: str | None = None
+    offer_agreement: str | None = None
+    about: str | None = None
+    logo_key: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)

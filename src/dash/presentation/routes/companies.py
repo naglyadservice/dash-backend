@@ -10,7 +10,9 @@ from dash.services.company.dto import (
     CreateCompanyResponse,
     EditCompanyDTO,
     EditCompanyRequest,
+    PublicCompanyScheme,
     ReadCompanyListResponse,
+    ReadCompanyPublicRequest,
     UploadLogoRequest,
     UploadLogoResponse,
 )
@@ -29,6 +31,14 @@ async def read_companies(
     service: FromDishka[CompanyService],
 ) -> ReadCompanyListResponse:
     return await service.read_companies()
+
+
+@company_router.get("/{company_id}")
+async def read_company_public(
+    service: FromDishka[CompanyService],
+    data: ReadCompanyPublicRequest = Depends(),
+) -> PublicCompanyScheme:
+    return await service.read_public_company(data)
 
 
 @company_router.post("")

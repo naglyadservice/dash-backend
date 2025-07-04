@@ -31,7 +31,7 @@ class AmountDTO:
     amount: int
 
 
-@router.post("/{controller_id}/start", status_code=204)
+@router.post("/{controller_id}/start")
 async def start_session(
     service: FromDishka[CustomerCarwashService], data: AmountDTO, controller_id: UUID
 ) -> StartCarwashSessionResponse:

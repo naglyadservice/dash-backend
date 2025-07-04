@@ -22,7 +22,6 @@ from dash.services.iot.carwash.customer_dto import (
     StartCarwashSessionResponse,
 )
 from dash.services.iot.carwash.service import CarwashService
-from dash.services.iot.dto import GetDisplayInfoRequest
 
 
 class CustomerCarwashService:

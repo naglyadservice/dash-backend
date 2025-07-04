@@ -18,6 +18,7 @@ class Company(Base, UUIDMixin, CreatedAtMixin):
     name: Mapped[str] = mapped_column()
     privacy_policy: Mapped[str | None] = mapped_column()
     offer_agreement: Mapped[str | None] = mapped_column()
+    about: Mapped[str | None] = mapped_column()
     logo_key: Mapped[str | None] = mapped_column()
 
     locations: Mapped[list["Location"]] = relationship(back_populates="company")
