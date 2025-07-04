@@ -23,7 +23,7 @@ class FiscalizerConfig(BaseModel):
     OTA_port: int | None = None
 
 
-INTERFACE_TYPE = Literal["ccnet", "pulsed", "none"]
+INTERFACE_TYPE = Literal["ccnet", "pulsed", "no"]
 
 
 class InterfaceDTO(BaseModel):
