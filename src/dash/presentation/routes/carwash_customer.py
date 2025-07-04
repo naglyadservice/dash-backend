@@ -13,6 +13,7 @@ from dash.services.iot.carwash.customer_dto import (
     SelectCarwashModeRequest,
     SelectCarwashModeResponse,
     StartCarwashSessionRequest,
+    StartCarwashSessionResponse,
 )
 from dash.services.iot.carwash.customer_service import CustomerCarwashService
 from dash.services.iot.carwash.dto import CarwashActionDTO
@@ -33,8 +34,8 @@ class AmountDTO:
 @router.post("/{controller_id}/start", status_code=204)
 async def start_session(
     service: FromDishka[CustomerCarwashService], data: AmountDTO, controller_id: UUID
-) -> None:
-    await service.start_session(
+) -> StartCarwashSessionResponse:
+    return await service.start_session(
         StartCarwashSessionRequest(controller_id=controller_id, amount=data.amount)
     )
 
