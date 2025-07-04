@@ -9,6 +9,7 @@ from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.base import BaseIoTService
+from dash.services.iot.dto import SendFreePaymentRequest
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     SetFiscalizerConfigRequest,
@@ -55,3 +56,11 @@ class FiscalizerService(BaseIoTService):
             energy_state=await self.iot_storage.get_energy_state(controller.id),
             is_online=await self.check_online(controller),
         )
+
+    async def send_qr_payment_infra(self, device_id: str, order_id: str, amount: int):
+        amount = round(amount / 100, 2)  # type: ignore
+        return await super().send_qr_payment_infra(device_id, order_id, amount)
+
+    async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
+        data.payment.amount = round(data.payment.amount / 100, 2)  # type: ignore
+        return await super().send_free_payment(data)
