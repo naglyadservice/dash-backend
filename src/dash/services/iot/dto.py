@@ -114,6 +114,8 @@ class IoTControllerBaseDTO(BaseModel):
     state: BaseModel | None
     energy_state: EnergyStateDTO | None = None
 
+    min_deposit_amount: int
+
     @classmethod
     @abstractmethod
     def get_state_dto(cls) -> Type[BaseModel]:

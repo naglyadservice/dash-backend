@@ -30,6 +30,7 @@ from dash.services.controller.dto import (
     ReadEncashmentListResponse,
     ReadPublicControllerListRequest,
     ReadPublicControllerListResponse,
+    SetMinDepositAmountRequest,
     SetupTasmotaRequest,
 )
 from dash.services.controller.service import ControllerService
@@ -199,3 +200,23 @@ async def read_tasmota_stats(
     data: GetEnergyStatsRequest = Depends(),
 ) -> GetEnergyStatsResponse:
     return await controller_service.read_energy_stats(data)
+
+
+@dataclass
+class MinDepositAmountDTO:
+    amount: int
+
+
+@controller_router.patch(
+    "/{controller_id}/min-deposit-amount", status_code=204, dependencies=[bearer_scheme]
+)
+async def set_min_deposit_amount(
+    controller_service: FromDishka[ControllerService],
+    controller_id: UUID,
+    data: MinDepositAmountDTO,
+) -> None:
+    await controller_service.set_min_deposit_amount(
+        SetMinDepositAmountRequest(
+            controller_id=controller_id, min_deposit_amount=data.amount
+        )
+    )

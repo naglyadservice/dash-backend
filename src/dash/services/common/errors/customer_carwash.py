@@ -20,3 +20,8 @@ class CarwashSessionNotFoundError(EntityNotFoundError):
 @dataclass
 class InsufficientBalanceError(ValidationError):
     message: str = "Insufficient balance"
+
+
+@dataclass
+class InsufficientDepositAmountError(ValidationError):
+    message: str = "Insufficient deposit amount"

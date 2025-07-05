@@ -205,6 +205,9 @@ class PublicWsmScheme(BasePublicControllerScheme):
 
 class PublicFiscalizerScheme(BasePublicControllerScheme):
     type: Literal[ControllerType.FISCALIZER]
+    quick_deposit_button_1: int | None
+    quick_deposit_button_2: int | None
+    quick_deposit_button_3: int | None
 
 
 PUBLIC_SCHEME_TYPE = PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme
@@ -242,3 +245,7 @@ class GetEnergyStatsRequest(ControllerID):
 
 class GetEnergyStatsResponse(BaseModel):
     total_energy: float
+
+
+class SetMinDepositAmountRequest(ControllerID):
+    min_deposit_amount: int

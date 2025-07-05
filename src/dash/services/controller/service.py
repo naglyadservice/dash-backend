@@ -47,6 +47,7 @@ from dash.services.controller.dto import (
     ReadEncashmentListResponse,
     ReadPublicControllerListRequest,
     ReadPublicControllerListResponse,
+    SetMinDepositAmountRequest,
     SetupTasmotaRequest,
 )
 from dash.services.controller.utils import generate_qr
@@ -278,9 +279,8 @@ class ControllerService:
         )
 
     async def setup_tasmota(self, data: SetupTasmotaRequest) -> None:
-        await self.identity_provider.ensure_superadmin()
-
         controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_company_owner(controller.company_id)
 
         if data.tasmota_id:
             configured_controller = await self.controller_repository.get_by_tasmota_id(
@@ -290,6 +290,13 @@ class ControllerService:
                 raise TasmotaIDAlreadyTakenError
 
         controller.tasmota_id = data.tasmota_id
+        await self.controller_repository.commit()
+
+    async def set_min_deposit_amount(self, data: SetMinDepositAmountRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        controller.min_deposit_amount = data.min_deposit_amount
         await self.controller_repository.commit()
 
     async def edit_controller(self, data: EditControllerRequest) -> None:

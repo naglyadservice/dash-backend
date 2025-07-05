@@ -14,6 +14,7 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 from dash.services.iot.factory import IoTServiceFactory
 
 
@@ -79,6 +80,9 @@ class LiqpayService:
             raise HTTPException(
                 status_code=400, detail="Controller is not supported Liqpay"
             )
+
+        if data.amount < controller.min_deposit_amount:
+            raise InsufficientDepositAmountError
 
         await self.factory.get(controller.type).healthcheck(controller.device_id)
 

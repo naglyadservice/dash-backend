@@ -14,6 +14,7 @@ from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     SetFiscalizerConfigRequest,
     SetFiscalizerSettingsRequest,
+    SetupQuickDepositButtonsRequest,
 )
 
 
@@ -64,3 +65,18 @@ class FiscalizerService(BaseIoTService):
     async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
         data.payment.amount = round(data.payment.amount / 100, 2)  # type: ignore
         return await super().send_free_payment(data)
+
+    async def setup_quick_deposit_buttons(
+        self, data: SetupQuickDepositButtonsRequest
+    ) -> None:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        if btn_1 := data.buttons.quick_deposit_button_1 is not None:
+            controller.quick_deposit_button_1 = btn_1
+        if btn_2 := data.buttons.quick_deposit_button_2 is not None:
+            controller.quick_deposit_button_2 = btn_2
+        if btn_3 := data.buttons.quick_deposit_button_3 is not None:
+            controller.quick_deposit_button_3 = btn_3
+
+        await self.controller_repository.commit()

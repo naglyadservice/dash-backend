@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.services.common.dto import ControllerID
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
     SetConfigRequest,
@@ -62,6 +63,20 @@ class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
     config: FiscalizerConfig | None = None
     state: FiscalizerState | None = None
 
+    quick_deposit_button_1: int | None = None
+    quick_deposit_button_2: int | None = None
+    quick_deposit_button_3: int | None = None
+
     @classmethod
     def get_state_dto(cls):
         return FiscalizerState
+
+
+class QuickDepositButtonsDTO(BaseModel):
+    quick_deposit_button_1: int | None = None
+    quick_deposit_button_2: int | None = None
+    quick_deposit_button_3: int | None = None
+
+
+class SetupQuickDepositButtonsRequest(ControllerID):
+    buttons: QuickDepositButtonsDTO

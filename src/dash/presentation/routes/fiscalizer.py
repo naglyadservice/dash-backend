@@ -16,8 +16,10 @@ from dash.services.iot.fiscalizer.dto import (
     FiscalizerConfig,
     FiscalizerIoTControllerScheme,
     FiscalizerSettings,
+    QuickDepositButtonsDTO,
     SetFiscalizerConfigRequest,
     SetFiscalizerSettingsRequest,
+    SetupQuickDepositButtonsRequest,
 )
 from dash.services.iot.fiscalizer.service import FiscalizerService
 
@@ -78,4 +80,15 @@ async def send_free_payment(
 ) -> None:
     await service.send_free_payment(
         SendFreePaymentRequest(controller_id=controller_id, payment=data)
+    )
+
+
+@fiscalizer_router.patch("/{controller_id}/quick-deposit-buttons", status_code=204)
+async def update_quick_deposit_buttons(
+    service: FromDishka[FiscalizerService],
+    data: QuickDepositButtonsDTO,
+    controller_id: UUID,
+) -> None:
+    await service.setup_quick_deposit_buttons(
+        SetupQuickDepositButtonsRequest(controller_id=controller_id, buttons=data)
     )

@@ -11,6 +11,7 @@ from dash.services.common.errors.customer_carwash import (
     CarwashSessionActiveError,
     CarwashSessionNotFoundError,
     InsufficientBalanceError,
+    InsufficientDepositAmountError,
 )
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
@@ -59,6 +60,9 @@ class CustomerCarwashService:
             raise InsufficientBalanceError
 
         controller = await self._get_controller(data.controller_id)
+
+        if data.amount < controller.min_deposit_amount:
+            raise InsufficientDepositAmountError
 
         await self.carwash_service.send_free_payment_infra(
             device_id=controller.device_id,

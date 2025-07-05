@@ -7,7 +7,7 @@ from uuid import UUID
 
 import ecdsa
 from fastapi import HTTPException
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
@@ -17,8 +17,8 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.main.config import MonopayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
-from dash.services.common.errors.base import ValidationError
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 from dash.services.iot.factory import IoTServiceFactory
 
 
@@ -30,13 +30,6 @@ class ProcessWebhookRequest(BaseModel):
 class CreateInvoiceRequest(BaseModel):
     controller_id: UUID
     amount: int
-
-    @field_validator("amount")
-    @classmethod
-    def validate(cls, v: int) -> int:
-        if v < 100:
-            raise ValidationError("'amount' cannot be less than 100")
-        return v
 
 
 class CreateInvoiceResponse(BaseModel):
@@ -131,6 +124,9 @@ class MonopayService:
             raise HTTPException(
                 status_code=400, detail="Controller is not supported Monopay"
             )
+
+        if data.amount < controller.min_deposit_amount:
+            raise InsufficientDepositAmountError
 
         await self.factory.get(controller.type).healthcheck(controller.device_id)
 
