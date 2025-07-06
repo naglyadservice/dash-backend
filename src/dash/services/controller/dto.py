@@ -184,6 +184,7 @@ class BasePublicControllerScheme(BaseModel):
     company: PublicCompanyDTO | None
     liqpay_active: bool
     monopay_active: bool
+    min_deposit_amount: int
 
     model_config = ConfigDict(from_attributes=True)
 
