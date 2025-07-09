@@ -3,7 +3,7 @@ import asyncio
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from dash.infrastructure.auth.password_processor import PasswordProcessor
-from dash.main.config import DbConfig
+from dash.main.config import Config
 from dash.models.admin_user import AdminRole, AdminUser
 
 
@@ -12,8 +12,8 @@ async def create_superadmin() -> None:
     password = input("Enter password: ")
     name = input("Enter name: ")
 
-    config = DbConfig()
-    engine = create_async_engine(config.build_dsn())
+    config = Config()
+    engine = create_async_engine(config.postgres.build_dsn())
     session_maker = async_sessionmaker(engine)
 
     user = AdminUser(
