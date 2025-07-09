@@ -72,11 +72,8 @@ class FiscalizerService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_company_owner(controller.company_id)
 
-        if btn_1 := data.buttons.quick_deposit_button_1 is not None:
-            controller.quick_deposit_button_1 = btn_1
-        if btn_2 := data.buttons.quick_deposit_button_2 is not None:
-            controller.quick_deposit_button_2 = btn_2
-        if btn_3 := data.buttons.quick_deposit_button_3 is not None:
-            controller.quick_deposit_button_3 = btn_3
+        dict_data = data.model_dump(exclude_unset=True)
+        for k, v in dict_data.items():
+            setattr(controller, k, v)
 
         await self.controller_repository.commit()
