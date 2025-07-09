@@ -56,6 +56,8 @@ class SetFiscalizerSettingsRequest(SetSettingsRequest):
 
 class FiscalizerState(BaseModel):
     created: datetime
+    input: bool | None = None
+    
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
