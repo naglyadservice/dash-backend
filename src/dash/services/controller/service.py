@@ -16,6 +16,7 @@ from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
+    DeviceIDAlreadyTakenError,
     TasmotaIDAlreadyTakenError,
 )
 from dash.services.common.errors.encashment import (
@@ -121,6 +122,12 @@ class ControllerService:
 
     async def add_controller(self, data: AddControllerRequest) -> AddControllerResponse:
         await self.identity_provider.ensure_superadmin()
+
+        existing_controller = await self.controller_repository.get_by_device_id(
+            data.device_id
+        )
+        if existing_controller is not None:
+            raise DeviceIDAlreadyTakenError
 
         controller_dict = data.model_dump()
         qr = await self._generate_unique_qr(data.type)

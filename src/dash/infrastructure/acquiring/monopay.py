@@ -17,6 +17,7 @@ from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.main.config import MonopayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.services.common.errors.base import ValidationError, dataclass
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 from dash.services.iot.factory import IoTServiceFactory
@@ -34,6 +35,11 @@ class CreateInvoiceRequest(BaseModel):
 
 class CreateInvoiceResponse(BaseModel):
     invoice_url: str
+
+
+@dataclass
+class ControllerNotSupportMonopayError(ValidationError):
+    message: str = "Controller does not support monopay"
 
 
 class MonopayService:
@@ -121,9 +127,7 @@ class MonopayService:
             raise ControllerNotFoundError
 
         if not controller.monopay_active or not controller.monopay_token:
-            raise HTTPException(
-                status_code=400, detail="Controller is not supported Monopay"
-            )
+            raise ControllerNotSupportMonopayError
 
         if data.amount < controller.min_deposit_amount:
             raise InsufficientDepositAmountError

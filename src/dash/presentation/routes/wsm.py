@@ -5,6 +5,8 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses, controller_errors
+from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.dto import (
     BlockingDTO,
     BlockingRequest,
@@ -38,7 +40,10 @@ wsm_router = APIRouter(
 )
 
 
-@wsm_router.get("/{controller_id}")
+@wsm_router.get(
+    "/{controller_id}",
+    responses=build_responses((404, (ControllerNotFoundError,))),
+)
 async def read_controller(
     wsm_service: FromDishka[WsmService],
     path: ControllerID = Depends(),
@@ -46,7 +51,11 @@ async def read_controller(
     return await wsm_service.read_controller(path)
 
 
-@wsm_router.patch("/{controller_id}/config", status_code=204)
+@wsm_router.patch(
+    "/{controller_id}/config",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def update_config(
     wsm_service: FromDishka[WsmService],
     data: WsmConfig,
@@ -57,7 +66,11 @@ async def update_config(
     )
 
 
-@wsm_router.patch("/{controller_id}/settings", status_code=204)
+@wsm_router.patch(
+    "/{controller_id}/settings",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def update_settings(
     wsm_service: FromDishka[WsmService],
     data: WsmSettings,
@@ -68,7 +81,11 @@ async def update_settings(
     )
 
 
-@wsm_router.post("/{controller_id}/actions", status_code=204)
+@wsm_router.post(
+    "/{controller_id}/actions",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def send_action(
     wsm_service: FromDishka[WsmService],
     data: WsmActionDTO,
@@ -79,7 +96,11 @@ async def send_action(
     )
 
 
-@wsm_router.post("/{controller_id}/blocking", status_code=204)
+@wsm_router.post(
+    "/{controller_id}/blocking",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def blocking(
     wsm_service: FromDishka[WsmService],
     data: BlockingDTO,
@@ -90,7 +111,11 @@ async def blocking(
     )
 
 
-@wsm_router.post("/{controller_id}/reboot", status_code=204)
+@wsm_router.post(
+    "/{controller_id}/reboot",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def reboot_controller(
     wsm_service: FromDishka[WsmService],
     data: RebootDelayDTO,
@@ -101,7 +126,11 @@ async def reboot_controller(
     )
 
 
-@wsm_router.post("/{controller_id}/payments/qr", status_code=204)
+@wsm_router.post(
+    "/{controller_id}/payments/qr",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def send_qr_payment(
     wsm_service: FromDishka[WsmService],
     data: QRPaymentDTO,
@@ -112,7 +141,11 @@ async def send_qr_payment(
     )
 
 
-@wsm_router.post("/{controller_id}/payments/free", status_code=204)
+@wsm_router.post(
+    "/{controller_id}/payments/free",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def send_free_payment(
     wsm_service: FromDishka[WsmService],
     data: FreePaymentDTO,
@@ -123,7 +156,11 @@ async def send_free_payment(
     )
 
 
-@wsm_router.post("/{controller_id}/payments/clear", status_code=204)
+@wsm_router.post(
+    "/{controller_id}/payments/clear",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def clear_payments(
     wsm_service: FromDishka[WsmService],
     data: PaymentClearOptionsDTO,
@@ -134,7 +171,10 @@ async def clear_payments(
     )
 
 
-@wsm_router.get("/{controller_id}/display")
+@wsm_router.get(
+    "/{controller_id}/display",
+    responses=build_responses(*controller_errors),
+)
 async def get_display_info(
     wsm_service: FromDishka[WsmService],
     data: GetDisplayInfoRequest = Depends(),

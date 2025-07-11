@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import uuid
+from dataclasses import dataclass
 from typing import Any, Literal
 
 from fastapi import HTTPException
@@ -13,6 +14,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
 from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.services.common.errors.base import ValidationError
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 from dash.services.iot.factory import IoTServiceFactory
@@ -30,6 +32,11 @@ class CreateLiqpayInvoiceResponse(BaseModel):
 class ProcessLiqpayWebhookRequest(BaseModel):
     body: str
     signature: str
+
+
+@dataclass
+class ControllerNotSupportLiqpayError(ValidationError):
+    message: str = "Controller does not support LiqPay"
 
 
 class LiqpayService:
@@ -77,9 +84,7 @@ class LiqpayService:
         if not controller.liqpay_active or not (
             controller.liqpay_public_key and controller.liqpay_private_key
         ):
-            raise HTTPException(
-                status_code=400, detail="Controller is not supported Liqpay"
-            )
+            raise ControllerNotSupportLiqpayError
 
         if data.amount < controller.min_deposit_amount:
             raise InsufficientDepositAmountError

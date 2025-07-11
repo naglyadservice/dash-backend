@@ -5,6 +5,13 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses
+from dash.services.common.errors.user import (
+    CardIdAlreadyTakenError,
+    CustomerNotFoundError,
+    EmailAlreadyTakenError,
+    InvalidCurrentPasswordError,
+)
 from dash.services.customer.dto import (
     ChangeCustomerPasswordRequest,
     CreateCustomerRequest,
@@ -27,7 +34,12 @@ customer_router = APIRouter(
 )
 
 
-@customer_router.post("")
+@customer_router.post(
+    "",
+    responses=build_responses(
+        (409, (EmailAlreadyTakenError, CardIdAlreadyTakenError)),
+    ),
+)
 async def create_customer(
     service: FromDishka[CustomerService], data: CreateCustomerRequest
 ) -> CreateCustomerResponse:
@@ -42,21 +54,27 @@ async def read_customers(
 
 
 @customer_router.get("/me")
-async def get_customer_profile(
+async def read_customer_profile(
     service: FromDishka[CustomerService],
 ) -> CustomerProfileResponse:
     return await service.read_profile()
 
 
 @customer_router.patch("/me", status_code=204)
-async def update_customer_profile(
+async def update_profile(
     service: FromDishka[CustomerService],
     data: UpdateCustomerProfileRequest,
 ) -> None:
     await service.update_profile(data)
 
 
-@customer_router.patch("/me/password", status_code=204)
+@customer_router.patch(
+    "/me/password",
+    status_code=204,
+    responses=build_responses(
+        (400, (InvalidCurrentPasswordError,)),
+    ),
+)
 async def change_customer_password(
     service: FromDishka[CustomerService],
     data: ChangeCustomerPasswordRequest,
@@ -64,14 +82,18 @@ async def change_customer_password(
     await service.change_password(data)
 
 
-@customer_router.patch("/{id}", status_code=204)
+@customer_router.patch(
+    "/{id}", status_code=204, responses=build_responses((404, (CustomerNotFoundError,)))
+)
 async def edit_customer(
     service: FromDishka[CustomerService], data: EditCustomerDTO, id: UUID
 ) -> None:
     await service.edit_customer(EditCustomerRequest(id=id, user=data))
 
 
-@customer_router.delete("/{id}", status_code=204)
+@customer_router.delete(
+    "/{id}", status_code=204, responses=build_responses((404, (CustomerNotFoundError,)))
+)
 async def delete_customer(
     service: FromDishka[CustomerService], data: DeleteCustomerRequest = Depends()
 ) -> None:

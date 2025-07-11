@@ -5,6 +5,8 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses
+from dash.services.common.errors.company import CompanyNotFoundError
 from dash.services.location.dto import (
     CreateLocationRequest,
     CreateLocationResponse,
@@ -23,7 +25,12 @@ location_router = APIRouter(
 )
 
 
-@location_router.post("")
+@location_router.post(
+    "",
+    responses=build_responses(
+        (404, (CompanyNotFoundError,)),
+    ),
+)
 async def create_location(
     service: FromDishka[LocationService],
     data: CreateLocationRequest,
@@ -39,7 +46,13 @@ async def read_locations(
     return await service.read_locations(data)
 
 
-@location_router.patch("/{location_id}", status_code=204)
+@location_router.patch(
+    "/{location_id}",
+    status_code=204,
+    responses=build_responses(
+        (404, (CompanyNotFoundError,)),
+    ),
+)
 async def edit_location(
     service: FromDishka[LocationService], data: EditLocationDTO, location_id: UUID
 ) -> None:

@@ -6,6 +6,17 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses
+from dash.services.common.errors.controller import (
+    ControllerNotFoundError,
+    DeviceIDAlreadyTakenError,
+    TasmotaIDAlreadyTakenError,
+)
+from dash.services.common.errors.encashment import (
+    EncashmentAlreadyClosedError,
+    EncashmentNotFoundError,
+)
+from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.controller.dto import (
     PUBLIC_SCHEME_TYPE,
     AddCheckboxCredentialsRequest,
@@ -50,7 +61,13 @@ async def read_controllers(
     return await controller_service.read_controllers(data)
 
 
-@controller_router.post("", dependencies=[bearer_scheme])
+@controller_router.post(
+    "",
+    dependencies=[bearer_scheme],
+    responses=build_responses(
+        (409, (DeviceIDAlreadyTakenError,)),
+    ),
+)
 async def add_controller(
     controller_service: FromDishka[ControllerService],
     data: AddControllerRequest,
@@ -59,7 +76,10 @@ async def add_controller(
 
 
 @controller_router.post(
-    "/{controller_id}", status_code=204, dependencies=[bearer_scheme]
+    "/{controller_id}",
+    status_code=204,
+    dependencies=[bearer_scheme],
+    responses=build_responses((404, (ControllerNotFoundError, LocationNotFoundError))),
 )
 async def add_controller_location(
     controller_service: FromDishka[ControllerService],
@@ -74,7 +94,9 @@ async def add_controller_location(
 
 
 @controller_router.post(
-    "/{controller_id}/monopay", status_code=204, dependencies=[bearer_scheme]
+    "/{controller_id}/monopay",
+    status_code=204,
+    dependencies=[bearer_scheme],
 )
 async def add_monopay_credentials(
     controller_service: FromDishka[ControllerService],
@@ -87,7 +109,9 @@ async def add_monopay_credentials(
 
 
 @controller_router.post(
-    "/{controller_id}/liqpay", status_code=204, dependencies=[bearer_scheme]
+    "/{controller_id}/liqpay",
+    status_code=204,
+    dependencies=[bearer_scheme],
 )
 async def add_liqpay_credentials(
     controller_service: FromDishka[ControllerService],
@@ -100,7 +124,9 @@ async def add_liqpay_credentials(
 
 
 @controller_router.post(
-    "/{controller_id}/checkbox", status_code=204, dependencies=[bearer_scheme]
+    "/{controller_id}/checkbox",
+    status_code=204,
+    dependencies=[bearer_scheme],
 )
 async def add_checkbox_credentials(
     controller_service: FromDishka[ControllerService],
@@ -129,6 +155,10 @@ class EncashmentReceivedAmount:
     "/{controller_id}/encashments/{encashment_id}",
     status_code=204,
     dependencies=[bearer_scheme],
+    responses=build_responses(
+        (404, (ControllerNotFoundError, EncashmentNotFoundError)),
+        (409, (EncashmentAlreadyClosedError,)),
+    ),
 )
 async def close_encashment(
     controller_service: FromDishka[ControllerService],
@@ -167,7 +197,10 @@ class TasmotaID:
 
 
 @controller_router.post(
-    "/{controller_id}/tasmota", status_code=204, dependencies=[bearer_scheme]
+    "/{controller_id}/tasmota",
+    status_code=204,
+    dependencies=[bearer_scheme],
+    responses=build_responses((409, (TasmotaIDAlreadyTakenError,))),
 )
 async def setup_tasmota_electric_meter(
     controller_service: FromDishka[ControllerService],
@@ -180,7 +213,9 @@ async def setup_tasmota_electric_meter(
 
 
 @controller_router.patch(
-    "/{controller_id}", status_code=204, dependencies=[bearer_scheme]
+    "/{controller_id}",
+    status_code=204,
+    dependencies=[bearer_scheme],
 )
 async def edit_controller(
     controller_service: FromDishka[ControllerService],

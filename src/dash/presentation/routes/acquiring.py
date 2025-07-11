@@ -6,17 +6,21 @@ from fastapi import APIRouter, Form, HTTPException, Request
 from pydantic import BaseModel
 
 from dash.infrastructure.acquiring.liqpay import (
+    ControllerNotSupportLiqpayError,
     CreateLiqpayInvoiceRequest,
     CreateLiqpayInvoiceResponse,
     LiqpayService,
     ProcessLiqpayWebhookRequest,
 )
 from dash.infrastructure.acquiring.monopay import (
+    ControllerNotSupportMonopayError,
     CreateInvoiceRequest,
     CreateInvoiceResponse,
     MonopayService,
     ProcessWebhookRequest,
 )
+from dash.presentation.response_builder import build_responses, controller_errors
+from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 
 acquiring_router = APIRouter(
     prefix="/acquiring", tags=["ACQUIRING"], route_class=DishkaRoute
@@ -28,7 +32,13 @@ class MonopayInvoiceRequest(BaseModel):
     amount: int
 
 
-@acquiring_router.post("/monopay/invoice")
+@acquiring_router.post(
+    "/monopay/invoice",
+    responses=build_responses(
+        (400, (ControllerNotSupportMonopayError, InsufficientDepositAmountError)),
+        *controller_errors,
+    ),
+)
 async def monopay_invoice(
     monopay_service: FromDishka[MonopayService],
     data: MonopayInvoiceRequest,
@@ -58,7 +68,13 @@ async def monopay_webhook(
     return {"status": "success"}
 
 
-@acquiring_router.post("/liqpay/invoice")
+@acquiring_router.post(
+    "/liqpay/invoice",
+    responses=build_responses(
+        (400, (ControllerNotSupportLiqpayError, InsufficientDepositAmountError)),
+        *controller_errors,
+    ),
+)
 async def liqpay_invoice(
     liqpay_service: FromDishka[LiqpayService],
     data: CreateLiqpayInvoiceRequest,

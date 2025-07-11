@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from dash.services.common.errors.base import ConflictError, EntityNotFoundError
+from dash.services.common.errors.base import (
+    ConflictError,
+    EntityNotFoundError,
+    ValidationError,
+)
 
 
 @dataclass
@@ -26,3 +30,8 @@ class CustomerNotFoundError(EntityNotFoundError):
 @dataclass
 class PhoneNumberAlreadyTakenError(ConflictError):
     message: str = "Phone number already taken"
+
+
+@dataclass
+class InvalidCurrentPasswordError(ValidationError):
+    message: str = "Invalid current password"

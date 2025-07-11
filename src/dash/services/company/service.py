@@ -1,4 +1,3 @@
-from dash.infrastructure.auth.errors import UserNotFoundError
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.user import UserRepository
@@ -7,6 +6,7 @@ from dash.models.admin_user import AdminRole
 from dash.models.company import Company
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.company import CompanyNotFoundError
+from dash.services.common.errors.user import UserNotFoundError
 from dash.services.company.dto import (
     CompanyScheme,
     CreateCompanyRequest,

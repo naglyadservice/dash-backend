@@ -5,11 +5,12 @@ from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.customer import Customer
-from dash.services.common.errors.base import AccessForbiddenError, ValidationError
+from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.user import (
     CardIdAlreadyTakenError,
     CustomerNotFoundError,
     EmailAlreadyTakenError,
+    InvalidCurrentPasswordError,
 )
 from dash.services.customer.dto import (
     ChangeCustomerPasswordRequest,
@@ -140,7 +141,7 @@ class CustomerService:
         if not customer.password_hash or not self.password_processor.verify(
             data.current_password, customer.password_hash
         ):
-            raise ValidationError("Invalid current password")
+            raise InvalidCurrentPasswordError
 
         customer.password_hash = self.password_processor.hash(data.new_password)
         await self.customer_repository.commit()

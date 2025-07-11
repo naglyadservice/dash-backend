@@ -25,3 +25,8 @@ class ControllerResponseError(ApplicationError):
 @dataclass
 class TasmotaIDAlreadyTakenError(ConflictError):
     message: str = "Tasmota id already taken"
+
+
+@dataclass
+class DeviceIDAlreadyTakenError(ConflictError):
+    message: str = "Device id already taken"

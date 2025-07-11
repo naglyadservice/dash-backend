@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import Request
 
-from dash.infrastructure.auth.errors import JWTTokenError, UserNotFoundError
+from dash.infrastructure.auth.errors import AuthUserNotFoundError, JWTRevokedError
 from dash.infrastructure.auth.token_processor import JWTTokenProcessor
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.user import UserRepository
@@ -40,19 +40,19 @@ class IdProvider:
             return self._user
 
         if await self.session_storage.is_blacklisted(self.jwt_token):
-            raise JWTTokenError("Token has been revoked")
+            raise JWTRevokedError
 
         user_id = self.token_processor.validate_access_token(self.jwt_token)
         user = await self.user_repository.get(user_id)
         if not user:
-            raise UserNotFoundError
+            raise AuthUserNotFoundError
 
         self._user = user
         return user
 
     async def authorize_customer(self):
         if await self.session_storage.is_blacklisted(self.jwt_token):
-            raise JWTTokenError("Token has been revoked")
+            raise JWTRevokedError
 
         customer_id = self.token_processor.validate_access_token(self.jwt_token)
         customer = await self.customer_repository.get(customer_id)

@@ -5,6 +5,8 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses, controller_errors
+from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.dto import (
     ControllerID,
     FreePaymentDTO,
@@ -33,7 +35,10 @@ fiscalizer_router = APIRouter(
 )
 
 
-@fiscalizer_router.get("/{controller_id}")
+@fiscalizer_router.get(
+    "/{controller_id}",
+    responses=build_responses((404, (ControllerNotFoundError,))),
+)
 async def read_controller(
     service: FromDishka[FiscalizerService],
     data: ControllerID = Depends(),
@@ -41,7 +46,11 @@ async def read_controller(
     return await service.read_controller(data)
 
 
-@fiscalizer_router.patch("/{controller_id}/config", status_code=204)
+@fiscalizer_router.patch(
+    "/{controller_id}/config",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def update_config(
     service: FromDishka[FiscalizerService],
     data: FiscalizerConfig,
@@ -52,7 +61,11 @@ async def update_config(
     )
 
 
-@fiscalizer_router.patch("/{controller_id}/settings", status_code=204)
+@fiscalizer_router.patch(
+    "/{controller_id}/settings",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def update_settings(
     service: FromDishka[FiscalizerService],
     data: FiscalizerSettings,
@@ -63,7 +76,11 @@ async def update_settings(
     )
 
 
-@fiscalizer_router.post("/{controller_id}/reboot", status_code=204)
+@fiscalizer_router.post(
+    "/{controller_id}/reboot",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def reboot_controller(
     service: FromDishka[FiscalizerService],
     data: RebootDelayDTO,
@@ -74,7 +91,11 @@ async def reboot_controller(
     )
 
 
-@fiscalizer_router.post("/{controller_id}/payments/free", status_code=204)
+@fiscalizer_router.post(
+    "/{controller_id}/payments/free",
+    status_code=204,
+    responses=build_responses(*controller_errors),
+)
 async def send_free_payment(
     service: FromDishka[FiscalizerService],
     data: FreePaymentDTO,
@@ -85,7 +106,11 @@ async def send_free_payment(
     )
 
 
-@fiscalizer_router.patch("/{controller_id}/quick-deposit-buttons", status_code=204)
+@fiscalizer_router.patch(
+    "/{controller_id}/quick-deposit-buttons",
+    status_code=204,
+    responses=build_responses((404, (ControllerNotFoundError,))),
+)
 async def update_quick_deposit_buttons(
     service: FromDishka[FiscalizerService],
     data: QuickDepositButtonsDTO,
@@ -96,7 +121,11 @@ async def update_quick_deposit_buttons(
     )
 
 
-@fiscalizer_router.patch("/{controller_id}/sim", status_code=204)
+@fiscalizer_router.patch(
+    "/{controller_id}/sim",
+    status_code=204,
+    responses=build_responses((404, (ControllerNotFoundError,))),
+)
 async def setup_sim(
     service: FromDishka[FiscalizerService],
     data: SIMDTO,

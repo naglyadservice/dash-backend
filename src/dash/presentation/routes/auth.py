@@ -21,16 +21,31 @@ from dash.infrastructure.auth.dto import (
     RegisterCustomerRequest,
     StartPasswordResetRequest,
 )
+from dash.infrastructure.auth.errors import (
+    AuthUserNotFoundError,
+    InvalidCredentialsError,
+    InvalidVerificationCodeError,
+    JWTExpiredError,
+    JWTInvalidError,
+    JWTMissingError,
+    JWTRevokedError,
+)
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.models.admin_user import AdminRole
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses
+from dash.services.common.errors.company import CompanyNotFoundError
+from dash.services.common.errors.user import (
+    CustomerNotFoundError,
+    PhoneNumberAlreadyTakenError,
+)
 
 auth_router = APIRouter(prefix="/auth", tags=["AUTH"], route_class=DishkaRoute)
 
 
 @auth_router.post(
     "/login",
-    responses={401: {"description": "Invalid email or password"}},
+    responses=build_responses((401, (InvalidCredentialsError,))),
 )
 async def login(
     data: LoginRequest,
@@ -41,7 +56,7 @@ async def login(
 
 @auth_router.post(
     "/customer/login",
-    responses={401: {"description": "Invalid email or password"}},
+    responses=build_responses((401, (InvalidCredentialsError,))),
 )
 async def login_customer(
     data: LoginCustomerRequest,
@@ -61,10 +76,18 @@ class UserScheme:
 @auth_router.get(
     "/me",
     dependencies=[bearer_scheme],
-    responses={
-        401: {"description": "Authorization error"},
-        404: {"description": "User not found"},
-    },
+    responses=build_responses(
+        (
+            401,
+            (
+                JWTExpiredError,
+                JWTRevokedError,
+                JWTMissingError,
+                JWTInvalidError,
+                AuthUserNotFoundError,
+            ),
+        ),
+    ),
 )
 async def me(idp: FromDishka[IdProvider]) -> UserScheme:
     user = await idp.authorize()
@@ -76,7 +99,12 @@ async def me(idp: FromDishka[IdProvider]) -> UserScheme:
     )
 
 
-@auth_router.post("/refresh")
+@auth_router.post(
+    "/refresh",
+    responses=build_responses(
+        (401, (JWTExpiredError, JWTInvalidError)),
+    ),
+)
 async def refresh(
     auth_service: FromDishka[AuthService], data: RefreshTokenRequest
 ) -> RefreshTokenResponse:
@@ -93,7 +121,9 @@ async def logout(
 @auth_router.post(
     "/customer/register/start",
     status_code=204,
-    responses={409: {"description": "Phone number already taken"}},
+    responses=build_responses(
+        (404, (CompanyNotFoundError,)), (409, (PhoneNumberAlreadyTakenError,))
+    ),
 )
 async def start_customer_registration(
     data: RegisterCustomerRequest,
@@ -104,10 +134,9 @@ async def start_customer_registration(
 
 @auth_router.post(
     "/customer/register/complete",
-    responses={
-        400: {"description": "Invalid verification code"},
-        409: {"description": "Phone number already taken"},
-    },
+    responses=build_responses(
+        (400, (InvalidVerificationCodeError,)), (409, (PhoneNumberAlreadyTakenError,))
+    ),
 )
 async def complete_customer_registration(
     data: CompleteCustomerRegistrationRequest,
@@ -119,7 +148,7 @@ async def complete_customer_registration(
 @auth_router.post(
     "/customer/password-reset/start",
     status_code=204,
-    responses={404: {"description": "Customer not found"}},
+    responses=build_responses((404, (CustomerNotFoundError,))),
 )
 async def start_password_reset(
     data: StartPasswordResetRequest,
@@ -131,10 +160,9 @@ async def start_password_reset(
 @auth_router.post(
     "/customer/password-reset/complete",
     status_code=204,
-    responses={
-        400: {"description": "Invalid verification code"},
-        404: {"description": "Customer not found"},
-    },
+    responses=build_responses(
+        (400, (InvalidVerificationCodeError,)), (404, (CustomerNotFoundError,))
+    ),
 )
 async def complete_password_reset(
     data: CompletePasswordResetRequest,

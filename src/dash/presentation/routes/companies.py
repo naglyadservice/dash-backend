@@ -5,6 +5,8 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses
+from dash.services.common.errors.user import UserNotFoundError
 from dash.services.company.dto import (
     CreateCompanyRequest,
     CreateCompanyResponse,
@@ -41,14 +43,25 @@ async def read_company_public(
     return await service.read_public_company(data)
 
 
-@company_router.post("")
+@company_router.post(
+    "",
+    responses=build_responses(
+        (404, (UserNotFoundError,)),
+    ),
+)
 async def create_company(
     service: FromDishka[CompanyService], data: CreateCompanyRequest
 ) -> CreateCompanyResponse:
     return await service.create_company(data)
 
 
-@company_router.patch("/{company_id}", status_code=204)
+@company_router.patch(
+    "/{company_id}",
+    status_code=204,
+    responses=build_responses(
+        (404, (UserNotFoundError,)),
+    ),
+)
 async def edit_company(
     service: FromDishka[CompanyService], company_id: UUID, data: EditCompanyDTO
 ) -> None:

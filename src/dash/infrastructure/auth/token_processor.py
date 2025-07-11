@@ -3,7 +3,11 @@ from uuid import UUID
 
 from jose import ExpiredSignatureError, JWTError, jwt
 
-from dash.infrastructure.auth.errors import JWTTokenError
+from dash.infrastructure.auth.errors import (
+    JWTExpiredError,
+    JWTInvalidError,
+    JWTMissingError,
+)
 from dash.main.config import JWTConfig
 
 
@@ -33,13 +37,13 @@ class JWTTokenProcessor:
         try:
             payload = jwt.decode(token=token, key=secret, algorithms=[algorithm])
         except ExpiredSignatureError:
-            raise JWTTokenError("Token has expired")
+            raise JWTExpiredError
         except JWTError:
-            raise JWTTokenError("Invalid token")
+            raise JWTInvalidError
         try:
             return UUID(payload["sub"])
         except (ValueError, KeyError):
-            raise JWTTokenError("Invalid token")
+            raise JWTInvalidError
 
     def create_access_token(self, user_id: UUID) -> str:
         return self._create_token(
@@ -59,7 +63,7 @@ class JWTTokenProcessor:
 
     def validate_access_token(self, token: str) -> UUID:
         if not token:
-            raise JWTTokenError("JWT token is missing")
+            raise JWTMissingError
 
         return self._decode_token(
             token=token,

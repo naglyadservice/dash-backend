@@ -6,6 +6,13 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
+from dash.presentation.response_builder import build_responses, controller_errors
+from dash.services.common.errors.customer_carwash import (
+    CarwashSessionActiveError,
+    CarwashSessionNotFoundError,
+    InsufficientBalanceError,
+    InsufficientDepositAmountError,
+)
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
     GetCarwashSummaRequest,
@@ -31,7 +38,14 @@ class AmountDTO:
     amount: int
 
 
-@router.post("/{controller_id}/start")
+@router.post(
+    "/{controller_id}/start",
+    responses=build_responses(
+        (409, (CarwashSessionActiveError,)),
+        (400, (InsufficientBalanceError, InsufficientDepositAmountError)),
+        *controller_errors,
+    ),
+)
 async def start_session(
     service: FromDishka[CustomerCarwashService], data: AmountDTO, controller_id: UUID
 ) -> StartCarwashSessionResponse:
@@ -40,7 +54,13 @@ async def start_session(
     )
 
 
-@router.post("/{controller_id}/mode")
+@router.post(
+    "/{controller_id}/mode",
+    responses=build_responses(
+        (404, (CarwashSessionNotFoundError,)),
+        *controller_errors,
+    ),
+)
 async def select_mode(
     service: FromDishka[CustomerCarwashService],
     data: CarwashActionDTO,
@@ -51,7 +71,14 @@ async def select_mode(
     )
 
 
-@router.post("/{controller_id}/finish", status_code=204)
+@router.post(
+    "/{controller_id}/finish",
+    status_code=204,
+    responses=build_responses(
+        (404, (CarwashSessionNotFoundError,)),
+        *controller_errors,
+    ),
+)
 async def finish_session(
     service: FromDishka[CustomerCarwashService],
     data: FinishCarwashSessionRequest = Depends(),
@@ -59,7 +86,13 @@ async def finish_session(
     await service.finish_session(data)
 
 
-@router.get("/{controller_id}/summa")
+@router.get(
+    "/{controller_id}/summa",
+    responses=build_responses(
+        (404, (CarwashSessionNotFoundError,)),
+        *controller_errors,
+    ),
+)
 async def get_summa(
     service: FromDishka[CustomerCarwashService],
     data: GetCarwashSummaRequest = Depends(),
