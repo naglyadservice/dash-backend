@@ -57,7 +57,6 @@ class SetFiscalizerSettingsRequest(SetSettingsRequest):
 class FiscalizerState(BaseModel):
     created: datetime
     input: bool | None = None
-    
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
@@ -68,6 +67,9 @@ class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
     quick_deposit_button_1: int | None = None
     quick_deposit_button_2: int | None = None
     quick_deposit_button_3: int | None = None
+
+    sim_number: str | None = None
+    sim_serial: str | None = None
 
     @classmethod
     def get_state_dto(cls):
@@ -82,3 +84,12 @@ class QuickDepositButtonsDTO(BaseModel):
 
 class SetupQuickDepositButtonsRequest(ControllerID):
     buttons: QuickDepositButtonsDTO
+
+
+class SIMDTO(BaseModel):
+    sim_number: str | None = None
+    sim_serial: str | None = None
+
+
+class SetupSIMRequest(ControllerID):
+    sim: SIMDTO

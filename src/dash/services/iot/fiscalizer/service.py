@@ -15,6 +15,7 @@ from dash.services.iot.fiscalizer.dto import (
     SetFiscalizerConfigRequest,
     SetFiscalizerSettingsRequest,
     SetupQuickDepositButtonsRequest,
+    SetupSIMRequest,
 )
 
 
@@ -71,6 +72,16 @@ class FiscalizerService(BaseIoTService):
     ) -> None:
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        dict_data = data.model_dump(exclude_unset=True)
+        for k, v in dict_data.items():
+            setattr(controller, k, v)
+
+        await self.controller_repository.commit()
+
+    async def setup_sim(self, data: SetupSIMRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
 
         dict_data = data.model_dump(exclude_unset=True)
         for k, v in dict_data.items():

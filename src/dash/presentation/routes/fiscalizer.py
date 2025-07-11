@@ -13,6 +13,7 @@ from dash.services.iot.dto import (
     SendFreePaymentRequest,
 )
 from dash.services.iot.fiscalizer.dto import (
+    SIMDTO,
     FiscalizerConfig,
     FiscalizerIoTControllerScheme,
     FiscalizerSettings,
@@ -20,6 +21,7 @@ from dash.services.iot.fiscalizer.dto import (
     SetFiscalizerConfigRequest,
     SetFiscalizerSettingsRequest,
     SetupQuickDepositButtonsRequest,
+    SetupSIMRequest,
 )
 from dash.services.iot.fiscalizer.service import FiscalizerService
 
@@ -92,3 +94,12 @@ async def update_quick_deposit_buttons(
     await service.setup_quick_deposit_buttons(
         SetupQuickDepositButtonsRequest(controller_id=controller_id, buttons=data)
     )
+
+
+@fiscalizer_router.patch("/{controller_id}/sim", status_code=204)
+async def setup_sim(
+    service: FromDishka[FiscalizerService],
+    data: SIMDTO,
+    controller_id: UUID,
+) -> None:
+    await service.setup_sim(SetupSIMRequest(controller_id=controller_id, sim=data))
