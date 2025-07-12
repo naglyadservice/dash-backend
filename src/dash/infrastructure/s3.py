@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import BinaryIO
 
 import aioboto3
@@ -5,13 +6,14 @@ from botocore.exceptions import ClientError
 from structlog import get_logger
 
 from dash.main.config import S3Config
+from dash.services.common.errors.base import ApplicationError
 
 logger = get_logger()
 
 
-class S3UploadError(Exception):
-    def __str__(self) -> str:
-        return "Something went wrong. Please try again later"
+@dataclass
+class S3UploadError(ApplicationError):
+    message: str = "Error while uploading file. Please, try again later"
 
 
 class S3Service:
@@ -25,4 +27,12 @@ class S3Service:
                 await client.upload_fileobj(file_content, self.config.bucket_name, key)
         except ClientError as e:
             logger.error("Failed to upload file to S3", error=e)
-            raise S3UploadError()
+            raise S3UploadError
+
+    async def delete_file(self, key: str) -> None:
+        try:
+            async with self.session.client("s3") as client:  # type: ignore
+                await client.delete_object(Bucket=self.config.bucket_name, Key=key)
+        except ClientError as e:
+            logger.error("Failed to delete file from S3", error=e)
+            raise S3UploadError

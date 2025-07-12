@@ -4,12 +4,14 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
+from dash.infrastructure.s3 import S3UploadError
 from dash.presentation.bearer import bearer_scheme
 from dash.presentation.response_builder import build_responses
 from dash.services.common.errors.user import UserNotFoundError
 from dash.services.company.dto import (
     CreateCompanyRequest,
     CreateCompanyResponse,
+    DeleteLogoRequest,
     EditCompanyDTO,
     EditCompanyRequest,
     PublicCompanyScheme,
@@ -68,8 +70,21 @@ async def edit_company(
     await service.edit_company(EditCompanyRequest(company_id=company_id, data=data))
 
 
-@company_router.post("/{company_id}/logo")
+@company_router.post(
+    "/{company_id}/logo", responses=build_responses((503, (S3UploadError,)))
+)
 async def upload_logo(
     service: FromDishka[CompanyService], data: UploadLogoRequest = Depends()
 ) -> UploadLogoResponse:
     return await service.upload_logo(data)
+
+
+@company_router.delete(
+    "/{company_id}/logo",
+    status_code=204,
+    responses=build_responses((503, (S3UploadError,))),
+)
+async def delete_logo(
+    service: FromDishka[CompanyService], data: DeleteLogoRequest = Depends()
+) -> None:
+    await service.delete_logo(data)

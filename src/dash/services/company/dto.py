@@ -69,6 +69,10 @@ class UploadLogoRequest(BaseModel):
     file: UploadFile
 
 
+class DeleteLogoRequest(BaseModel):
+    company_id: UUID
+
+
 class UploadLogoResponse(BaseModel):
     logo_key: str
 

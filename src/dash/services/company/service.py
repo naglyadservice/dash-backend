@@ -11,6 +11,7 @@ from dash.services.company.dto import (
     CompanyScheme,
     CreateCompanyRequest,
     CreateCompanyResponse,
+    DeleteLogoRequest,
     EditCompanyRequest,
     PublicCompanyScheme,
     ReadCompanyListResponse,
@@ -107,6 +108,19 @@ class CompanyService:
         await self.company_repository.commit()
 
         return UploadLogoResponse(logo_key=logo_key)
+
+    async def delete_logo(self, data: DeleteLogoRequest) -> None:
+        await self.identity_provider.ensure_company_owner(data.company_id)
+
+        company = await self.company_repository.get(data.company_id)
+        if not company:
+            raise CompanyNotFoundError
+
+        if company.logo_key:
+            await self.s3_service.delete_file(company.logo_key)
+
+        company.logo_key = None
+        await self.company_repository.commit()
 
     async def read_public_company(self, data: ReadCompanyPublicRequest):
         await self.identity_provider.authorize_customer()

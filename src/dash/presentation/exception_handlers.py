@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from starlette.types import ExceptionHandler
 
 from dash.infrastructure.auth.errors import AuthError, InvalidVerificationCodeError
+from dash.infrastructure.s3 import S3UploadError
 from dash.services.common.errors.base import (
     AccessDeniedError,
     AccessForbiddenError,
@@ -88,6 +89,10 @@ def validation_error_handler(request: Request, exc: ValidationError) -> JSONResp
     return build_response(400, exc.message)
 
 
+def upload_file_error_handler(request: Request, exc: S3UploadError) -> JSONResponse:
+    return build_response(503, exc.message)
+
+
 def setup_exception_handlers(app: FastAPI) -> None:
     exc_handler_list: list[tuple[type[Exception], Callable]] = [
         (EmailAlreadyTakenError, email_already_taken_error_handler),
@@ -96,6 +101,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
         (EntityNotFoundError, not_found_error_handler),
         (ControllerResponseError, controller_response_error_handler),
         (ControllerTimeoutError, controller_timeout_error_handler),
+        (S3UploadError, upload_file_error_handler),
         (AccessDeniedError, access_denied_error_handler),
         (AccessForbiddenError, access_forbidden_error_handler),
         (ValidationError, validation_error_handler),
