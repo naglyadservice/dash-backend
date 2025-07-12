@@ -106,7 +106,7 @@ async def send_free_payment(
     )
 
 
-@fiscalizer_router.patch(
+@fiscalizer_router.put(
     "/{controller_id}/quick-deposit-buttons",
     status_code=204,
     responses=build_responses((404, (ControllerNotFoundError,))),
@@ -121,7 +121,7 @@ async def update_quick_deposit_buttons(
     )
 
 
-@fiscalizer_router.patch(
+@fiscalizer_router.put(
     "/{controller_id}/sim",
     status_code=204,
     responses=build_responses((404, (ControllerNotFoundError,))),

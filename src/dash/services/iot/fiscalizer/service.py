@@ -73,7 +73,7 @@ class FiscalizerService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_company_owner(controller.company_id)
 
-        dict_data = data.model_dump(exclude_unset=True)
+        dict_data = data.buttons.model_dump()
         for k, v in dict_data.items():
             setattr(controller, k, v)
 
@@ -83,7 +83,7 @@ class FiscalizerService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        dict_data = data.model_dump(exclude_unset=True)
+        dict_data = data.sim.model_dump()
         for k, v in dict_data.items():
             setattr(controller, k, v)
 

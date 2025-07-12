@@ -77,9 +77,9 @@ class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
 
 
 class QuickDepositButtonsDTO(BaseModel):
-    quick_deposit_button_1: int | None = None
-    quick_deposit_button_2: int | None = None
-    quick_deposit_button_3: int | None = None
+    quick_deposit_button_1: int | None
+    quick_deposit_button_2: int | None
+    quick_deposit_button_3: int | None
 
 
 class SetupQuickDepositButtonsRequest(ControllerID):
@@ -87,8 +87,8 @@ class SetupQuickDepositButtonsRequest(ControllerID):
 
 
 class SIMDTO(BaseModel):
-    sim_number: str | None = None
-    sim_serial: str | None = None
+    sim_number: str | None
+    sim_serial: str | None
 
 
 class SetupSIMRequest(ControllerID):
