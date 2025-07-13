@@ -1,3 +1,4 @@
+import uuid
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.user import UserRepository
@@ -101,13 +102,16 @@ class CompanyService:
         if not company:
             raise CompanyNotFoundError
 
-        logo_key = f"companies/{data.company_id}/logo.png"
-        await self.s3_service.upload_file(data.file.file, logo_key)
+        if company.logo_key:
+            await self.s3_service.delete_file(company.logo_key)
 
-        company.logo_key = logo_key
+        new_logo_key = f"companies/{data.company_id}/logo_{uuid.uuid4()}.png"
+        await self.s3_service.upload_file(data.file.file, new_logo_key)
+
+        company.logo_key = new_logo_key
         await self.company_repository.commit()
 
-        return UploadLogoResponse(logo_key=logo_key)
+        return UploadLogoResponse(logo_key=new_logo_key)
 
     async def delete_logo(self, data: DeleteLogoRequest) -> None:
         await self.identity_provider.ensure_company_owner(data.company_id)
