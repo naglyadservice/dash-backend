@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from uuid import UUID
 
 from dishka import FromDishka
@@ -7,6 +8,8 @@ from fastapi import APIRouter, Depends
 from dash.infrastructure.s3 import S3UploadError
 from dash.presentation.bearer import bearer_scheme
 from dash.presentation.response_builder import build_responses
+from dash.services.common.errors.company import CompanyNotFoundError
+from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.common.errors.user import UserNotFoundError
 from dash.services.company.dto import (
     CreateCompanyRequest,
@@ -21,6 +24,8 @@ from dash.services.company.dto import (
     UploadLogoResponse,
 )
 from dash.services.company.service import CompanyService
+from dash.services.location.dto import AttachLocationToCompanyRequest
+from dash.services.location.service import LocationService
 
 company_router = APIRouter(
     prefix="/companies",
@@ -88,3 +93,24 @@ async def delete_logo(
     service: FromDishka[CompanyService], data: DeleteLogoRequest = Depends()
 ) -> None:
     await service.delete_logo(data)
+
+
+@dataclass
+class LocationIdDTO:
+    location_id: UUID
+
+
+@company_router.post(
+    "/{company_id}/locations",
+    responses=build_responses(
+        (404, (CompanyNotFoundError, LocationNotFoundError)),
+    ),
+)
+async def attach_location_to_company(
+    service: FromDishka[LocationService], company_id: UUID, data: LocationIdDTO
+) -> None:
+    return await service.attach_location_to_company(
+        AttachLocationToCompanyRequest(
+            location_id=data.location_id, company_id=company_id
+        )
+    )

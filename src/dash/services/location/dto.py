@@ -11,6 +11,11 @@ class CreateLocationRequest(BaseModel):
     address: str | None
 
 
+class CreateLocationForCompanyRequest(BaseModel):
+    name: str
+    address: str | None
+
+
 class CreateLocationResponse(BaseModel):
     location_id: UUID
 
@@ -55,3 +60,8 @@ class EditLocationDTO(BaseModel):
 class EditLocationRequest(BaseModel):
     location_id: UUID
     data: EditLocationDTO
+
+
+class AttachLocationToCompanyRequest(BaseModel):
+    location_id: UUID
+    company_id: UUID

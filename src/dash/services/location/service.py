@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -9,6 +11,7 @@ from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.company import CompanyNotFoundError
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.location.dto import (
+    AttachLocationToCompanyRequest,
     CreateLocationRequest,
     CreateLocationResponse,
     EditLocationRequest,
@@ -95,4 +98,19 @@ class LocationService:
             if hasattr(location, k):
                 setattr(location, k, v)
 
+        await self.location_repository.commit()
+
+    async def attach_location_to_company(
+        self, data: AttachLocationToCompanyRequest
+    ) -> None:
+        await self.identity_provider.ensure_superadmin()
+
+        if not await self.company_repository.exists(data.company_id):
+            raise CompanyNotFoundError
+
+        location = await self.location_repository.get(data.location_id)
+        if not location:
+            raise LocationNotFoundError
+
+        location.company_id = data.company_id
         await self.location_repository.commit()

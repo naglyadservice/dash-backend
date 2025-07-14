@@ -1,4 +1,5 @@
 import uuid
+
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.user import UserRepository
