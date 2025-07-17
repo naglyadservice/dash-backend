@@ -1,4 +1,5 @@
 from npc_iot.base import MessageHandler
+
 from dash.infrastructure.iot.common.base_client import BaseIoTClient, BaseIoTDispatcher
 
 

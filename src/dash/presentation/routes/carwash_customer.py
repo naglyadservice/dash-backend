@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from uuid import UUID
 
 from dishka import FromDishka
@@ -32,11 +31,6 @@ router = APIRouter(
 )
 
 
-@dataclass
-class AmountDTO:
-    amount: int
-
-
 @router.post(
     "/{controller_id}/start",
     responses=build_responses(
@@ -46,11 +40,10 @@ class AmountDTO:
     ),
 )
 async def start_session(
-    service: FromDishka[CustomerCarwashService], data: AmountDTO, controller_id: UUID
+    service: FromDishka[CustomerCarwashService],
+    data: StartCarwashSessionRequest = Depends(),
 ) -> StartCarwashSessionResponse:
-    return await service.start_session(
-        StartCarwashSessionRequest(controller_id=controller_id, amount=data.amount)
-    )
+    return await service.start_session(data)
 
 
 @router.post(
