@@ -10,9 +10,8 @@ from dash.presentation.response_builder import build_responses, controller_error
 from dash.services.common.errors.customer_carwash import (
     CarwashSessionActiveError,
     CarwashSessionNotFoundError,
-    InsufficientBalanceError,
-    InsufficientDepositAmountError,
 )
+from dash.services.common.errors.user import CustomerHasNoCardError
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
     GetCarwashSummaRequest,
@@ -42,7 +41,7 @@ class AmountDTO:
     "/{controller_id}/start",
     responses=build_responses(
         (409, (CarwashSessionActiveError,)),
-        (400, (InsufficientBalanceError, InsufficientDepositAmountError)),
+        (400, (CustomerHasNoCardError,)),
         *controller_errors,
     ),
 )

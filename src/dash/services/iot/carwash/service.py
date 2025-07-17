@@ -76,6 +76,7 @@ class CarwashService(BaseIoTService):
         check_online_interactor: CheckOnlineInteractor,
     ):
         super().__init__(carwash_client, identity_provider, controller_repository)
+        self.iot_client: CarwashIoTClient
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
 
@@ -165,4 +166,22 @@ class CarwashService(BaseIoTService):
             service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
+        )
+
+    async def start_session_infra(self, device_id: str, card_id: str) -> None:
+        await self.iot_client.set_session(
+            device_id=device_id,
+            payload={
+                "cardUID": card_id,
+                "session": "open",
+            },
+        )
+
+    async def finish_session_infra(self, device_id: str, card_id: str) -> None:
+        await self.iot_client.set_session(
+            device_id=device_id,
+            payload={
+                "cardUID": card_id,
+                "session": "close",
+            },
         )

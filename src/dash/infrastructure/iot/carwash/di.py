@@ -2,8 +2,10 @@ from typing import AsyncIterator
 
 from dishka import AsyncContainer
 
-from dash.infrastructure.iot.carwash.client import CarwashIoTClient
-from dash.infrastructure.iot.common.base_client import BaseIoTDispatcher
+from dash.infrastructure.iot.carwash.client import (
+    CarwashIoTClient,
+    CarwashIoTDispatcher,
+)
 from dash.main.config import MqttConfig
 from dash.presentation.iot_callbacks.carwash.encashment import (
     carwash_encashment_callback,
@@ -25,7 +27,7 @@ async def get_carwash_client(
         username=config.username,
         password=config.password,
         topic_prefix="car_wash",
-        dispatcher_class=BaseIoTDispatcher,
+        dispatcher_class=CarwashIoTDispatcher,
         dispatcher_kwargs={"callback_kwargs": {"di_container": di_container}},
     ) as client:
         client.dispatcher.state_info.register_callback(state_info_callback)  # type: ignore

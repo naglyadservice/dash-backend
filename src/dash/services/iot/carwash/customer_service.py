@@ -1,4 +1,3 @@
-from decimal import Decimal
 from uuid import UUID
 
 from dash.infrastructure.auth.id_provider import IdProvider
@@ -10,9 +9,8 @@ from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.customer_carwash import (
     CarwashSessionActiveError,
     CarwashSessionNotFoundError,
-    InsufficientBalanceError,
-    InsufficientDepositAmountError,
 )
+from dash.services.common.errors.user import CustomerHasNoCardError
 from dash.services.iot.carwash.customer_dto import (
     FinishCarwashSessionRequest,
     GetCarwashSummaRequest,
@@ -54,23 +52,14 @@ class CustomerCarwashService:
         if await self.session_storage.is_active(data.controller_id):
             raise CarwashSessionActiveError
 
-        amount_uah = Decimal(data.amount / 100)
-
-        if customer.balance < amount_uah:
-            raise InsufficientBalanceError
+        if not customer.card_id:
+            raise CustomerHasNoCardError
 
         controller = await self._get_controller(data.controller_id)
-
-        if data.amount < controller.min_deposit_amount:
-            raise InsufficientDepositAmountError
-
-        await self.carwash_service.send_free_payment_infra(
-            device_id=controller.device_id,
-            amount=data.amount,
+        await self.carwash_service.start_session_infra(
+            controller.device_id, customer.card_id
         )
 
-        customer.balance -= amount_uah
-        await self.customer_repository.commit()
         await self.session_storage.set_session(
             data.controller_id, customer.id, controller.time_one_pay
         )
@@ -80,9 +69,9 @@ class CustomerCarwashService:
         self, data: SelectCarwashModeRequest
     ) -> SelectCarwashModeResponse:
         customer = await self.id_provider.authorize_customer()
+        session_customer_id = await self.session_storage.get_session(data.controller_id)
 
-        customer_session = await self.session_storage.get_session(data.controller_id)
-        if customer_session != customer.id:
+        if session_customer_id != customer.id:
             raise CarwashSessionNotFoundError
 
         controller = await self._get_controller(data.controller_id)
@@ -94,15 +83,21 @@ class CustomerCarwashService:
         await self.session_storage.refresh_ttl(
             data.controller_id, controller.time_one_pay
         )
-
         return SelectCarwashModeResponse(timeout=controller.time_one_pay)
 
     async def finish_session(self, data: FinishCarwashSessionRequest) -> None:
         customer = await self.id_provider.authorize_customer()
-        customer_session = await self.session_storage.get_session(data.controller_id)
+        session_customer_id = await self.session_storage.get_session(data.controller_id)
 
-        if customer_session != customer.id:
+        if session_customer_id != customer.id:
             raise CarwashSessionNotFoundError
+
+        controller = await self._get_controller(data.controller_id)
+
+        if customer.card_id:
+            await self.carwash_service.finish_session_infra(
+                controller.device_id, customer.card_id
+            )
 
         await self.session_storage.delete_session(data.controller_id)
 
@@ -118,5 +113,4 @@ class CustomerCarwashService:
         display_info = await self.carwash_service.get_display_infra(
             device_id=controller.device_id
         )
-
         return GetCarwashSummaResponse(summa=display_info.summa)

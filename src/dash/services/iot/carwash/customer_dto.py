@@ -5,7 +5,7 @@ from dash.services.iot.carwash.dto import CarwashActionDTO
 
 
 class StartCarwashSessionRequest(ControllerID):
-    amount: int
+    pass
 
 
 class StartCarwashSessionResponse(BaseModel):

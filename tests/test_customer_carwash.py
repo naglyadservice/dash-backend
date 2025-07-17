@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from decimal import Decimal
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 from uuid import UUID
 
 import pytest
@@ -59,20 +58,18 @@ async def auth_customer(test_env: TestEnvironment, deps: Deps, mocker):
 
 @pytest.mark.asyncio(loop_scope="session")
 async def test_start_and_finish_session(
-    deps: Deps, test_env: TestEnvironment, auth_customer, mocker
+    deps: Deps, test_env: TestEnvironment, auth_customer, mocker: Mock
 ):
     controller_id: UUID = test_env.controller_2.id
 
-    mocker.patch.object(deps.carwash_client, "set_payment")
+    mocker.patch.object(deps.carwash_client, "set_session")
     mocker.patch.object(deps.carwash_client, "set_action")
 
-    start_req = StartCarwashSessionRequest(controller_id=controller_id, amount=1000)
-    old_balance = auth_customer.balance
+    start_req = StartCarwashSessionRequest(controller_id=controller_id)
 
     await deps.service.start_session(start_req)
     assert await deps.session_storage.is_active(controller_id)
-    assert auth_customer.balance == old_balance - Decimal(start_req.amount / 100)
-    deps.carwash_client.set_payment.assert_called_once()  # type: ignore
+    assert deps.carwash_client.set_session.call_count == 1  # type: ignore
 
     mode_req = SelectCarwashModeRequest(
         controller_id=controller_id, mode=CarwashActionDTO(Service="Foam")
@@ -83,6 +80,7 @@ async def test_start_and_finish_session(
     finish_req = FinishCarwashSessionRequest(controller_id=controller_id)
     await deps.service.finish_session(finish_req)
     assert not await deps.session_storage.is_active(controller_id)
+    assert deps.carwash_client.set_session.call_count == 2  # type: ignore
 
 
 @pytest.mark.asyncio(loop_scope="session")
@@ -96,7 +94,7 @@ async def test_start_session_when_active(
 
     with pytest.raises(CarwashSessionActiveError):
         await deps.service.start_session(
-            StartCarwashSessionRequest(controller_id=controller_id, amount=10)
+            StartCarwashSessionRequest(controller_id=controller_id)
         )
 
 

@@ -101,9 +101,9 @@ class AuthService:
         if await self.customer_repository.exists(data.company_id, data.phone_number):
             raise PhoneNumberAlreadyTakenError
 
-        code = self._generate_code()
+        code = self._generate_code(4)
         while await self.verification_storage.registration_code_exists(code):
-            code = self._generate_code()
+            code = self._generate_code(4)
 
         await self.sms_client.send_sms(
             recipients=[data.phone_number],
@@ -128,6 +128,7 @@ class AuthService:
             name=user_data.name,
             company_id=user_data.company_id,
             phone_number=user_data.phone_number,
+            card_id=self._generate_code(14),
             password_hash=self.password_processor.hash(user_data.password),
         )
 
@@ -141,8 +142,8 @@ class AuthService:
             refresh_token=self.token_processor.create_refresh_token(customer.id),
         )
 
-    def _generate_code(self) -> str:
-        return "".join(secrets.choice(string.digits) for _ in range(4))
+    def _generate_code(self, length: int) -> str:
+        return "".join(secrets.choice(string.digits) for _ in range(length))
 
     async def start_password_reset(self, data: StartPasswordResetRequest) -> None:
         if not await self.customer_repository.exists(
@@ -150,7 +151,9 @@ class AuthService:
         ):
             raise CustomerNotFoundError
 
-        code = self._generate_code()
+        code = self._generate_code(4)
+        while await self.verification_storage.registration_code_exists(code):
+            code = self._generate_code(4)
 
         await self.sms_client.send_sms(
             recipients=[data.phone_number],

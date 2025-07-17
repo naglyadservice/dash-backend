@@ -35,3 +35,8 @@ class PhoneNumberAlreadyTakenError(ConflictError):
 @dataclass
 class InvalidCurrentPasswordError(ValidationError):
     message: str = "Invalid current password"
+
+
+@dataclass
+class CustomerHasNoCardError(ValidationError):
+    message: str = "Customer has not card"
