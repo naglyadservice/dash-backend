@@ -51,7 +51,7 @@ class PublicPaymentScheme(BaseModel):
     amount: int
     created_at: datetime
     type: PaymentType
-    receipt_id: UUID | None
+    receipt_url: str
 
     model_config = ConfigDict(from_attributes=True)
 

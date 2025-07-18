@@ -81,7 +81,10 @@ class PaymentRepository(BaseRepository):
         stmt = (
             select(Payment)
             .join(Controller)
-            .where(Controller.qr == data.qr)
+            .where(
+                Controller.qr == data.qr,
+                Payment.receipt_id.isnot(None),
+            )
             .order_by(Payment.created_at.desc())
             .limit(limit)
         )

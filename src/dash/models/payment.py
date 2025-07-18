@@ -44,3 +44,7 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     failure_reason: Mapped[str | None] = mapped_column()
     checkbox_error: Mapped[str | None] = mapped_column()
     created_at_controller: Mapped[datetime | None] = mapped_column()
+
+    @property
+    def receipt_url(self) -> str | None:
+        return f"https://check.checkbox.ua/{self.receipt_id}"
