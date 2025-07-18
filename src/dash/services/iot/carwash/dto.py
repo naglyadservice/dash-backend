@@ -29,6 +29,7 @@ class CarwashConfig(BaseModel):
     coinValidatorType: COIN_VALIDATOR_TYPE | None = None
     coinPulsePrice: int | None = None
     coin_table: list[int] | None = Field(default=None, min_length=16, max_length=16)
+    cardReaderType: Literal["no", "card", "keyfob"] | None = None
 
 
 class RelayBit(IntEnum):
