@@ -1,9 +1,11 @@
+import asyncio
 import base64
 import hashlib
 import json
 from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
+from uuid_utils.compat import uuid7
 
 import ecdsa
 from fastapi import HTTPException
@@ -238,17 +240,20 @@ class MonopayService:
 
         elif status == "success":
             payment.status = PaymentStatus.COMPLETED
+
             if controller.checkbox_active:
-                payment.receipt_id = await self.checkbox_service.create_receipt(
-                    controller, payment
+                receipt_id = uuid7()
+                asyncio.create_task(
+                    self.checkbox_service.create_receipt(
+                        controller=controller,
+                        payment=payment,
+                        receipt_id=receipt_id,
+                    )
                 )
+                payment.receipt_id = receipt_id
 
         elif status == "reversed":
             payment.status = PaymentStatus.REVERSED
-            if controller.checkbox_active:
-                payment.receipt_id = await self.checkbox_service.create_receipt(
-                    controller, payment, is_return=True
-                )
 
         elif status == "failure":
             payment.status = PaymentStatus.FAILED
