@@ -108,6 +108,7 @@ class CarwashSettings(BaseModel):
     enableSrcAfterPause: bool | None = None
     timeLight: int | None = None
     timeTechnicalMode: int | None = None
+    lightBtnAfterPay: bool | None = None
 
 
 class CarwashOperatingMode(StrEnum):
@@ -128,9 +129,9 @@ class CarwashSensorState(BaseModel):
 
 class CarwashStateErrors(BaseModel):
     ServerBlock: bool
-    reserv_1: bool
-    reserv_2: bool
-    reserv_3: bool
+    reserv: bool
+    ExtPlata: bool
+    PrescenseWater: bool
     coinValidator: bool
     billValidator: bool
     PayPass: bool
