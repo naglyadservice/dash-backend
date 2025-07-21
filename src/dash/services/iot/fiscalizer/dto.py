@@ -36,10 +36,10 @@ class PortSettingsDTO(BaseModel):
 
 
 class FiscalizerSettings(BaseModel):
-    mc: PortSettingsDTO
-    coin: PortSettingsDTO
-    bill: PortSettingsDTO
-    fiscalizationTime: int
+    mc: PortSettingsDTO | None = None
+    coin: PortSettingsDTO | None = None
+    bill: PortSettingsDTO | None = None
+    fiscalizationTime: int | None = None
 
 
 class SetFiscalizerConfigRequest(SetConfigRequest):
