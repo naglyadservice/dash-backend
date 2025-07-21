@@ -15,6 +15,8 @@ from dash.services.iot.dto import (
     SendQRPaymentRequest,
     SetConfigRequest,
     SetSettingsRequest,
+    SyncSettingsRequest,
+    SyncSettingsResponse,
 )
 
 
@@ -31,9 +33,9 @@ class BaseIoTService(ABC):
 
     @abstractmethod
     async def _get_controller(self, controller_id: UUID) -> Controller:
-        pass
+        raise NotImplementedError
 
-    async def init_controller_settings(self, controller: Controller) -> None:
+    async def sync_settings_infra(self, controller: Controller) -> None:
         config = await self.iot_client.get_config(controller.device_id)
         config.pop("request_id")
 
@@ -43,15 +45,24 @@ class BaseIoTService(ABC):
         controller.config = config
         controller.settings = settings
 
+    async def sync_settings(self, data: SyncSettingsRequest) -> SyncSettingsResponse:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        await self.sync_settings_infra(controller)
+        await self.controller_repository.commit()
+
+        return SyncSettingsResponse(
+            config=controller.config,
+            settings=controller.settings,
+        )
+
     async def healthcheck(self, device_id: str) -> None:
         await self.iot_client.get_state(device_id)
 
     async def update_config(self, data: SetConfigRequest) -> None:
         controller = await self._get_controller(data.controller_id)
-
-        await self.identity_provider.ensure_company_owner(
-            location_id=controller.location_id
-        )
+        await self.identity_provider.ensure_company_owner(controller.company_id)
 
         config_dict = data.config.model_dump(exclude_unset=True)
         await self.iot_client.set_config(

@@ -144,7 +144,7 @@ class ControllerService:
         if data.type is ControllerType.FISCALIZER:
             controller = FiscalizerController(**controller_dict, qr=qr)
 
-        await self.factory.get(controller.type).init_controller_settings(controller)
+        await self.factory.get(controller.type).sync_settings_infra(controller)
 
         self.controller_repository.add(controller)
         await self.controller_repository.commit()

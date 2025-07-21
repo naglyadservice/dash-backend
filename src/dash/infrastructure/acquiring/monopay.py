@@ -5,12 +5,12 @@ import json
 from datetime import datetime
 from typing import Any, Literal
 from uuid import UUID
-from uuid_utils.compat import uuid7
 
 import ecdsa
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis.asyncio import Redis
+from uuid_utils.compat import uuid7
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.api_client import APIClient

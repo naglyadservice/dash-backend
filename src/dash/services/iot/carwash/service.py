@@ -88,7 +88,7 @@ class CarwashService(BaseIoTService):
 
         return controller
 
-    async def init_controller_settings(self, controller: Controller) -> None:
+    async def sync_settings_infra(self, controller: Controller) -> None:
         config = await self.iot_client.get_config(controller.device_id)
         config.pop("request_id")
 

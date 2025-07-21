@@ -138,3 +138,12 @@ class IoTControllerBaseDTO(BaseModel):
             dto.energy_state = EnergyStateDTO.model_validate(energy_state)
 
         return dto
+
+
+class SyncSettingsRequest(ControllerID):
+    pass
+
+
+class SyncSettingsResponse(BaseModel):
+    config: dict[str, Any]
+    settings: dict[str, Any]

@@ -3,6 +3,7 @@ from uuid import UUID
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
 from dash.presentation.bearer import bearer_scheme
 from dash.presentation.response_builder import build_responses, controller_errors
@@ -13,6 +14,7 @@ from dash.services.iot.dto import (
     RebootControllerRequest,
     RebootDelayDTO,
     SendFreePaymentRequest,
+    SyncSettingsRequest,
 )
 from dash.services.iot.fiscalizer.dto import (
     SIMDTO,
@@ -132,3 +134,19 @@ async def setup_sim(
     controller_id: UUID,
 ) -> None:
     await service.setup_sim(SetupSIMRequest(controller_id=controller_id, sim=data))
+
+
+class SyncFiscalizerSettingsResponse(BaseModel):
+    config: FiscalizerConfig
+    settings: FiscalizerSettings
+
+
+@fiscalizer_router.patch(
+    "/{controller_id}/sync",
+    responses=build_responses(*controller_errors),
+)
+async def sync_settings(
+    service: FromDishka[FiscalizerService],
+    data: SyncSettingsRequest = Depends(),
+) -> SyncFiscalizerSettingsResponse:
+    return await service.sync_settings(data)  # type: ignore
