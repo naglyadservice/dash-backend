@@ -27,23 +27,19 @@ class FiscalizerConfig(BaseModel):
 INTERFACE_TYPE = Literal["ccnet", "pulsed", "no"]
 
 
-class InterfaceDTO(BaseModel):
-    controller: INTERFACE_TYPE
-    validator: INTERFACE_TYPE
-    coin: INTERFACE_TYPE
+class PortSettingsDTO(BaseModel):
+    interface: INTERFACE_TYPE
+    pulse_price: int
+    time_pulse: int
+    time_pause: int
+    table: list[int] = Field(min_length=24, max_length=24)
 
 
 class FiscalizerSettings(BaseModel):
-    interface: InterfaceDTO | None = None
-    simulatorMC_pulse_price: int | None = None
-    bill_pulse_price: int | None = None
-    coin_pulse_price: int | None = None
-    simulatorMC_table: list[int] | None = Field(
-        default=None, min_length=24, max_length=24
-    )
-    bill_table: list[int] | None = Field(default=None, min_length=24, max_length=24)
-    coin_table: list[int] | None = Field(default=None, min_length=16, max_length=16)
-    fiscalizationTime: int | None = None
+    mc: PortSettingsDTO
+    coin: PortSettingsDTO
+    bill: PortSettingsDTO
+    fiscalizationTime: int
 
 
 class SetFiscalizerConfigRequest(SetConfigRequest):
