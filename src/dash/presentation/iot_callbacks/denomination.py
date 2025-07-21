@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -5,6 +6,7 @@ from adaptix import Retort
 from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import get_logger
+from uuid_utils.compat import uuid7
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -76,7 +78,13 @@ async def denomination_callback(
         created_at_controller=data.created,
     )
     if controller.checkbox_active:
-        payment.receipt_id = await checkbox_service.create_receipt(controller, payment)
+        receipt_id = uuid7()
+        payment.receipt_id = receipt_id
+        asyncio.create_task(
+            checkbox_service.create_receipt(
+                controller=controller, payment=payment, receipt_id=receipt_id
+            )
+        )
 
     payment_repository.add(payment)
     await payment_repository.commit()

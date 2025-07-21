@@ -243,6 +243,7 @@ class MonopayService:
 
             if controller.checkbox_active:
                 receipt_id = uuid7()
+                payment.receipt_id = receipt_id
                 asyncio.create_task(
                     self.checkbox_service.create_receipt(
                         controller=controller,
@@ -250,7 +251,6 @@ class MonopayService:
                         receipt_id=receipt_id,
                     )
                 )
-                payment.receipt_id = receipt_id
 
         elif status == "reversed":
             payment.status = PaymentStatus.REVERSED
