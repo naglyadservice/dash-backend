@@ -131,7 +131,7 @@ class CarwashStateErrors(BaseModel):
     ServerBlock: bool
     reserv: bool
     ExtPlata: bool
-    PrescenseWater: bool
+    PresenceWater: bool
     coinValidator: bool
     billValidator: bool
     PayPass: bool
