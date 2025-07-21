@@ -88,7 +88,7 @@ async def carwash_payment_card_get_callback(
         return
 
     # If controller busy, always return 0 balance
-    if await session_storage.is_active(controller.id):
+    if not await session_storage.is_active(controller.id):
         await carwash_client.payment_card_ack(
             device_id=device_id,
             payload={
