@@ -145,7 +145,7 @@ class UserService:
     ) -> RegeneratePasswordResponse:
         await self.identity_provider.ensure_superadmin()
 
-        user = await self.user_repository.get(data.user_id)
+        user = await self.user_repository.get(data.id)
         if not user:
             raise UserNotFoundError
 

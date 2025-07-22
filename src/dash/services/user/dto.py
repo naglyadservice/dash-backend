@@ -61,7 +61,7 @@ class DeleteUserRequest(BaseModel):
 
 
 class RegeneratePasswordRequest(BaseModel):
-    user_id: UUID
+    id: UUID
 
 
 class RegeneratePasswordResponse(BaseModel):
