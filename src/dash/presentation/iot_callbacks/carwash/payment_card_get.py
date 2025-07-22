@@ -94,9 +94,7 @@ async def carwash_payment_card_get_callback(
             payload={
                 "request_id": data.request_id,
                 "cardUID": data.card_uid,
-                "balance": 0,
-                "replenishmentRatio": 100,
-                "code": 0,
+                "code": 1,
             },
         )
         return
