@@ -87,18 +87,6 @@ async def carwash_payment_card_get_callback(
         )
         return
 
-    # If controller busy, always return 0 balance
-    if not await session_storage.is_active(controller.id):
-        await carwash_client.payment_card_ack(
-            device_id=device_id,
-            payload={
-                "request_id": data.request_id,
-                "cardUID": data.card_uid,
-                "code": 1,
-            },
-        )
-        return
-
     customer = await customer_repository.get_by_card_id(
         company_id=controller.company_id, card_id=data.card_uid
     )
