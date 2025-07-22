@@ -56,10 +56,13 @@ class CustomerCarwashService:
             raise CustomerHasNoCardError
 
         controller = await self._get_controller(data.controller_id)
+
+        if customer.company_id != controller.company_id:
+            raise ControllerNotFoundError
+
         await self.carwash_service.start_session_infra(
             controller.device_id, customer.card_id
         )
-
         await self.session_storage.set_session(
             data.controller_id, customer.id, controller.time_one_pay
         )
