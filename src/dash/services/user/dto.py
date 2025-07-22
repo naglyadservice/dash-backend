@@ -58,3 +58,11 @@ class RemoveLocationAdminRequest(BaseModel):
 
 class DeleteUserRequest(BaseModel):
     id: UUID
+
+
+class RegeneratePasswordRequest(BaseModel):
+    user_id: UUID
+
+
+class RegeneratePasswordResponse(BaseModel):
+    new_password: str

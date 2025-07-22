@@ -16,6 +16,8 @@ from dash.services.user.dto import (
     CreateUserResponse,
     DeleteUserRequest,
     ReadUserListResponse,
+    RegeneratePasswordRequest,
+    RegeneratePasswordResponse,
     RemoveLocationAdminRequest,
     UserDTO,
 )
@@ -40,7 +42,7 @@ class UserService:
         if await self.user_repository.exists(data.email):
             raise EmailAlreadyTakenError
 
-        password = secrets.token_urlsafe(16)
+        password = secrets.token_urlsafe(8)
 
         user = AdminUser(
             name=data.name,
@@ -137,3 +139,19 @@ class UserService:
         return ReadUserListResponse(
             users=[UserDTO.model_validate(user) for user in users]
         )
+
+    async def regenerate_password(
+        self, data: RegeneratePasswordRequest
+    ) -> RegeneratePasswordResponse:
+        await self.identity_provider.ensure_superadmin()
+
+        user = await self.user_repository.get(data.user_id)
+        if not user:
+            raise UserNotFoundError
+
+        password = secrets.token_urlsafe(8)
+
+        user.password_hash = self.password_processor.hash(password)
+        await self.user_repository.commit()
+
+        return RegeneratePasswordResponse(new_password=password)

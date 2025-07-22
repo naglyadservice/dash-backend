@@ -11,6 +11,8 @@ from dash.services.user.dto import (
     AddLocationAdminResponse,
     DeleteUserRequest,
     ReadUserListResponse,
+    RegeneratePasswordRequest,
+    RegeneratePasswordResponse,
     RemoveLocationAdminRequest,
 )
 from dash.services.user.service import UserService
@@ -64,3 +66,12 @@ async def delete_user(
     user_service: FromDishka[UserService], data: DeleteUserRequest = Depends()
 ) -> None:
     return await user_service.delete_user(data)
+
+
+@user_router.patch(
+    "/{id}/password", responses=build_responses((404, (UserNotFoundError,)))
+)
+async def regenerate_password(
+    user_service: FromDishka[UserService], data: RegeneratePasswordRequest = Depends()
+) -> RegeneratePasswordResponse:
+    return await user_service.regenerate_password(data)
