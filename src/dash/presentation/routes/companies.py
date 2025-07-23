@@ -31,11 +31,10 @@ company_router = APIRouter(
     prefix="/companies",
     tags=["COMPANIES"],
     route_class=DishkaRoute,
-    dependencies=[bearer_scheme],
 )
 
 
-@company_router.get("")
+@company_router.get("", dependencies=[bearer_scheme])
 async def read_companies(
     service: FromDishka[CompanyService],
 ) -> ReadCompanyListResponse:
@@ -55,6 +54,7 @@ async def read_company_public(
     responses=build_responses(
         (404, (UserNotFoundError,)),
     ),
+    dependencies=[bearer_scheme],
 )
 async def create_company(
     service: FromDishka[CompanyService], data: CreateCompanyRequest
@@ -68,6 +68,7 @@ async def create_company(
     responses=build_responses(
         (404, (UserNotFoundError,)),
     ),
+    dependencies=[bearer_scheme],
 )
 async def edit_company(
     service: FromDishka[CompanyService], company_id: UUID, data: EditCompanyDTO
@@ -76,7 +77,9 @@ async def edit_company(
 
 
 @company_router.post(
-    "/{company_id}/logo", responses=build_responses((503, (S3UploadError,)))
+    "/{company_id}/logo",
+    responses=build_responses((503, (S3UploadError,))),
+    dependencies=[bearer_scheme],
 )
 async def upload_logo(
     service: FromDishka[CompanyService], data: UploadLogoRequest = Depends()
@@ -88,6 +91,7 @@ async def upload_logo(
     "/{company_id}/logo",
     status_code=204,
     responses=build_responses((503, (S3UploadError,))),
+    dependencies=[bearer_scheme],
 )
 async def delete_logo(
     service: FromDishka[CompanyService], data: DeleteLogoRequest = Depends()
@@ -105,6 +109,7 @@ class LocationIdDTO:
     responses=build_responses(
         (404, (CompanyNotFoundError, LocationNotFoundError)),
     ),
+    dependencies=[bearer_scheme],
 )
 async def attach_location_to_company(
     service: FromDishka[LocationService], company_id: UUID, data: LocationIdDTO

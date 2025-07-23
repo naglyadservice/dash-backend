@@ -9,7 +9,7 @@ from dash.models.controllers.controller import (
     ControllerStatus,
     ControllerType,
 )
-from dash.services.common.dto import ControllerID
+from dash.services.common.dto import ControllerID, PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 from dash.services.iot.carwash.dto import CarwashTariffDTO
@@ -154,24 +154,6 @@ class CloseEncashmentRequest(BaseModel):
     encashment_id: UUID
     controller_id: UUID
     received_amount: int
-
-
-class PublicLocationDTO(BaseModel):
-    id: UUID
-    name: str
-    address: str | None
-
-    model_config = ConfigDict(from_attributes=True)
-
-
-class PublicCompanyDTO(BaseModel):
-    id: UUID
-    name: str
-    privacy_policy: str | None
-    offer_agreement: str | None
-    logo_key: str | None
-
-    model_config = ConfigDict(from_attributes=True)
 
 
 class BasePublicControllerScheme(BaseModel):

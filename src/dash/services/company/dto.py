@@ -2,8 +2,9 @@ from typing import Any
 from uuid import UUID
 
 from fastapi import UploadFile
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, model_validator
 
+from dash.services.common.dto import PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import ValidationError
 from dash.services.user.dto import CreateUserRequest, CreateUserResponse
 
@@ -81,11 +82,5 @@ class ReadCompanyPublicRequest(BaseModel):
     company_id: UUID
 
 
-class PublicCompanyScheme(BaseModel):
-    name: str
-    privacy_policy: str | None = None
-    offer_agreement: str | None = None
-    about: str | None = None
-    logo_key: str | None = None
-
-    model_config = ConfigDict(from_attributes=True)
+class PublicCompanyScheme(PublicCompanyDTO):
+    locations: list[PublicLocationDTO]

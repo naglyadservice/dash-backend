@@ -128,9 +128,7 @@ class CompanyService:
         await self.company_repository.commit()
 
     async def read_public_company(self, data: ReadCompanyPublicRequest):
-        await self.identity_provider.authorize_customer()
-
-        company = await self.company_repository.get(data.company_id)
+        company = await self.company_repository.get_with_locations(data.company_id)
 
         if not company:
             raise CompanyNotFoundError
