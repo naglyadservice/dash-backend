@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from uuid import UUID
 
 from dishka import FromDishka
@@ -22,6 +23,7 @@ from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     FiscalizerSettings,
     QuickDepositButtonsDTO,
+    SetDescriptionRequest,
     SetFiscalizerConfigRequest,
     SetFiscalizerSettingsRequest,
     SetupQuickDepositButtonsRequest,
@@ -150,3 +152,23 @@ async def sync_settings(
     data: SyncSettingsRequest = Depends(),
 ) -> SyncFiscalizerSettingsResponse:
     return await service.sync_settings(data)  # type: ignore
+
+
+@dataclass
+class DescriptionDTO:
+    description: str | None
+
+
+@fiscalizer_router.put(
+    "/{controlelr_id}/description",
+    status_code=204,
+    responses=build_responses((404, (ControllerNotFoundError,))),
+)
+async def set_description(
+    service: FromDishka[FiscalizerService],
+    data: DescriptionDTO,
+    controller_id: UUID,
+) -> None:
+    await service.set_description(
+        SetDescriptionRequest(controller_id=controller_id, description=data.description)
+    )

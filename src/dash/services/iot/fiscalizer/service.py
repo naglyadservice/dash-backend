@@ -12,6 +12,7 @@ from dash.services.iot.base import BaseIoTService
 from dash.services.iot.dto import SendFreePaymentRequest
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
+    SetDescriptionRequest,
     SetFiscalizerConfigRequest,
     SetFiscalizerSettingsRequest,
     SetupQuickDepositButtonsRequest,
@@ -87,4 +88,11 @@ class FiscalizerService(BaseIoTService):
         for k, v in dict_data.items():
             setattr(controller, k, v)
 
+        await self.controller_repository.commit()
+
+    async def set_description(self, data: SetDescriptionRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_company_owner(controller.company_id)
+
+        controller.description = data.description
         await self.controller_repository.commit()

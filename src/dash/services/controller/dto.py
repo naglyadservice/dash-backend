@@ -191,6 +191,7 @@ class PublicFiscalizerScheme(BasePublicControllerScheme):
     quick_deposit_button_1: int | None
     quick_deposit_button_2: int | None
     quick_deposit_button_3: int | None
+    description: str | None
 
 
 PUBLIC_SCHEME_TYPE = PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme

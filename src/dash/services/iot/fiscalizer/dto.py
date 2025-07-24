@@ -67,6 +67,8 @@ class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
     sim_number: str | None = None
     sim_serial: str | None = None
 
+    description: str | None = None
+
     @classmethod
     def get_state_dto(cls):
         return FiscalizerState
@@ -89,3 +91,7 @@ class SIMDTO(BaseModel):
 
 class SetupSIMRequest(ControllerID):
     sim: SIMDTO
+
+
+class SetDescriptionRequest(ControllerID):
+    description: str | None

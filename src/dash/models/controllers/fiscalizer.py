@@ -17,5 +17,6 @@ class FiscalizerController(Controller):
     quick_deposit_button_3: Mapped[int | None] = mapped_column()
     sim_number: Mapped[str | None] = mapped_column()
     sim_serial: Mapped[str | None] = mapped_column()
+    description: Mapped[str | None] = mapped_column()
 
     __mapper_args__ = {"polymorphic_identity": ControllerType.FISCALIZER.value}
