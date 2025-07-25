@@ -20,6 +20,8 @@ class Company(Base, UUIDMixin, CreatedAtMixin):
     offer_agreement: Mapped[str | None] = mapped_column()
     about: Mapped[str | None] = mapped_column()
     logo_key: Mapped[str | None] = mapped_column()
+    phone_number: Mapped[str | None] = mapped_column()
+    email: Mapped[str | None] = mapped_column()
 
     locations: Mapped[list["Location"]] = relationship(back_populates="company")
     owner: Mapped["AdminUser"] = relationship(back_populates="companies", lazy="joined")

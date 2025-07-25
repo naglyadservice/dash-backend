@@ -16,6 +16,8 @@ class CreateCompanyRequest(BaseModel):
     offer_agreement: str | None = None
     privacy_policy: str | None = None
     about: str | None = None
+    phone_number: str | None = None
+    email: str | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -47,6 +49,8 @@ class CompanyScheme(BaseModel):
     privacy_policy: str | None
     about: str | None
     logo_key: str | None
+    phone_number: str | None
+    email: str | None
 
 
 class ReadCompanyListResponse(BaseModel):
@@ -58,6 +62,8 @@ class EditCompanyDTO(BaseModel):
     offer_agreement: str | None = None
     privacy_policy: str | None = None
     about: str | None = None
+    phone_number: str | None = None
+    email: str | None = None
 
 
 class EditCompanyRequest(BaseModel):

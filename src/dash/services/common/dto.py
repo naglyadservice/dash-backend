@@ -37,5 +37,7 @@ class PublicCompanyDTO(BaseModel):
     offer_agreement: str | None
     about: str | None
     logo_key: str | None
+    phone_number: str | None
+    email: str | None
 
     model_config = ConfigDict(from_attributes=True)

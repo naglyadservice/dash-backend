@@ -59,6 +59,8 @@ class CompanyService:
             offer_agreement=data.offer_agreement,
             privacy_policy=data.privacy_policy,
             about=data.about,
+            phone_number=data.phone_number,
+            email=data.email,
         )
         self.company_repository.add(company)
         await self.company_repository.commit()
