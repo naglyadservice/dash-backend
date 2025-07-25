@@ -18,7 +18,6 @@ from dash.services.common.errors.encashment import (
 )
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.controller.dto import (
-    PUBLIC_SCHEME_TYPE,
     AddCheckboxCredentialsRequest,
     AddControllerLocationRequest,
     AddControllerRequest,
@@ -35,12 +34,13 @@ from dash.services.controller.dto import (
     LocationID,
     MonopayCredentialsDTO,
     ReadControllerListRequest,
-    ReadControllerRequest,
     ReadControllerResponse,
     ReadEncashmentListRequest,
     ReadEncashmentListResponse,
     ReadPublicControllerListRequest,
     ReadPublicControllerListResponse,
+    ReadPublicControllerRequest,
+    ReadPublicControllerResponse,
     SetMinDepositAmountRequest,
     SetupTasmotaRequest,
 )
@@ -186,8 +186,8 @@ async def read_controller_list_public(
 @controller_router.get("/public/{qr}")
 async def read_controller_public(
     controller_service: FromDishka[ControllerService],
-    data: ReadControllerRequest = Depends(),
-) -> PUBLIC_SCHEME_TYPE:
+    data: ReadPublicControllerRequest = Depends(),
+) -> ReadPublicControllerResponse:
     return await controller_service.read_controller_public(data)
 
 

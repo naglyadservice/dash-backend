@@ -13,6 +13,7 @@ from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
+from dash.services.common.dto import PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
@@ -25,7 +26,6 @@ from dash.services.common.errors.encashment import (
 )
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.controller.dto import (
-    PUBLIC_SCHEME_TYPE,
     AddCheckboxCredentialsRequest,
     AddControllerLocationRequest,
     AddControllerRequest,
@@ -42,12 +42,13 @@ from dash.services.controller.dto import (
     PublicFiscalizerScheme,
     PublicWsmScheme,
     ReadControllerListRequest,
-    ReadControllerRequest,
     ReadControllerResponse,
     ReadEncashmentListRequest,
     ReadEncashmentListResponse,
     ReadPublicControllerListRequest,
     ReadPublicControllerListResponse,
+    ReadPublicControllerRequest,
+    ReadPublicControllerResponse,
     SetMinDepositAmountRequest,
     SetupTasmotaRequest,
 )
@@ -246,20 +247,26 @@ class ControllerService:
         await self.encashment_repository.commit()
 
     async def read_controller_public(
-        self, data: ReadControllerRequest
-    ) -> PUBLIC_SCHEME_TYPE:
+        self, data: ReadPublicControllerRequest
+    ) -> ReadPublicControllerResponse:
         controller = await self.controller_repository.get_concrete_by_qr(data.qr)
         if not controller:
             raise ControllerNotFoundError
 
         if controller.type is ControllerType.CARWASH:
-            return PublicCarwashScheme.model_validate(controller)
+            controller_scheme = PublicCarwashScheme.model_validate(controller)
         elif controller.type is ControllerType.WATER_VENDING:
-            return PublicWsmScheme.model_validate(controller)
+            controller_scheme = PublicWsmScheme.model_validate(controller)
         elif controller.type is ControllerType.FISCALIZER:
-            return PublicFiscalizerScheme.model_validate(controller)
+            controller_scheme = PublicFiscalizerScheme.model_validate(controller)
         else:
             raise ValueError("This controller type is not supported yet")
+
+        return ReadPublicControllerResponse(
+            company=PublicCompanyDTO.model_validate(controller.company),
+            location=PublicLocationDTO.model_validate(controller.location),
+            controller=controller_scheme,
+        )
 
     async def read_controller_list_public(
         self, data: ReadPublicControllerListRequest
@@ -267,6 +274,9 @@ class ControllerService:
         controllers, total = await self.controller_repository.get_list_concrete(
             data.location_id
         )
+        location = await self.location_repository.get(data.location_id)
+        if not location:
+            raise LocationNotFoundError
 
         controller_list = []
         for controller in controllers:
@@ -282,7 +292,9 @@ class ControllerService:
                 raise ValueError("This controller type is not supported yet")
 
         return ReadPublicControllerListResponse(
-            controllers=controller_list, total=total
+            company=PublicCompanyDTO.model_validate(location.company),
+            location=PublicLocationDTO.model_validate(location),
+            controllers=controller_list,
         )
 
     async def setup_tasmota(self, data: SetupTasmotaRequest) -> None:

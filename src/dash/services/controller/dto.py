@@ -162,8 +162,6 @@ class BasePublicControllerScheme(BaseModel):
     type: ControllerType
     device_id: str
     qr: str
-    location: PublicLocationDTO | None
-    company: PublicCompanyDTO | None
     liqpay_active: bool
     monopay_active: bool
     min_deposit_amount: int
@@ -194,11 +192,19 @@ class PublicFiscalizerScheme(BasePublicControllerScheme):
     description: str | None
 
 
-PUBLIC_SCHEME_TYPE = PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme
+CONTROLLER_PUBLIC_SCHEME_TYPE = (
+    PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme
+)
 
 
-class ReadControllerRequest(BaseModel):
+class ReadPublicControllerRequest(BaseModel):
     qr: str
+
+
+class ReadPublicControllerResponse(BaseModel):
+    company: PublicCompanyDTO | None
+    location: PublicLocationDTO | None
+    controller: CONTROLLER_PUBLIC_SCHEME_TYPE
 
 
 class ReadPublicControllerListRequest(BaseModel):
@@ -206,8 +212,9 @@ class ReadPublicControllerListRequest(BaseModel):
 
 
 class ReadPublicControllerListResponse(BaseModel):
-    controllers: list[PUBLIC_SCHEME_TYPE]
-    total: int
+    company: PublicCompanyDTO | None
+    location: PublicLocationDTO
+    controllers: list[CONTROLLER_PUBLIC_SCHEME_TYPE]
 
 
 class SetupTasmotaRequest(ControllerID):
