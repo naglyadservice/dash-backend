@@ -263,8 +263,10 @@ class ControllerService:
             raise ValueError("This controller type is not supported yet")
 
         return ReadPublicControllerResponse(
-            company=PublicCompanyDTO.model_validate(controller.company),
-            location=PublicLocationDTO.model_validate(controller.location),
+            company=controller.company
+            and PublicCompanyDTO.model_validate(controller.company),
+            location=controller.location
+            and PublicLocationDTO.model_validate(controller.location),
             controller=controller_scheme,
         )
 
@@ -292,7 +294,8 @@ class ControllerService:
                 raise ValueError("This controller type is not supported yet")
 
         return ReadPublicControllerListResponse(
-            company=PublicCompanyDTO.model_validate(location.company),
+            company=location.company
+            and PublicCompanyDTO.model_validate(location.company),
             location=PublicLocationDTO.model_validate(location),
             controllers=controller_list,
         )
