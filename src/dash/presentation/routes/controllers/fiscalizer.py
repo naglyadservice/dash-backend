@@ -160,7 +160,7 @@ class DescriptionDTO:
 
 
 @fiscalizer_router.put(
-    "/{controlelr_id}/description",
+    "/{controller_id}/description",
     status_code=204,
     responses=build_responses((404, (ControllerNotFoundError,))),
 )
