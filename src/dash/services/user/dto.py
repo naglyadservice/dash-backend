@@ -26,6 +26,7 @@ class UserDTO(BaseModel):
     email: EmailStr
     role: AdminRole
     locations: list[LocationDTO] | None
+    message: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
