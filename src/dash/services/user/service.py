@@ -19,6 +19,7 @@ from dash.services.user.dto import (
     RegeneratePasswordRequest,
     RegeneratePasswordResponse,
     RemoveLocationAdminRequest,
+    SetMessageRequest,
     UserDTO,
 )
 
@@ -155,3 +156,13 @@ class UserService:
         await self.user_repository.commit()
 
         return RegeneratePasswordResponse(new_password=password)
+
+    async def set_message(self, data: SetMessageRequest) -> None:
+        await self.identity_provider.ensure_superadmin()
+
+        user = await self.user_repository.get(data.id)
+        if not user:
+            raise UserNotFoundError
+
+        user.message = data.message
+        await self.user_repository.commit()

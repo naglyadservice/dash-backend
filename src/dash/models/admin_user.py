@@ -24,6 +24,7 @@ class AdminUser(Base, UUIDMixin, TimestampMixin):
     password_hash: Mapped[str] = mapped_column()
     role: Mapped[AdminRole] = mapped_column()
     company_id: Mapped[UUID | None] = mapped_column()
+    message: Mapped[str | None] = mapped_column()
 
     companies: Mapped[list["Company"]] = relationship(
         back_populates="owner", lazy="joined"

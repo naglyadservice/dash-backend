@@ -1,3 +1,6 @@
+from dataclasses import dataclass
+from uuid import UUID
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
@@ -14,6 +17,7 @@ from dash.services.user.dto import (
     RegeneratePasswordRequest,
     RegeneratePasswordResponse,
     RemoveLocationAdminRequest,
+    SetMessageRequest,
 )
 from dash.services.user.service import UserService
 
@@ -75,3 +79,19 @@ async def regenerate_password(
     user_service: FromDishka[UserService], data: RegeneratePasswordRequest = Depends()
 ) -> RegeneratePasswordResponse:
     return await user_service.regenerate_password(data)
+
+
+@dataclass
+class MessageDTO:
+    message: str | None
+
+
+@user_router.patch(
+    "/{id}/message",
+    status_code=204,
+    responses=build_responses((404, (UserNotFoundError,))),
+)
+async def set_message(
+    user_service: FromDishka[UserService], data: MessageDTO, id: UUID
+) -> None:
+    await user_service.set_message(SetMessageRequest(id=id, message=data.message))

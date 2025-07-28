@@ -71,6 +71,7 @@ class UserScheme:
     email: str
     name: str
     role: AdminRole
+    message: str | None
 
 
 @auth_router.get(
@@ -96,6 +97,7 @@ async def me(idp: FromDishka[IdProvider]) -> UserScheme:
         email=user.email,
         name=user.name,
         role=user.role,
+        message=user.message,
     )
 
 

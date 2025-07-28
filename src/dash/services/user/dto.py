@@ -66,3 +66,8 @@ class RegeneratePasswordRequest(BaseModel):
 
 class RegeneratePasswordResponse(BaseModel):
     new_password: str
+
+
+class SetMessageRequest(BaseModel):
+    id: UUID
+    message: str | None
