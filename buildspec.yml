@@ -1,0 +1,42 @@
+version: 0.2
+
+env:
+  variables:
+    DOCKER_BUILDKIT: 1
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - |
+        GIT_COMMIT_FULL_HASH=$CODEBUILD_RESOLVED_SOURCE_VERSION
+        COMMIT_HASH=$(echo $GIT_COMMIT_FULL_HASH | cut -c 1-7)
+        IMAGE_TAG=${COMMIT_HASH:=latest}
+        FULL_IMAGE_TAG="${IMAGE_TAG}-${APP_CONTAINER_NAME}"
+        IMAGE_URI_WITH_TAG="${ECR_REPO_URI}:${FULL_IMAGE_TAG}"
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo "Building the Docker image..."
+      - |
+        docker buildx build \
+          --push \
+          --cache-from $ECR_REPO_URI:latest-$APP_CONTAINER_NAME \
+          --target app \
+          -t $ECR_REPO_URI:latest-$APP_CONTAINER_NAME \
+          -t $ECR_REPO_URI:$FULL_IMAGE_TAG \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
+          --build-arg DD_GIT_REPOSITORY_URL=$GIT_REPOSITORY_URL \
+          --build-arg DD_GIT_COMMIT_SHA=$GIT_COMMIT_FULL_HASH .
+                
+        # Create imagedefinitions for APP
+      - |
+        printf '[{"name":"%s","imageUri":"%s"}]' \
+        $APP_CONTAINER_NAME $IMAGE_URI_WITH_TAG > imagedefinitions.json
+        
+      - cat imagedefinitions.json
+
+artifacts:
+  files: 
+    - imagedefinitions.json
