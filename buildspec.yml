@@ -29,7 +29,6 @@ phases:
         docker buildx build \
           --push \
           --cache-from $ECR_REPO_URI:latest-$APP_CONTAINER_NAME \
-          --target app \
           -t $ECR_REPO_URI:latest-$APP_CONTAINER_NAME \
           -t $ECR_REPO_URI:$FULL_IMAGE_TAG \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
