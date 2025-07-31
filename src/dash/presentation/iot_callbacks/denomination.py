@@ -77,7 +77,7 @@ async def denomination_callback(
         status=PaymentStatus.COMPLETED,
         created_at_controller=data.created,
     )
-    if controller.checkbox_active:
+    if controller.checkbox_active and controller.fiscalize_cash:
         receipt_id = uuid7()
         payment.receipt_id = receipt_id
         asyncio.create_task(

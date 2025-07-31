@@ -108,7 +108,8 @@ class IoTControllerBaseDTO(BaseModel):
     good_code: str | None
     good_name: str | None
     tax_code: str | None
-    checkbox_active: bool | None
+    checkbox_active: bool
+    fiscalize_cash: bool
 
     is_online: bool = True
     state: BaseModel | None

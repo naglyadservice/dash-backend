@@ -101,6 +101,7 @@ class CheckboxCredentialsDTO(BaseModel):
     good_name: str
     tax_code: str | None
     is_active: bool
+    fiscalize_cash: bool
 
 
 class AddCheckboxCredentialsRequest(ControllerID):
