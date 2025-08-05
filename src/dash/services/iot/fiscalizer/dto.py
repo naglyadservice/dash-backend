@@ -59,7 +59,7 @@ class IPInfo(BaseModel):
 class FiscalizerState(BaseModel):
     created: datetime
     input: bool
-    IP_info: IPInfo
+    IP_info: IPInfo | None = None
     coin_state: int | None = None
     bill_state: int | None = None
 
