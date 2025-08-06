@@ -10,6 +10,7 @@ import ecdsa
 from fastapi import HTTPException
 from pydantic import BaseModel
 from redis.asyncio import Redis
+from structlog import get_logger
 from uuid_utils.compat import uuid7
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
@@ -37,6 +38,9 @@ class CreateInvoiceRequest(BaseModel):
 
 class CreateInvoiceResponse(BaseModel):
     invoice_url: str
+
+
+logger = get_logger()
 
 
 @dataclass
@@ -186,6 +190,8 @@ class MonopayService:
     async def process_webhook(self, data: ProcessWebhookRequest) -> None:
         body = json.loads(data.body.decode())
         invoice_id = body["invoiceId"]
+        
+        logger.info("Monopay event received", body=body)
 
         token = await self.acquiring_storage.get_monopay_token(invoice_id)
         if not token:
@@ -194,46 +200,37 @@ class MonopayService:
         await self._verify_signature(
             sign=data.signature, body=data.body, invoice_id=invoice_id, token=token
         )
-
-        async with self.locker.lock(
-            f"monopay_webhook:{invoice_id}",
-            timeout=10,
-            blocking=True,
-            blocking_timeout=10,
-        ):
-            await self._process_webhook_locked(invoice_id, body, token)
-
-    async def _process_webhook_locked(
-        self, invoice_id: str, body: dict, token: str
-    ) -> None:
-        status = body["status"]
         current_modified_date = datetime.fromisoformat(body["modifiedDate"])
         last_modified_date = await self.acquiring_storage.get_last_modified_date(
             invoice_id
         )
 
-        if last_modified_date:
-            if last_modified_date > current_modified_date:
-                return
-
-            if last_modified_date == current_modified_date and status not in [
-                "failure",
-                "reversed",
-                "success",
-            ]:
-                return
+        if last_modified_date and current_modified_date < last_modified_date:
+            logger.info(
+                "Monopay webhook: event is expired",
+                last_modified_date=last_modified_date,
+                current_modified_date=current_modified_date,
+                event=body,
+            )
+            return
 
         await self.acquiring_storage.set_last_modified_date(
             invoice_id, current_modified_date
         )
-
         payment = await self.payment_repository.get_by_invoice_id(invoice_id)
         if not payment:
+            logger.info(
+                "Payment not found",
+                invoice_id=invoice_id,
+                event=body,
+            )
             return
 
         controller = await self.controller_repository.get(payment.controller_id)
         if not controller:
             return
+
+        status = body["status"]
 
         if status == "processing":
             payment.status = PaymentStatus.PROCESSING

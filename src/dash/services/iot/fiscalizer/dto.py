@@ -50,9 +50,18 @@ class SetFiscalizerSettingsRequest(SetSettingsRequest):
     settings: FiscalizerSettings
 
 
+class IPInfo(BaseModel):
+    IP: str
+    Netmask: str
+    Gateway: str
+
+
 class FiscalizerState(BaseModel):
     created: datetime
-    input: bool | None = None
+    input: bool
+    IP_info: IPInfo | None = None
+    billState: int | None = None
+    coinState: int | None = None
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):

@@ -51,6 +51,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     good_name: Mapped[str | None] = mapped_column()
     good_code: Mapped[str | None] = mapped_column()
     tax_code: Mapped[str | None] = mapped_column()
+    fiscalize_cash: Mapped[bool] = mapped_column(default=True)
 
     settings: Mapped[dict[str, Any]] = mapped_column()
     config: Mapped[dict[str, Any]] = mapped_column()

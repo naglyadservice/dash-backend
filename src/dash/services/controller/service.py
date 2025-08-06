@@ -196,6 +196,7 @@ class ControllerService:
         controller.good_code = data.checkbox.good_code
         controller.tax_code = data.checkbox.tax_code
         controller.checkbox_active = data.checkbox.is_active
+        controller.fiscalize_cash = data.checkbox.fiscalize_cash
 
         await self.controller_repository.commit()
 
