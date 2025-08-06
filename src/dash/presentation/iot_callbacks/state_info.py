@@ -35,5 +35,10 @@ async def state_info_callback(
         device_id=device_id,
         data=data,
     )
+    
+    if bill_state := data.get("bill_state") is not None:
+        data["billState"] = bill_state
+    if coin_state := data.get("coin_state") is not None:
+        data["coinState"] = coin_state
 
     await iot_storage.set_state(data, controller.id)

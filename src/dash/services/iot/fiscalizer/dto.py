@@ -60,8 +60,8 @@ class FiscalizerState(BaseModel):
     created: datetime
     input: bool
     IP_info: IPInfo | None = None
-    coin_state: int | None = None
-    bill_state: int | None = None
+    billState: int | None = None
+    coinState: int | None = None
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
