@@ -3,9 +3,13 @@ from uuid import UUID
 
 from structlog import get_logger
 
+from dash.infrastructure.acquiring.checkbox import CheckboxService
+from dash.infrastructure.acquiring.liqpay import LiqpayService
+from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Controller
 from dash.models.controllers.carwash import CarwashController
@@ -16,7 +20,6 @@ from dash.services.iot.base import BaseIoTService
 from dash.services.iot.carwash.dto import (
     CarwashIoTControllerScheme,
     GetCarwashDisplayResponse,
-    SetCarwashConfigRequest,
     SetCarwashSettingsRequest,
 )
 from dash.services.iot.carwash.utils import (
@@ -69,13 +72,25 @@ SERVICE_LABELS: dict[int, str] = {
 class CarwashService(BaseIoTService):
     def __init__(
         self,
-        controller_repository: ControllerRepository,
         identity_provider: IdProvider,
+        controller_repository: ControllerRepository,
+        payment_repository: PaymentRepository,
+        liqpay_service: LiqpayService,
+        monopay_service: MonopayService,
+        checkbox_service: CheckboxService,
         iot_storage: IoTStorage,
         carwash_client: CarwashIoTClient,
         check_online_interactor: CheckOnlineInteractor,
     ):
-        super().__init__(carwash_client, identity_provider, controller_repository)
+        super().__init__(
+            carwash_client,
+            identity_provider,
+            controller_repository,
+            payment_repository,
+            liqpay_service,
+            monopay_service,
+            checkbox_service,
+        )
         self.iot_client: CarwashIoTClient
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
@@ -101,9 +116,6 @@ class CarwashService(BaseIoTService):
 
         controller.config = config
         controller.settings = settings
-
-    async def update_config(self, data: SetCarwashConfigRequest) -> None:
-        await super().update_config(data)
 
     async def update_settings(self, data: SetCarwashSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)

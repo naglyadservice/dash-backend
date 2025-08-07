@@ -1,11 +1,12 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Self, Type
+from typing import Any, Literal, Self, Type
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from dash.models.controllers.controller import Controller, ControllerType
+from dash.models.payment import PaymentType
 from dash.services.common.dto import CompanyDTO, ControllerID, LocationDTO
 
 
@@ -148,3 +149,13 @@ class SyncSettingsRequest(ControllerID):
 class SyncSettingsResponse(BaseModel):
     config: dict[str, Any]
     settings: dict[str, Any]
+
+
+class CreateInvoiceRequest(ControllerID):
+    amount: int
+    payment_type: Literal[PaymentType.LIQPAY, PaymentType.MONOPAY]
+
+
+class CreateInvoiceResponse(BaseModel):
+    invoice_url: str
+    invoice_id: str = Field(exclude=True)

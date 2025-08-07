@@ -1,17 +1,10 @@
-import asyncio
 import base64
 import hashlib
-import json
-from datetime import datetime
 from typing import Any, Literal
-from uuid import UUID
 
 import ecdsa
 from fastapi import HTTPException
-from pydantic import BaseModel
 from redis.asyncio import Redis
-from structlog import get_logger
-from uuid_utils.compat import uuid7
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.api_client import APIClient
@@ -19,28 +12,12 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.main.config import MonopayConfig
-from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.models.controllers import Controller
+from dash.models.payment import Payment
 from dash.services.common.errors.base import ValidationError, dataclass
-from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
-from dash.services.iot.factory import IoTServiceFactory
-
-
-class ProcessWebhookRequest(BaseModel):
-    body: bytes
-    signature: str
-
-
-class CreateInvoiceRequest(BaseModel):
-    controller_id: UUID
-    amount: int
-
-
-class CreateInvoiceResponse(BaseModel):
-    invoice_url: str
-
-
-logger = get_logger()
+from dash.services.common.payment_service import PaymentService
+from dash.services.iot.dto import CreateInvoiceResponse
 
 
 @dataclass
@@ -48,7 +25,7 @@ class ControllerNotSupportMonopayError(ValidationError):
     message: str = "Controller does not support monopay"
 
 
-class MonopayService:
+class MonopayService(PaymentService):
     def __init__(
         self,
         config: MonopayConfig,
@@ -56,7 +33,6 @@ class MonopayService:
         payment_repository: PaymentRepository,
         checkbox_service: CheckboxService,
         controller_repository: ControllerRepository,
-        service_factory: IoTServiceFactory,
         locker: Redis,
     ):
         self.config = config
@@ -65,7 +41,6 @@ class MonopayService:
         self.payment_repository = payment_repository
         self.checkbox_service = checkbox_service
         self.controller_repository = controller_repository
-        self.factory = service_factory
         self.locker = locker
         self.api_client = APIClient()
 
@@ -86,7 +61,9 @@ class MonopayService:
             json=json,
         )
         if status != 200:
-            raise HTTPException(status_code=503, detail="Failed to connect to Monobank")
+            raise HTTPException(
+                status_code=503, detail="Failed to connect with Monobank"
+            )
 
         return response
 
@@ -113,7 +90,7 @@ class MonopayService:
             hashfunc=hashlib.sha256,
         )
 
-    async def _verify_signature(
+    async def verify_signature(
         self, sign: str, body: bytes, invoice_id: str, token: str
     ) -> None:
         signature = base64.b64decode(sign)
@@ -127,24 +104,20 @@ class MonopayService:
 
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    async def create_invoice(self, data: CreateInvoiceRequest) -> CreateInvoiceResponse:
-        controller = await self.controller_repository.get(data.controller_id)
-        if not controller:
-            raise ControllerNotFoundError
-
+    async def create_invoice(
+        self, controller: Controller, amount: int, hold_money: bool = True
+    ) -> CreateInvoiceResponse:
         if not controller.monopay_active or not controller.monopay_token:
             raise ControllerNotSupportMonopayError
 
-        if data.amount < controller.min_deposit_amount:
+        if amount < controller.min_deposit_amount:
             raise InsufficientDepositAmountError
-
-        await self.factory.get(controller.type).healthcheck(controller.device_id)
 
         response = await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/create",
             json={
-                "amount": data.amount,
+                "amount": amount,
                 "ccy": 980,
                 "webHookUrl": self.config.webhook_url,
                 "redirectUrl": self.config.redirect_url,
@@ -154,122 +127,33 @@ class MonopayService:
         )
         invoice_id = response["invoiceId"]
 
-        payment = Payment(
-            controller_id=controller.id,
-            location_id=controller.location_id,
-            amount=data.amount,
-            type=PaymentType.MONOPAY,
-            status=PaymentStatus.CREATED,
-            invoice_id=invoice_id,
-        )
-        self.payment_repository.add(payment)
-        await self.payment_repository.commit()
-
         await self.acquiring_storage.set_monopay_token(
             token=controller.monopay_token, invoice_id=invoice_id
         )
+        return CreateInvoiceResponse(
+            invoice_url=response["pageUrl"], invoice_id=invoice_id
+        )
 
-        return CreateInvoiceResponse(invoice_url=response["pageUrl"])
+    async def finalize(
+        self, controller: Controller, payment: Payment, amount: int
+    ) -> None:
+        if not controller.monopay_active or not controller.monopay_token:
+            raise ControllerNotSupportMonopayError
 
-    async def _finalize(self, invoice_id: str, amount: int, token: str) -> None:
         await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/finalize",
-            json={"invoiceId": invoice_id, "amount": amount},
-            headers=self._prepare_headers(token),
+            json={"invoiceId": payment.invoice_id, "amount": amount},
+            headers=self._prepare_headers(controller.monopay_token),
         )
 
-    async def _refund(self, invoice_id: str, token: str) -> None:
+    async def refund(self, controller: Controller, payment: Payment) -> None:
+        if not controller.monopay_active or not controller.monopay_token:
+            raise ControllerNotSupportMonopayError
+
         await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/cancel",
-            json={"invoiceId": invoice_id},
-            headers=self._prepare_headers(token),
+            json={"invoiceId": payment.invoice_id},
+            headers=self._prepare_headers(controller.monopay_token),
         )
-
-    async def process_webhook(self, data: ProcessWebhookRequest) -> None:
-        body = json.loads(data.body.decode())
-        invoice_id = body["invoiceId"]
-        
-        logger.info("Monopay event received", body=body)
-
-        token = await self.acquiring_storage.get_monopay_token(invoice_id)
-        if not token:
-            return
-
-        await self._verify_signature(
-            sign=data.signature, body=data.body, invoice_id=invoice_id, token=token
-        )
-        current_modified_date = datetime.fromisoformat(body["modifiedDate"])
-        last_modified_date = await self.acquiring_storage.get_last_modified_date(
-            invoice_id
-        )
-
-        if last_modified_date and current_modified_date < last_modified_date:
-            logger.info(
-                "Monopay webhook: event is expired",
-                last_modified_date=last_modified_date,
-                current_modified_date=current_modified_date,
-                event=body,
-            )
-            return
-
-        await self.acquiring_storage.set_last_modified_date(
-            invoice_id, current_modified_date
-        )
-        payment = await self.payment_repository.get_by_invoice_id(invoice_id)
-        if not payment:
-            logger.info(
-                "Payment not found",
-                invoice_id=invoice_id,
-                event=body,
-            )
-            return
-
-        controller = await self.controller_repository.get(payment.controller_id)
-        if not controller:
-            return
-
-        status = body["status"]
-
-        if status == "processing":
-            payment.status = PaymentStatus.PROCESSING
-
-        elif status == "success":
-            payment.status = PaymentStatus.COMPLETED
-
-            if controller.checkbox_active:
-                receipt_id = uuid7()
-                payment.receipt_id = receipt_id
-                asyncio.create_task(
-                    self.checkbox_service.create_receipt(
-                        controller=controller,
-                        payment=payment,
-                        receipt_id=receipt_id,
-                    )
-                )
-
-        elif status == "reversed":
-            payment.status = PaymentStatus.REVERSED
-
-        elif status == "failure":
-            payment.status = PaymentStatus.FAILED
-            payment.failure_reason = body["failureReason"]
-
-        elif status == "hold":
-            payment.status = PaymentStatus.HOLD
-            try:
-                await self.factory.get(controller.type).send_qr_payment_infra(
-                    device_id=controller.device_id,
-                    order_id=invoice_id,
-                    amount=payment.amount,
-                )
-            except Exception:
-                await self._refund(invoice_id, token)
-                payment.failure_reason = (
-                    "Не вдалося відправити запит контролеру на оплату"
-                )
-            else:
-                await self._finalize(invoice_id, payment.amount, token)
-
-        await self.payment_repository.commit()

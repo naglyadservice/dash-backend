@@ -177,28 +177,47 @@ wsm_state = {
 }
 
 carwash_state = {
-    "created": "2025-05-28T21:37:25+02:00",
+    "created": "2025-08-05T02:13:30+02:00",
     "summaInBox": 0,
     "operatingMode": "WAIT",
     "service": "pause",
-    "timer": "00:00",
-    "summa": 50,
+    "timer": "04:49",
+    "summa": 763.25,
     "depositBoxSensor": False,
     "doorSensor": False,
     "coinState": 0,
-    "billState": 20,
-    "sensors": {"hum": 179, "temp": [99, -99, -99]},
-    "ext_sensors": {"hum": 38, "temp": [26, -99, -99]},
+    "billState": 0,
+    "sensors": {"hum": 29, "temp": [39, -99, -99]},
+    "ext_sensors": {"hum": 44, "temp": [31, -99, -99]},
     "errors": {
         "ServerBlock": False,
-        "reserv_1": False,
-        "reserv_2": False,
-        "reserv_3": False,
+        "ExtPlata": False,
+        "PresenceWater": False,
+        "reserv": False,
         "coinValidator": False,
-        "billValidator": False,
+        "billValidator": True,
         "PayPass": False,
         "Card": False,
     },
+}
+
+fiscalizer_state = {
+    "created": "2025-08-05T03:10:33+03:00",
+    "input": False,
+    "bill_state": 20,
+}
+
+laundry_state = {
+    "relay": [{"id": 0, "state": False}, {"id": 1, "state": False}],
+    "output": [
+        {"id": 0, "state": False},
+        {"id": 1, "state": False},
+        {"id": 2, "state": False},
+        {"id": 3, "state": False},
+        {"id": 4, "state": False},
+        {"id": 5, "state": False},
+    ],
+    "input": [{"id": 0, "state": False}, {"id": 1, "state": True}],
 }
 
 mock_energy_state = {
@@ -289,4 +308,33 @@ fiscalizer_settings = {
     ],
     "coin_table": [50, 100, 100, 200, 500, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     "fiscalizationTime": 30,
+}
+
+laundry_config = {
+    "request_id": 135,
+    "last_update": "",
+    "pppos_apn": "internet",
+    "wifi_STA_ssid": "4G-CPE_9888",
+    "wifi_STA_pass": "1234567890",
+    "ntp_server": "pool.ntp.org",
+    "timeZone": 3,
+    "broker_uri": "mqtt://mqtt.npc.com.ua",
+    "broker_port": 1883,
+    "broker_user": "2001315C7BCC",
+    "broker_pass": "qwertyu",
+    "OTA_server": "http://",
+    "OTA_port": 80,
+    "laundry_status": "AVAILABLE",
+}
+
+laundry_settings = {
+    "request_id": 135,
+    "last_update": "",
+    "inputCBT": [{"id": 0, "value": 100}, {"id": 1, "value": 100}],
+    "input_to_relay": [
+        {"input": 0, "relay": 0, "value": False},
+        {"input": 0, "relay": 1, "value": False},
+        {"input": 1, "relay": 0, "value": False},
+        {"input": 1, "relay": 1, "value": False},
+    ],
 }

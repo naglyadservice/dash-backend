@@ -12,3 +12,5 @@ venv
 .venv
 .env
 .vscode/
+
+CLAUDE.md

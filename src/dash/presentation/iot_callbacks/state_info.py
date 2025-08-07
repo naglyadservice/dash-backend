@@ -35,7 +35,8 @@ async def state_info_callback(
         device_id=device_id,
         data=data,
     )
-    
+
+    # casting bill_state to billState - inconsistency in fiscalizer spelling
     if bill_state := data.get("bill_state") is not None:
         data["billState"] = bill_state
     if coin_state := data.get("coin_state") is not None:
