@@ -11,7 +11,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
 from dash.models.controllers import Controller
-from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.models.payment import Payment
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 from dash.services.common.payment_service import PaymentService
@@ -84,17 +84,6 @@ class LiqpayService(PaymentService):
         }
         params = self._prepare_data(liqpay_data, controller.liqpay_private_key)
         invoice_url = f"https://www.liqpay.ua/api/3/checkout?data={params['data']}&signature={params['signature']}"
-
-        payment = Payment(
-            controller_id=controller.id,
-            location_id=controller.location_id,
-            amount=amount,
-            type=PaymentType.LIQPAY,
-            status=PaymentStatus.CREATED,
-            invoice_id=invoice_id,
-        )
-        self.payment_repository.add(payment)
-        await self.payment_repository.commit()
 
         return CreateInvoiceResponse(invoice_url=invoice_url, invoice_id=invoice_id)
 
