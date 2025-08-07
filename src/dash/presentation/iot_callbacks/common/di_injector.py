@@ -38,7 +38,7 @@ def parse_payload(retort: Retort | None = None):
     if retort is None:
         retort = default_retort
 
-    def _parse_paylaad(func):
+    def _parse_payload(func):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             tp = get_arg_type(func, 1)
@@ -51,7 +51,7 @@ def parse_payload(retort: Retort | None = None):
 
         return wrapper
 
-    return _parse_paylaad
+    return _parse_payload
 
 
 def request_scope(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
