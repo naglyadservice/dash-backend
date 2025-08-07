@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["dash"]
+
+[project]
+name = "dash"
+version = "0.1.0"
+description = "A user-friendly admin panel for handling IoT controllers."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "sqlalchemy>=2.0.38",
+    "alembic>=1.14.1",
+    "pydantic-settings>=2.7.1",
+    "fastapi>=0.115.8",
+    "dishka>=1.4.2",
+    "bcrypt>=4.2.1",
+    "uvicorn>=0.34.0",
+    "email-validator>=2.2.0",
+    "redis>=5.2.1",
+    "npc-iot",
+    "greenlet>=3.1.1",
+    "ecdsa>=0.19.1",
+    "aiohttp>=3.11.14",
+    "structlog>=25.2.0",
+    "orjson>=3.10.15",
+    "alembic-postgresql-enum>=1.7.0",
+    "python-multipart>=0.0.20",
+    "python-jose>=3.4.0",
+    "httpx>=0.28.1",
+    "adaptix>=3.0.0b11",
+    "uuid-utils>=0.10.0",
+    "ddtrace>=3.7.0",
+    "asgi-correlation-id>=4.3.4",
+    "uvloop>=0.21.0",
+    "debugpy>=1.8.14",
+    "aioboto3>=15.0.0",
+    "tenacity>=9.1.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest-asyncio>=0.25.3", "pytest>=8.3.4", "pytest-mock>=3.14.0"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+
+[tool.ruff.lint]
+select = [
+    "C",
+    "DTZ",
+    "E",
+    "F",
+    "I",
+    "ICN",
+    "N",
+    "PLC",
+    "PLE",
+    "Q",
+    "S",
+    "T",
+    "W",
+    "YTT",
+    "RET",
+    "SIM",
+    "ASYNC",
+]
+ignore = ["SIM117"]
+exclude = [
+    ".git",
+    ".venv",
+    ".idea",
+    ".tests",
+    ".cache",
+    "build",
+    "dist",
+    "logs",
+]
+
+[tool.uv.sources]
+npc-iot = { git = "https://github.com/naglyadservice/npc-iot.git", rev = "49f12da2e2a68d4e1184486fa479404089f2e307" }

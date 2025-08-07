@@ -1,0 +1,119 @@
+from uuid import UUID
+
+from dash.infrastructure.auth.id_provider import IdProvider
+from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.customer import CustomerRepository
+from dash.infrastructure.storages.carwash_session import CarwashSessionStorage
+from dash.models.controllers.carwash import CarwashController
+from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.errors.customer_carwash import (
+    CarwashSessionActiveError,
+    CarwashSessionNotFoundError,
+)
+from dash.services.common.errors.user import CustomerHasNoCardError
+from dash.services.iot.carwash.customer_dto import (
+    FinishCarwashSessionRequest,
+    GetCarwashSummaRequest,
+    GetCarwashSummaResponse,
+    SelectCarwashModeRequest,
+    SelectCarwashModeResponse,
+    StartCarwashSessionRequest,
+    StartCarwashSessionResponse,
+)
+from dash.services.iot.carwash.service import CarwashService
+
+
+class CustomerCarwashService:
+    def __init__(
+        self,
+        id_provider: IdProvider,
+        controller_repository: ControllerRepository,
+        customer_repository: CustomerRepository,
+        session_storage: CarwashSessionStorage,
+        carwash_service: CarwashService,
+    ) -> None:
+        self.id_provider = id_provider
+        self.controller_repository = controller_repository
+        self.customer_repository = customer_repository
+        self.session_storage = session_storage
+        self.carwash_service = carwash_service
+
+    async def _get_controller(self, controller_id: UUID) -> CarwashController:
+        controller = await self.controller_repository.get_carwash(controller_id)
+        if not controller:
+            raise ControllerNotFoundError
+        return controller
+
+    async def start_session(
+        self, data: StartCarwashSessionRequest
+    ) -> StartCarwashSessionResponse:
+        customer = await self.id_provider.authorize_customer()
+
+        if await self.session_storage.is_active(data.controller_id):
+            raise CarwashSessionActiveError
+
+        if not customer.card_id:
+            raise CustomerHasNoCardError
+
+        controller = await self._get_controller(data.controller_id)
+
+        if customer.company_id != controller.company_id:
+            raise ControllerNotFoundError
+
+        await self.carwash_service.start_session_infra(
+            controller.device_id, customer.card_id
+        )
+        await self.session_storage.set_session(
+            data.controller_id, customer.id, controller.time_one_pay
+        )
+        return StartCarwashSessionResponse(timeout=controller.time_one_pay)
+
+    async def select_mode(
+        self, data: SelectCarwashModeRequest
+    ) -> SelectCarwashModeResponse:
+        customer = await self.id_provider.authorize_customer()
+        session_customer_id = await self.session_storage.get_session(data.controller_id)
+
+        if session_customer_id != customer.id:
+            raise CarwashSessionNotFoundError
+
+        controller = await self._get_controller(data.controller_id)
+
+        await self.carwash_service.send_action_infra(
+            device_id=controller.device_id,
+            payload=data.mode.model_dump(),
+        )
+        await self.session_storage.refresh_ttl(
+            data.controller_id, controller.time_one_pay
+        )
+        return SelectCarwashModeResponse(timeout=controller.time_one_pay)
+
+    async def finish_session(self, data: FinishCarwashSessionRequest) -> None:
+        customer = await self.id_provider.authorize_customer()
+        session_customer_id = await self.session_storage.get_session(data.controller_id)
+
+        if session_customer_id != customer.id:
+            raise CarwashSessionNotFoundError
+
+        controller = await self._get_controller(data.controller_id)
+
+        if customer.card_id:
+            await self.carwash_service.finish_session_infra(
+                controller.device_id, customer.card_id
+            )
+
+        await self.session_storage.delete_session(data.controller_id)
+
+    async def get_summa(self, data: GetCarwashSummaRequest) -> GetCarwashSummaResponse:
+        customer = await self.id_provider.authorize_customer()
+        customer_session = await self.session_storage.get_session(data.controller_id)
+
+        if customer_session != customer.id:
+            raise CarwashSessionNotFoundError
+
+        controller = await self._get_controller(data.controller_id)
+
+        display_info = await self.carwash_service.get_display_infra(
+            device_id=controller.device_id
+        )
+        return GetCarwashSummaResponse(summa=display_info.summa)
