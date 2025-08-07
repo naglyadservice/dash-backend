@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from dishka import FromDishka
+from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -23,7 +24,7 @@ from dash.services.iot.laundry.dto import (
 )
 from dash.services.iot.laundry.service import LaundryService
 
-laundry_router = APIRouter(prefix="/laundry", tags=["Laundry Controllers"])
+laundry_router = APIRouter(prefix="/laundry", tags=["LAUNDRY"], route_class=DishkaRoute)
 
 
 @laundry_router.get(
