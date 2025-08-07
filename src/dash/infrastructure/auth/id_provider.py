@@ -15,7 +15,7 @@ from dash.services.common.errors.user import CustomerNotFoundError
 class IdProvider:
     def __init__(
         self,
-        request: Request | None,
+        request: Request,
         session_storage: SessionStorage,
         user_repository: UserRepository,
         customer_repository: CustomerRepository,
@@ -29,10 +29,7 @@ class IdProvider:
 
         self._user: AdminUser
 
-    def _fetch_token(self, request: Request | None) -> str:
-        if not request:
-            return ""
-        
+    def _fetch_token(self, request: Request) -> str:
         authorization = request.headers.get("Authorization", "")
         token = authorization.lstrip("Bearer").strip()
 
@@ -43,7 +40,7 @@ class IdProvider:
             return self._user
 
         user_id = self.token_processor.validate_access_token(self.jwt_token)
-        
+
         if await self.session_storage.is_blacklisted(self.jwt_token):
             raise JWTRevokedError
 
@@ -56,7 +53,7 @@ class IdProvider:
 
     async def authorize_customer(self):
         customer_id = self.token_processor.validate_access_token(self.jwt_token)
-        
+
         if await self.session_storage.is_blacklisted(self.jwt_token):
             raise JWTRevokedError
 
