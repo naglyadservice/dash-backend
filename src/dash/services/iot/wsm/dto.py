@@ -90,7 +90,7 @@ class WsmState(BaseModel):
     depositBoxSensor: bool
     doorSensor: bool
     coinState: int
-    billState: int
+    billState: int | str
     errors: WsmStateErrors
 
 

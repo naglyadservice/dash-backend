@@ -159,7 +159,7 @@ class CarwashState(BaseModel):
     depositBoxSensor: bool
     doorSensor: bool
     coinState: int
-    billState: int
+    billState: int | str
     sensors: CarwashSensorState
     ext_sensors: CarwashSensorState
     errors: CarwashStateErrors
