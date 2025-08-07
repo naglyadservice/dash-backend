@@ -10,7 +10,6 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller, ControllerType
 from dash.models.controllers.fiscalizer import FiscalizerController
-from dash.models.controllers.laundry import LaundryController
 from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
@@ -132,22 +131,19 @@ class ControllerService:
             raise DeviceIDAlreadyTakenError
 
         controller_dict = data.model_dump()
-        controller_dict["qr"] = await self._generate_unique_qr(data.type)
+        qr = await self._generate_unique_qr(data.type)
 
         if data.type is ControllerType.WATER_VENDING:
-            controller = WaterVendingController(**controller_dict)
+            controller = WaterVendingController(**controller_dict, qr=qr)
 
-        elif data.type is ControllerType.CARWASH:
-            controller = CarwashController(**controller_dict)
+        if data.type is ControllerType.CARWASH:
+            controller = CarwashController(**controller_dict, qr=qr)
 
-        elif data.type is ControllerType.VACUUM:
-            controller = VacuumController(**controller_dict)
+        if data.type is ControllerType.VACUUM:
+            controller = VacuumController(**controller_dict, qr=qr)
 
-        elif data.type is ControllerType.FISCALIZER:
-            controller = FiscalizerController(**controller_dict)
-
-        elif data.type is ControllerType.LAUNDRY:
-            controller = LaundryController(**controller_dict)
+        if data.type is ControllerType.FISCALIZER:
+            controller = FiscalizerController(**controller_dict, qr=qr)
 
         await self.factory.get(controller.type).sync_settings_infra(controller)
 
@@ -169,6 +165,7 @@ class ControllerService:
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
         )
+
         controller.monopay_token = data.monopay.token
         controller.monopay_active = data.monopay.is_active
 
@@ -180,6 +177,7 @@ class ControllerService:
         await self.identity_provider.ensure_company_owner(
             location_id=controller.location_id
         )
+
         controller.liqpay_private_key = data.liqpay.private_key
         controller.liqpay_public_key = data.liqpay.public_key
         controller.liqpay_active = data.liqpay.is_active
@@ -330,9 +328,9 @@ class ControllerService:
         await self.identity_provider.ensure_company_owner(controller.company_id)
 
         dict_data = data.data.model_dump(exclude_unset=True)
-        for key, value in dict_data.items():
-            if hasattr(controller, key):
-                setattr(controller, key, value)
+        for k, v in dict_data.items():
+            if hasattr(controller, k):
+                setattr(controller, k, v)
 
         await self.controller_repository.commit()
 

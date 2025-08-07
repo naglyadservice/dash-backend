@@ -24,9 +24,6 @@ class PaymentRepository(BaseRepository):
         stmt = select(Payment).where(Payment.invoice_id == invoice_id)
         return await self.session.scalar(stmt)
 
-    async def get(self, payment_id: UUID) -> Payment | None:
-        return await self.session.get(Payment, payment_id)
-
     async def _get_list(
         self,
         data: ReadPaymentListRequest,

@@ -9,7 +9,6 @@ from dash.models.company import Company
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.fiscalizer import FiscalizerController
-from dash.models.controllers.laundry import LaundryController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
@@ -30,13 +29,7 @@ class ControllerRepository(BaseRepository):
 
     async def get_concrete(
         self, controller_id: UUID
-    ) -> (
-        WaterVendingController
-        | CarwashController
-        | FiscalizerController
-        | LaundryController
-        | None
-    ):
+    ) -> WaterVendingController | CarwashController | FiscalizerController | None:
         loader_opt = selectin_polymorphic(
             Controller,
             [WaterVendingController, CarwashController, FiscalizerController],
@@ -128,16 +121,6 @@ class ControllerRepository(BaseRepository):
         stmt = select(FiscalizerController).where(
             FiscalizerController.device_id == device_id
         )
-        return await self.session.scalar(stmt)
-
-    async def get_laundry(self, controller_id: UUID) -> LaundryController | None:
-        stmt = select(LaundryController).where(LaundryController.id == controller_id)
-        return await self.session.scalar(stmt)
-
-    async def get_laundry_by_device_id(
-        self, device_id: str
-    ) -> LaundryController | None:
-        stmt = select(LaundryController).where(LaundryController.device_id == device_id)
         return await self.session.scalar(stmt)
 
     async def _get_list(

@@ -9,11 +9,6 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
 from dash.models.controllers.controller import ControllerStatus, ControllerType
 from dash.models.controllers.fiscalizer import FiscalizerController
-from dash.models.controllers.laundry import (
-    LaundryController,
-    LaundryStatus,
-    LaundryTariffType,
-)
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
@@ -22,8 +17,6 @@ from tests.context.settings import (
     carwash_settings,
     fiscalizer_config,
     fiscalizer_settings,
-    laundry_config,
-    laundry_settings,
     wsm_config,
     wsm_settings,
 )
@@ -146,44 +139,6 @@ class TestEnvironment:
             qr="test_qr_3",
         )
 
-        self.laundry_controller_fixed = LaundryController(
-            name="Test Laundry Fixed",
-            device_id="test_laundry_fixed",
-            location_id=self.location_1.id,
-            type=ControllerType.LAUNDRY,
-            version="1.0.0",
-            status=ControllerStatus.ACTIVE,
-            config=laundry_config,
-            settings=laundry_settings,
-            qr="test_qr_laundry_fixed",
-            tariff_type=LaundryTariffType.FIXED,
-            laundry_status=LaundryStatus.AVAILABLE,
-            fixed_price=5000,
-            max_hold_amount=10000,
-            price_per_minute_before_transition=200,
-            transition_after_minutes=30,
-            price_per_minute_after_transition=100,
-        )
-
-        self.laundry_controller_per_minute = LaundryController(
-            name="Test Laundry Per Minute",
-            device_id="test_laundry_per_minute",
-            location_id=self.location_2.id,
-            type=ControllerType.LAUNDRY,
-            version="1.0.0",
-            status=ControllerStatus.ACTIVE,
-            config=laundry_config,
-            settings=laundry_settings,
-            qr="test_qr_laundry_per_minute",
-            tariff_type=LaundryTariffType.PER_MINUTE,
-            laundry_status=LaundryStatus.AVAILABLE,
-            fixed_price=0,
-            max_hold_amount=10000,
-            price_per_minute_before_transition=200,
-            transition_after_minutes=30,
-            price_per_minute_after_transition=100,
-        )
-
         self.customer_1 = Customer(
             company_id=self.company_1.id,
             phone_number="test_phone_number_1",
@@ -209,8 +164,6 @@ class TestEnvironment:
                 self.controller_1,
                 self.controller_2,
                 self.controller_3,
-                self.laundry_controller_fixed,
-                self.laundry_controller_per_minute,
                 LocationAdmin(
                     location_id=self.location_1.id, user_id=self.location_admin_1.id
                 ),

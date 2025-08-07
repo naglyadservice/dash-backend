@@ -4,8 +4,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from dash.models.controllers.laundry import LaundryTariffType
-from dash.models.transactions.laundry import LaundrySessionStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
@@ -84,21 +82,8 @@ class FiscalizerTransactionScheme(TransactionBase):
     pass
 
 
-class LaundryTransactionScheme(TransactionBase):
-    tariff_type: LaundryTariffType
-    session_status: LaundrySessionStatus
-    session_start_time: datetime | None
-    session_end_time: datetime | None
-    hold_amount: int | None
-    refund_amount: int | None
-    final_amount: int
-
-
 TRANSACTION_SCHEME_TYPE = (
-    WsmTransactionScheme
-    | CarwashTransactionScheme
-    | FiscalizerTransactionScheme
-    | LaundryTransactionScheme
+    WsmTransactionScheme | CarwashTransactionScheme | FiscalizerTransactionScheme
 )
 
 

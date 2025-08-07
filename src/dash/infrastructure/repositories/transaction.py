@@ -14,7 +14,6 @@ from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.fiscalizer import FiscalizerTransaction
-from dash.models.transactions.laundry import LaundryTransaction
 from dash.models.transactions.transaction import Transaction
 from dash.models.transactions.water_vending import WsmTransaction
 from dash.services.transaction.dto import (
@@ -189,15 +188,3 @@ class TransactionRepository(BaseRepository):
             select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_stats(data, whereclause)
-
-    async def get_last_laundry(self, controller_id: UUID) -> LaundryTransaction | None:
-        query = (
-            select(LaundryTransaction)
-            .where(LaundryTransaction.controller_id == controller_id)
-            .order_by(LaundryTransaction.created_at.desc())
-            .limit(1)
-        )
-        return await self.session.scalar(query)
-
-    async def get_laundry(self, transaction_id: UUID) -> LaundryTransaction | None:
-        return await self.session.get(LaundryTransaction, transaction_id)

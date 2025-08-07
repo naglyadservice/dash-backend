@@ -13,7 +13,6 @@ from dash.services.transaction.dto import (
     FiscalizerTransactionScheme,
     GetTransactionStatsRequest,
     GetTransactionStatsResponse,
-    LaundryTransactionScheme,
     ReadTransactionListRequest,
     ReadTransactionListResponse,
     WsmTransactionScheme,
@@ -83,10 +82,6 @@ class TransactionService:
             elif transaction.type is TransactionType.FISCALIZER:
                 transaction_list.append(
                     FiscalizerTransactionScheme.model_validate(transaction)
-                )
-            elif transaction.type is TransactionType.LAUNDRY:
-                transaction_list.append(
-                    LaundryTransactionScheme.model_validate(transaction)
                 )
             else:
                 raise ValueError("Unknown transaction type")

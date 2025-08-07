@@ -92,9 +92,9 @@ class CompanyService:
             raise CompanyNotFoundError
 
         dict_data = data.data.model_dump(exclude_unset=True)
-        for key, value in dict_data.items():
-            if hasattr(company, key):
-                setattr(company, key, value)
+        for k, v in dict_data.items():
+            if hasattr(company, k):
+                setattr(company, k, v)
 
         await self.company_repository.commit()
 
