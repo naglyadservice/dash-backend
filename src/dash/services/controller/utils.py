@@ -7,6 +7,7 @@ QR_PREFIX_MAP = {
     ControllerType.WATER_VENDING: "w",
     ControllerType.FISCALIZER: "f",
     ControllerType.VACUUM: "v",
+    ControllerType.LAUNDRY: "l",
 }
 
 
