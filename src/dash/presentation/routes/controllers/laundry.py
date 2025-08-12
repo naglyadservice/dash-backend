@@ -5,6 +5,7 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from dash.presentation.bearer import bearer_scheme
 from dash.presentation.response_builder import build_responses, controller_errors
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.dto import (
@@ -24,7 +25,12 @@ from dash.services.iot.laundry.dto import (
 )
 from dash.services.iot.laundry.service import LaundryService
 
-laundry_router = APIRouter(prefix="/laundry", tags=["LAUNDRY"], route_class=DishkaRoute)
+laundry_router = APIRouter(
+    prefix="/laundry",
+    tags=["LAUNDRY"],
+    route_class=DishkaRoute,
+    dependencies=[bearer_scheme],
+)
 
 
 @laundry_router.get(

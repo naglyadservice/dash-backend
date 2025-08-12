@@ -7,7 +7,7 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Form, Request
 from pydantic import Field
-from redis.asyncio import Redis
+from structlog import get_logger
 
 from dash.infrastructure.acquiring.liqpay import (
     ControllerNotSupportLiqpayError,
@@ -30,6 +30,7 @@ from dash.services.iot.factory import IoTServiceFactory
 acquiring_router = APIRouter(
     prefix="/acquiring", tags=["ACQUIRING"], route_class=DishkaRoute
 )
+logger = get_logger()
 
 
 class CreateMonopayInvoiceRequest(CreateInvoiceRequest):
@@ -65,27 +66,27 @@ async def monopay_webhook(
     payment_repository: FromDishka[PaymentRepository],
     controller_repository: FromDishka[ControllerRepository],
     storage: FromDishka[AcquiringStorage],
-    locker: FromDishka[Redis],
     factory: FromDishka[IoTServiceFactory],
 ) -> Any:
-    data = await request.body()
+    bytes_data = await request.body()
     signature = request.headers.get("X-Sign")
 
     if not signature or not signature:
         return
 
-    body = json.loads(data.decode())
-    invoice_id = body["invoiceId"]
+    dict_data = json.loads(bytes_data.decode())
+    invoice_id = dict_data["invoiceId"]
+    logger.info(f"Monopay webhook request", data=dict_data)
 
     token = await storage.get_monopay_token(invoice_id)
     if not token:
         return
 
     await monopay_service.verify_signature(
-        sign=signature, body=body, invoice_id=invoice_id, token=token
+        sign=signature, body=bytes_data, invoice_id=invoice_id, token=token
     )
 
-    current_modified_date = datetime.fromisoformat(body["modifiedDate"])
+    current_modified_date = datetime.fromisoformat(dict_data["modifiedDate"])
     last_modified_date = await storage.get_last_modified_date(invoice_id)
 
     if last_modified_date and current_modified_date < last_modified_date:
@@ -102,7 +103,7 @@ async def monopay_webhook(
         return
 
     service = factory.get(controller.type)
-    status = body["status"]
+    status = dict_data["status"]
 
     if status == "hold_wait":
         await service.process_hold_status(payment)
@@ -113,7 +114,7 @@ async def monopay_webhook(
     elif status == "reversed":
         await service.process_reversed_status(payment)
     elif status == "failure":
-        await service.process_failed_status(payment, body["err_description"])
+        await service.process_failed_status(payment, dict_data["err_description"])
 
 
 class CreateLiqpayInvoiceRequest(CreateInvoiceRequest):
@@ -153,6 +154,7 @@ async def liqpay_webhook(
 ) -> Any:
     dict_data = json.loads(base64.b64decode(data).decode("utf-8"))
     invoice_id = dict_data["order_id"]
+    logger.info(f"Liqpay webhook request", data=dict_data)
 
     payment = await payment_repository.get_by_invoice_id(invoice_id)
     if not payment:

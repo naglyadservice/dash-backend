@@ -192,7 +192,7 @@ class LaundryService(BaseIoTService):
             controller_id=controller.id,
             location_id=controller.location_id,
             payment_id=payment.id,
-            tariff_type=controller.tariff_type.value,
+            tariff_type=controller.tariff_type,
             session_status=LaundrySessionStatus.WAITING_START,
             sale_type="money",
             hold_amount=hold_amount,

@@ -1,3 +1,4 @@
+from datetime import datetime, UTC
 from typing import Any
 
 from ddtrace.trace import tracer
@@ -69,4 +70,5 @@ async def laundry_state_info_callback(
         elif current_state is False:
             await laundry_service.handle_door_unlocked(controller.id)
 
+    data["created"] = datetime.now(UTC).isoformat()
     await iot_storage.set_state(data, controller.id)

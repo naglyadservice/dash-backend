@@ -13,6 +13,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.models import Controller
 from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
 from dash.services.common.payment_service import PaymentService
 from dash.services.iot.dto import (
     BlockingRequest,
@@ -77,7 +78,8 @@ class BaseIoTService(ABC):
         )
 
     async def healthcheck(self, device_id: str) -> None:
-        await self.iot_client.get_state(device_id)
+        pass
+        # await self.iot_client.get_state(device_id)
 
     async def update_config(self, data: SetConfigRequest) -> None:
         controller = await self._get_controller(data.controller_id)
@@ -209,6 +211,9 @@ class BaseIoTService(ABC):
         controller = await self._get_controller(data.controller_id)
         await self.healthcheck(controller.device_id)
 
+        if data.amount < controller.min_deposit_amount:
+            raise InsufficientDepositAmountError
+
         processor = self._get_payment_processor(data.payment_type)
 
         result = await processor.create_invoice(controller, data.amount)
@@ -262,6 +267,7 @@ class BaseIoTService(ABC):
                     receipt_id=receipt_id,
                 )
             )
+        await self.payment_repository.commit()
 
     async def process_reversed_status(self, payment: Payment) -> None:
         payment.status = PaymentStatus.REVERSED

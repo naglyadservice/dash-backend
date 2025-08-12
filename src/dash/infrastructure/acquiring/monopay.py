@@ -121,7 +121,7 @@ class MonopayService(PaymentService):
                 "ccy": 980,
                 "webHookUrl": self.config.webhook_url,
                 "redirectUrl": self.config.redirect_url,
-                "paymentType": "hold",
+                "paymentType": "hold" if hold_money else "debit",
             },
             headers=self._prepare_headers(controller.monopay_token),
         )
