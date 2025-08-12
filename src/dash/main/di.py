@@ -22,6 +22,8 @@ from dash.infrastructure.iot.laundry.client import LaundryIoTClient
 from dash.infrastructure.iot.laundry.di import get_laundry_client
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.mqtt.di import get_mqtt_client
+from dash.infrastructure.iot.vacuum.client import VacuumIoTClient
+from dash.infrastructure.iot.vacuum.di import get_vacuum_client
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.iot.wsm.di import get_wsm_client
 from dash.infrastructure.repositories.company import CompanyRepository
@@ -61,6 +63,7 @@ from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.factory import IoTServiceFactory
 from dash.services.iot.fiscalizer.service import FiscalizerService
 from dash.services.iot.laundry.service import LaundryService
+from dash.services.iot.vacuum.service import VacuumService
 from dash.services.iot.wsm.service import WsmService
 from dash.services.location.service import LocationService
 from dash.services.payment.service import PaymentService
@@ -114,6 +117,7 @@ def provide_services() -> Provider:
         CarwashService,
         FiscalizerService,
         LaundryService,
+        VacuumService,
         IoTServiceFactory,
         CheckOnlineInteractor,
     )
@@ -159,6 +163,7 @@ def provide_infrastructure() -> Provider:
     )
     provider.provide(get_mqtt_client, scope=Scope.APP, provides=MqttClient)
     provider.provide(get_laundry_client, scope=Scope.APP, provides=LaundryIoTClient)
+    provider.provide(get_vacuum_client, scope=Scope.APP, provides=VacuumIoTClient)
 
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)

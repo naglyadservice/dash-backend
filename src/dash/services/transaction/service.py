@@ -17,6 +17,7 @@ from dash.services.transaction.dto import (
     ReadTransactionListRequest,
     ReadTransactionListResponse,
     WsmTransactionScheme,
+    VacuumTransactionScheme,
 )
 
 
@@ -87,6 +88,10 @@ class TransactionService:
             elif transaction.type is TransactionType.LAUNDRY:
                 transaction_list.append(
                     LaundryTransactionScheme.model_validate(transaction)
+                )
+            elif transaction.type is TransactionType.VACUUM:
+                transaction_list.append(
+                    VacuumTransactionScheme.model_validate(transaction),
                 )
             else:
                 raise ValueError("Unknown transaction type")

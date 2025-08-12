@@ -10,6 +10,7 @@ from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.laundry.client import LaundryIoTClient
 from dash.infrastructure.iot.mqtt.client import MqttClient
+from dash.infrastructure.iot.vacuum.client import VacuumIoTClient
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.main.config import Config
 from dash.main.di import setup_di
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
     await di_container.get(FiscalizerIoTClient)
     await di_container.get(MqttClient)
     await di_container.get(LaundryIoTClient)
+    await di_container.get(VacuumIoTClient)
 
     yield
 

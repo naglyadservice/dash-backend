@@ -65,18 +65,18 @@ class FiscalizerState(BaseModel):
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
-    settings: FiscalizerSettings | None = None
-    config: FiscalizerConfig | None = None
-    state: FiscalizerState | None = None
+    settings: FiscalizerSettings | None
+    config: FiscalizerConfig | None
+    state: FiscalizerState | None
 
-    quick_deposit_button_1: int | None = None
-    quick_deposit_button_2: int | None = None
-    quick_deposit_button_3: int | None = None
+    quick_deposit_button_1: int | None
+    quick_deposit_button_2: int | None
+    quick_deposit_button_3: int | None
 
-    sim_number: str | None = None
-    sim_serial: str | None = None
+    sim_number: str | None
+    sim_serial: str | None
 
-    description: str | None = None
+    description: str | None
 
     @classmethod
     def get_state_dto(cls):

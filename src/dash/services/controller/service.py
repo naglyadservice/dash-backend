@@ -149,6 +149,9 @@ class ControllerService:
         elif data.type is ControllerType.LAUNDRY:
             controller = LaundryController(**controller_dict)
 
+        elif data.type is ControllerType.VACUUM:
+            controller = VacuumController(**controller_dict)
+
         await self.factory.get(controller.type).sync_settings_infra(controller)
 
         self.controller_repository.add(controller)

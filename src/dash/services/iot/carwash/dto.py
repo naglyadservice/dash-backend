@@ -32,7 +32,7 @@ class CarwashConfig(BaseModel):
     cardReaderType: Literal["no", "card", "keyfob"] | None = None
 
 
-class RelayBit(IntEnum):
+class CarwashRelayBit(IntEnum):
     VALVE_FOAM = 1
     VALVE_COLD_WATER = 2
     VALVE_HOT_WATER = 3
@@ -49,14 +49,14 @@ class RelayBit(IntEnum):
 
 
 class CarwashServicesRelayDTO(BaseModel):
-    foam: list[RelayBit] | None = None
-    foam_extra: list[RelayBit] | None = None
-    water_pressured: list[RelayBit] | None = None
-    water_warm: list[RelayBit] | None = None
-    osmos: list[RelayBit] | None = None
-    wax: list[RelayBit] | None = None
-    winter: list[RelayBit] | None = None
-    blackening: list[RelayBit] | None = None
+    foam: list[CarwashRelayBit] | None = None
+    foam_extra: list[CarwashRelayBit] | None = None
+    water_pressured: list[CarwashRelayBit] | None = None
+    water_warm: list[CarwashRelayBit] | None = None
+    osmos: list[CarwashRelayBit] | None = None
+    wax: list[CarwashRelayBit] | None = None
+    winter: list[CarwashRelayBit] | None = None
+    blackening: list[CarwashRelayBit] | None = None
 
 
 class CarwashServiceEnum(StrEnum):
@@ -70,7 +70,7 @@ class CarwashServiceEnum(StrEnum):
     BLACKENING = "blackening"
 
 
-class ServicesIntListDTO(BaseModel):
+class CarwashServicesIntListDTO(BaseModel):
     foam: int | None = None
     foam_extra: int | None = None
     water_pressured: int | None = None
@@ -81,15 +81,15 @@ class ServicesIntListDTO(BaseModel):
     blackening: int | None = None
 
 
-class CarwashServicesPauseDTO(ServicesIntListDTO):
+class CarwashServicesPauseDTO(CarwashServicesIntListDTO):
     pass
 
 
-class CarwashServicesVfdFrequencyDTO(ServicesIntListDTO):
+class CarwashServicesVfdFrequencyDTO(CarwashServicesIntListDTO):
     pass
 
 
-class CarwashTariffDTO(ServicesIntListDTO):
+class CarwashTariffDTO(CarwashServicesIntListDTO):
     pass
 
 
@@ -207,5 +207,5 @@ class SendCarwashActionRequest(SendActionRequest):
 class GetCarwashDisplayResponse(BaseModel):
     mode: str
     service: str
-    summa: int
+    summa: float
     time: int
