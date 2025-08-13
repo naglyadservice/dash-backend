@@ -34,11 +34,10 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         qos: Literal[0, 1, 2],
         payload: Mapping[str, Any] | None,
         ttl: int | None,
-        timeout: int = 2,
     ) -> dict[str, Any]:
         waiter = await self.send_message(device_id, topic, qos, payload, ttl)
         try:
-            response = await waiter.wait(timeout=timeout)
+            response = await waiter.wait(timeout=ttl)
         except DeviceResponceError:
             raise ControllerResponseError
         except TimeoutError:
@@ -83,7 +82,6 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
             qos=1,
             payload={"fields": fields},
             ttl=ttl,
-            timeout=5,
         )
 
     async def set_settings(
@@ -109,7 +107,6 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
             qos=1,
             payload={"fields": fields},
             ttl=ttl,
-            timeout=5,
         )
 
     async def get_display(
