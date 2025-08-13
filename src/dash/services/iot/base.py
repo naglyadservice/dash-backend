@@ -130,6 +130,7 @@ class BaseIoTService(ABC):
                     "amount": amount,
                 }
             },
+            ttl=10,
         )
 
     async def send_free_payment(self, data: SendFreePaymentRequest) -> None:

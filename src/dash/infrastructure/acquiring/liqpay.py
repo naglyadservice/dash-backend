@@ -8,6 +8,7 @@ from typing import Any, Literal
 
 from fastapi import HTTPException
 from pydantic import BaseModel
+from structlog import get_logger
 from uuid_utils.compat import uuid7
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
@@ -39,6 +40,9 @@ class ProcessLiqpayWebhookRequest(BaseModel):
 @dataclass
 class ControllerNotSupportLiqpayError(ValidationError):
     message: str = "Controller does not support LiqPay"
+
+
+logger = get_logger()
 
 
 class LiqpayService:
@@ -158,6 +162,8 @@ class LiqpayService:
     async def process_webhook(self, data: ProcessLiqpayWebhookRequest) -> None:
         dict_data = json.loads(base64.b64decode(data.body).decode("utf-8"))
         invoice_id = dict_data["order_id"]
+
+        logger.info(f"Liqpay event received", body=dict_data)
 
         payment = await self.payment_repository.get_by_invoice_id(invoice_id)
         if not payment:
