@@ -163,6 +163,9 @@ class TestEnvironment:
             price_per_minute_before_transition=200,
             transition_after_minutes=30,
             price_per_minute_after_transition=100,
+            liqpay_active=True,
+            liqpay_public_key="abc",
+            liqpay_private_key="123",
         )
 
         self.laundry_controller_per_minute = LaundryController(

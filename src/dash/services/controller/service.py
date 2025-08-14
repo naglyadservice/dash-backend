@@ -1,7 +1,6 @@
 from typing import Sequence
 from uuid import UUID
 
-from ddtrace.internal.utils.retry import retry
 
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository

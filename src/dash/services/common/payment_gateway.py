@@ -5,7 +5,7 @@ from dash.models.payment import Payment
 from dash.services.iot.dto import CreateInvoiceResponse
 
 
-class PaymentService(Protocol):
+class PaymentGateway(Protocol):
     async def create_invoice(
         self,
         controller: Controller,

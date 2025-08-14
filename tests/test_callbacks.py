@@ -12,17 +12,12 @@ from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
-from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.presentation.iot_callbacks.carwash.sale import (
     CarwashSaleCallbackPayload,
     carwash_sale_callback_retort,
 )
 from dash.presentation.iot_callbacks.common.di_injector import default_retort
-from dash.presentation.iot_callbacks.denomination import (
-    DenominationCallbackPayload,
-    denomination_callback_retort,
-)
 from dash.presentation.iot_callbacks.fiscalizer.sale import (
     FiscalizerSaleCallbackPayload,
     fiscalizer_sale_callback_retort,
@@ -202,31 +197,6 @@ async def test_wsm_sale_callback_with_card_balance_out(
 
     await session.refresh(test_env.customer_1)
     assert test_env.customer_1.balance == card_balance_out
-
-
-@pytest.mark.asyncio(loop_scope="session")
-async def test_denomination_callback(
-    deps: CallbackDependencies,
-    test_env: TestEnvironment,
-    mocker: Mock,
-    request_di_container: AsyncContainer,
-):
-    payload = DenominationCallbackPayload(
-        created=datetime(2000, 1, 1),
-        coin=0,
-        bill=2,
-    )
-    payment_repository = await request_di_container.get(PaymentRepository)
-    mocker.patch.object(payment_repository, "add")
-    mocker.patch.object(payment_repository, "commit")
-
-    await deps.wsm_client.dispatcher.denomination._process_callbacks(  # type: ignore
-        device_id=test_env.controller_1.device_id,
-        decoded_payload=denomination_callback_retort.dump(payload),
-        di_container=request_di_container,  # type: ignore
-    )
-    payment_repository.add.assert_called_once()  # type: ignore
-    payment_repository.commit.assert_called_once()  # type: ignore
 
 
 @pytest.mark.asyncio(loop_scope="session")

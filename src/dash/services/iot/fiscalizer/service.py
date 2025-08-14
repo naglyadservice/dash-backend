@@ -1,17 +1,14 @@
 from uuid import UUID
 
-from dash.infrastructure.acquiring.checkbox import CheckboxService
-from dash.infrastructure.acquiring.liqpay import LiqpayService
-from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.dto import SendFreePaymentRequest
 from dash.services.iot.fiscalizer.dto import (
@@ -27,10 +24,7 @@ class FiscalizerService(BaseIoTService):
         self,
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
-        payment_repository: PaymentRepository,
-        liqpay_service: LiqpayService,
-        monopay_service: MonopayService,
-        checkbox_service: CheckboxService,
+        payment_helper: PaymentHelper,
         iot_storage: IoTStorage,
         fiscalizer_client: FiscalizerIoTClient,
         check_online_interactor: CheckOnlineInteractor,
@@ -39,10 +33,7 @@ class FiscalizerService(BaseIoTService):
             fiscalizer_client,
             identity_provider,
             controller_repository,
-            payment_repository,
-            liqpay_service,
-            monopay_service,
-            checkbox_service,
+            payment_helper,
         )
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor

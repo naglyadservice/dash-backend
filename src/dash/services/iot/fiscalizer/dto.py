@@ -67,7 +67,7 @@ class FiscalizerState(BaseModel):
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
     settings: FiscalizerSettings | None
     config: FiscalizerConfig | None
-    state: FiscalizerState | None
+    state: FiscalizerState | None = None
 
     quick_deposit_button_1: int | None
     quick_deposit_button_2: int | None

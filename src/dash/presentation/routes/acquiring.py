@@ -10,20 +10,21 @@ from pydantic import Field
 from structlog import get_logger
 
 from dash.infrastructure.acquiring.liqpay import (
-    ControllerNotSupportLiqpayError,
-    LiqpayService,
+    LiqpayGateway,
 )
 from dash.infrastructure.acquiring.monopay import (
-    ControllerNotSupportMonopayError,
-    MonopayService,
+    MonopayGateway,
 )
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.acquiring import AcquiringStorage
-from dash.models.payment import PaymentType
+from dash.models.payment import PaymentGatewayType
 from dash.presentation.response_builder import build_responses, controller_errors
-from dash.services.common.errors.controller import ControllerNotFoundError
-from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
+from dash.services.common.errors.controller import (
+    ControllerNotFoundError,
+    InsufficientDepositAmountError,
+    UnsupportedPaymentGatewayTypeError,
+)
 from dash.services.iot.base import CreateInvoiceRequest, CreateInvoiceResponse
 from dash.services.iot.factory import IoTServiceFactory
 
@@ -34,15 +35,15 @@ logger = get_logger()
 
 
 class CreateMonopayInvoiceRequest(CreateInvoiceRequest):
-    payment_type: Literal[PaymentType.MONOPAY] = Field(
-        default=PaymentType.MONOPAY, init=False, frozen=True
+    gateway_type: Literal[PaymentGatewayType.MONOPAY] = Field(
+        default=PaymentGatewayType.MONOPAY, init=False, frozen=True
     )
 
 
 @acquiring_router.post(
     "/monopay/invoice",
     responses=build_responses(
-        (400, (ControllerNotSupportMonopayError, InsufficientDepositAmountError)),
+        (400, (UnsupportedPaymentGatewayTypeError, InsufficientDepositAmountError)),
         *controller_errors,
     ),
 )
@@ -62,7 +63,7 @@ async def monopay_invoice(
 @acquiring_router.post("/monopay/webhook", include_in_schema=False)
 async def monopay_webhook(
     request: Request,
-    monopay_service: FromDishka[MonopayService],
+    monopay_service: FromDishka[MonopayGateway],
     payment_repository: FromDishka[PaymentRepository],
     controller_repository: FromDishka[ControllerRepository],
     storage: FromDishka[AcquiringStorage],
@@ -118,15 +119,15 @@ async def monopay_webhook(
 
 
 class CreateLiqpayInvoiceRequest(CreateInvoiceRequest):
-    payment_type: Literal[PaymentType.LIQPAY] = Field(
-        default=PaymentType.LIQPAY, init=False, frozen=True
+    gateway_type: Literal[PaymentGatewayType.LIQPAY] = Field(
+        default=PaymentGatewayType.LIQPAY, init=False, frozen=True
     )
 
 
 @acquiring_router.post(
     "/liqpay/invoice",
     responses=build_responses(
-        (400, (ControllerNotSupportLiqpayError, InsufficientDepositAmountError)),
+        (400, (UnsupportedPaymentGatewayTypeError, InsufficientDepositAmountError)),
         *controller_errors,
     ),
 )
@@ -145,7 +146,7 @@ async def liqpay_invoice(
 
 @acquiring_router.post("/liqpay/webhook", include_in_schema=False)
 async def liqpay_webhook(
-    liqpay_service: FromDishka[LiqpayService],
+    liqpay_service: FromDishka[LiqpayGateway],
     payment_repository: FromDishka[PaymentRepository],
     controller_repository: FromDishka[ControllerRepository],
     factory: FromDishka[IoTServiceFactory],

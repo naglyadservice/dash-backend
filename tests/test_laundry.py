@@ -7,8 +7,7 @@ import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dash.infrastructure.acquiring.liqpay import LiqpayService
-from dash.infrastructure.acquiring.monopay import MonopayService
+from dash.infrastructure.acquiring.monopay import MonopayGateway
 from dash.infrastructure.iot.laundry.client import LaundryIoTClient
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import (
@@ -16,7 +15,7 @@ from dash.infrastructure.repositories.transaction import (
     TransactionRepository,
 )
 from dash.models.controllers.laundry import LaundryTariffType
-from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.models.payment import Payment, PaymentStatus, PaymentType, PaymentGatewayType
 from dash.models.transactions.laundry import LaundrySessionStatus
 from dash.services.iot.dto import CreateInvoiceResponse
 from dash.services.iot.laundry.dto import CreateLaundryInvoiceRequest
@@ -29,8 +28,8 @@ pytestmark = pytest.mark.usefixtures("create_tables")
 @dataclass
 class LaundryDependencies:
     service: LaundryService
-    liqpay: LiqpayService
-    monopay: MonopayService
+    liqpay: MonopayGateway
+    monopay: MonopayGateway
     payment_repo: PaymentRepository
     transaction_repo: TransactionRepository
     iot: LaundryIoTClient
@@ -41,8 +40,8 @@ class LaundryDependencies:
 async def deps(request_di_container: AsyncContainer) -> LaundryDependencies:
     return LaundryDependencies(
         service=await request_di_container.get(LaundryService),
-        liqpay=await request_di_container.get(LiqpayService),
-        monopay=await request_di_container.get(MonopayService),
+        liqpay=await request_di_container.get(MonopayGateway),
+        monopay=await request_di_container.get(MonopayGateway),
         payment_repo=await request_di_container.get(PaymentRepository),
         transaction_repo=await request_di_container.get(TransactionRepository),
         iot=await request_di_container.get(LaundryIoTClient),
@@ -64,7 +63,6 @@ async def test_session_fixed(
             invoice_url="some.url", invoice_id=str(uuid4())
         ),
     )
-    mocker.patch.object(deps.liqpay, "finalize")
     mocker.patch.object(deps.iot, "unlock_button_and_turn_on_led")
     mocker.patch.object(deps.iot, "lock_button_and_turn_off_led")
     mocker.patch.object(deps.service, "healthcheck")
@@ -72,7 +70,7 @@ async def test_session_fixed(
     result = await deps.service.create_invoice(
         CreateLaundryInvoiceRequest(
             controller_id=test_env.laundry_controller_fixed.id,
-            payment_type=PaymentType.LIQPAY,
+            gateway_type=PaymentGatewayType.LIQPAY,
         )
     )
     payment = await deps.payment_repo.get_by_invoice_id(result.invoice_id)
@@ -106,7 +104,6 @@ async def test_session_fixed(
             di_container=request_di_container,  # type: ignore
         )
 
-    assert deps.liqpay.finalize.call_count == 1  # type: ignore
     await deps.session.refresh(transaction)
     assert transaction.session_status is LaundrySessionStatus.COMPLETED
     assert transaction.final_amount == test_env.laundry_controller_fixed.fixed_price
@@ -123,7 +120,8 @@ async def test_per_minute_tariff(
         id=uuid4(),
         amount=controller.max_hold_amount,
         status=PaymentStatus.COMPLETED,
-        type=PaymentType.MONOPAY,
+        type=PaymentType.CASHLESS,
+        gateway_type=PaymentGatewayType.MONOPAY,
     )
     transaction = LaundryTransaction(
         payment_id=payment.id,

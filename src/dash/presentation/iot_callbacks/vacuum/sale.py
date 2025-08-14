@@ -13,6 +13,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models import VacuumTransaction
+from dash.models.payment import PaymentType
 from dash.models.transactions.transaction import TransactionType
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -20,6 +21,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.common.utils import ServiceBitMaskCodec
 from dash.services.iot.vacuum.dto import VacuumServiceEnum, VacuumRelayBit
 
@@ -81,6 +83,7 @@ async def vacuum_sale_callback(
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
     vacuum_client: FromDishka[VacuumIoTClient],
+    payment_helper: FromDishka[PaymentHelper],
 ) -> None:
     dict_data = vacuum_sale_callback_retort.dump(data)
     controller = await controller_repository.get_vacuum_by_device_id(device_id)
@@ -161,6 +164,19 @@ async def vacuum_sale_callback(
         )
         await vacuum_client.sale_ack(device_id, data.id)
         return
+
+    if data.add_bill + data.add_coin > 0:
+        payment = payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            transaction_id=transaction.id,
+            amount=data.add_bill + data.add_coin,
+            payment_type=PaymentType.CASH,
+        )
+        if controller.checkbox_active:
+            await payment_helper.fiscalize(controller, payment)
+
+        payment_helper.save(payment)
 
     await transaction_repository.commit()
     await vacuum_client.sale_ack(device_id, data.id)
