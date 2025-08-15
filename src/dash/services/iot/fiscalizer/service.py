@@ -59,10 +59,6 @@ class FiscalizerService(BaseIoTService):
             is_online=await self.check_online(controller),
         )
 
-    async def send_qr_payment_infra(self, device_id: str, order_id: str, amount: int):
-        amount = round(amount / 100, 2)  # type: ignore
-        return await super().send_qr_payment_infra(device_id, order_id, amount)
-
     async def setup_quick_deposit_buttons(
         self, data: SetupQuickDepositButtonsRequest
     ) -> None:
