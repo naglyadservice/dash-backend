@@ -123,7 +123,7 @@ class CheckboxService:
         if active_shift:
             if active_shift["status"] == "OPENED":
                 return True
-            elif active_shift["status"] == "OPENING":
+            elif active_shift["status"] in ("OPENING", "CREATED"):
                 return await self._wait_for_shift_opened(active_shift["id"], token)
 
         return await self._open_shift(controller, token)
