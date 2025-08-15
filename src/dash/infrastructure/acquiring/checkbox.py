@@ -3,13 +3,12 @@ from datetime import datetime, time
 from typing import Any, Literal
 from uuid import UUID, uuid4
 
-import tenacity
 from structlog import get_logger
 
 from dash.infrastructure.api_client import APIClient
 from dash.main.config import AppConfig
 from dash.models import Controller
-from dash.models.payment import Payment, PaymentType
+from dash.models.payment import Payment
 
 logger = get_logger()
 
@@ -33,7 +32,7 @@ class CheckboxService:
         method: Literal["GET", "POST"],
         endpoint: str,
         json: dict | None = None,
-        params: dict | None = None,
+        params: dict[str, Any] | list[tuple[str, Any]] | None = None,
         headers: dict[str, Any] | None = None,
     ) -> tuple[dict[str, Any], int]:
         return await self.api_client.make_request(
@@ -56,11 +55,13 @@ class CheckboxService:
         response, status = await self._make_request(
             method="GET",
             endpoint="/shifts",
-            params={
-                "statuses": ["OPENED", "OPENING", "CREATED"],
-                "limit": 1,
-                "desc": True,
-            },
+            params=[
+                ("statuses", "OPENED"),
+                ("statuses", "OPENING"),
+                ("statuses", "CREATED"),
+                ("limit", "1"),
+                ("desc", "true"),
+            ],
             headers={"Authorization": f"Bearer {token}"},
         )
         if status == 200 and response.get("results"):
@@ -70,6 +71,8 @@ class CheckboxService:
     async def _wait_for_shift_opened(
         self, shift_id: str, token: str, timeout: int = 30
     ):
+        logger.info(f"Waiting for shift opening", shift_id=shift_id, timeout=timeout)
+
         start = datetime.now()
         while (datetime.now() - start).total_seconds() < timeout:
             shift_info, status = await self._make_request(
@@ -79,6 +82,7 @@ class CheckboxService:
             )
             if status == 200:
                 if shift_info["status"] == "OPENED":
+                    logger.info("Shift successfully opened", shift_id=shift_id)
                     return True
                 elif shift_info["status"] == "CLOSED":
                     logger.error(
@@ -88,6 +92,8 @@ class CheckboxService:
                     )
                     return False
             await asyncio.sleep(3)
+
+        logger.error("Shift opening timeout", shift_id=shift_id, timeout=timeout)
         return False
 
     async def _open_shift(self, controller: Controller, token: str) -> bool:
@@ -112,7 +118,7 @@ class CheckboxService:
 
         return await self._wait_for_shift_opened(shift_id, token)
 
-    async def open_shift_if_needed(self, controller: Controller, token: str) -> bool:
+    async def _open_shift_if_needed(self, controller: Controller, token: str) -> bool:
         active_shift = await self._get_active_shift(token)
         if active_shift:
             if active_shift["status"] == "OPENED":
@@ -122,10 +128,6 @@ class CheckboxService:
 
         return await self._open_shift(controller, token)
 
-    @tenacity.retry(
-        stop=tenacity.stop_after_attempt(10),
-        wait=tenacity.wait_exponential(multiplier=30, min=30, max=3600),
-    )
     async def create_receipt(
         self,
         controller: Controller,
@@ -146,6 +148,8 @@ class CheckboxService:
         if datetime.now(self.config.timezone).time() > time(23, 45):
             return None
 
+        logger.info(f"Creating receipt", receipt_id=receipt_id)
+
         token = await self._get_token(
             controller.checkbox_login, controller.checkbox_password
         )
@@ -155,10 +159,7 @@ class CheckboxService:
             )
             return None
 
-        if not await self.open_shift_if_needed(controller, token):
-            logger.error(
-                "Cannot open shift, skipping receipt", controller_id=controller.id
-            )
+        if not await self._open_shift_if_needed(controller, token):
             return None
 
         data = {
@@ -197,4 +198,11 @@ class CheckboxService:
                 controller_id=controller.id,
             )
             raise CheckboxAPIError
+
+        logger.info(
+            f"Receipt successfully created",
+            receipt_id=receipt_id,
+            payment_id=payment.id,
+            controller_id=controller.id,
+        )
         return None

@@ -10,7 +10,6 @@ from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
-from dash.services.iot.dto import SendFreePaymentRequest
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     SetDescriptionRequest,
