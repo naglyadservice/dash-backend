@@ -10,7 +10,7 @@ from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models import FiscalizerTransaction
-from dash.models.payment import PaymentType
+from dash.models.payment import PaymentType, PaymentStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -115,6 +115,7 @@ async def fiscalizer_sale_callback(
             transaction_id=transaction.id,
             amount=data.add_bill + data.add_coin,
             payment_type=PaymentType.CASH,
+            status=PaymentStatus.COMPLETED,
         )
         if controller.checkbox_active and controller.fiscalize_cash:
             await payment_helper.fiscalize(controller, payment)

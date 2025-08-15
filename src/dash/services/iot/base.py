@@ -159,6 +159,7 @@ class BaseIoTService(ABC):
             location_id=controller.location_id,
             amount=data.payment.amount,
             payment_type=PaymentType.FREE,
+            status=PaymentStatus.COMPLETED,
         )
         await self.payment_helper.save_and_commit(payment)
 

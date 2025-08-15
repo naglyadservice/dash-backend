@@ -12,7 +12,7 @@ from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
-from dash.models.payment import PaymentType
+from dash.models.payment import PaymentType, PaymentStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WsmTransaction
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -171,6 +171,7 @@ async def wsm_sale_callback(
             transaction_id=transaction.id,
             amount=data.add_bill + data.add_coin,
             payment_type=PaymentType.CASH,
+            status=PaymentStatus.COMPLETED,
         )
         if controller.checkbox_active and controller.fiscalize_cash:
             await payment_helper.fiscalize(controller, payment)

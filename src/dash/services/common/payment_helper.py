@@ -32,6 +32,7 @@ class PaymentHelper:
         location_id: UUID | None,
         amount: int,
         payment_type: PaymentType,
+        status: PaymentStatus = PaymentStatus.CREATED,
         gateway_type: PaymentGatewayType | None = None,
         invoice_id: str | None = None,
         transaction_id: UUID | None = None,
@@ -42,8 +43,8 @@ class PaymentHelper:
             transaction_id=transaction_id,
             amount=amount,
             type=payment_type,
+            status=status,
             gateway_type=gateway_type,
-            status=PaymentStatus.CREATED,
             invoice_id=invoice_id,
         )
         return payment
