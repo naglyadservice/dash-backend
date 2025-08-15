@@ -116,7 +116,7 @@ async def fiscalizer_sale_callback(
             amount=data.add_bill + data.add_coin,
             payment_type=PaymentType.CASH,
         )
-        if controller.checkbox_active:
+        if controller.checkbox_active and controller.fiscalize_cash:
             await payment_helper.fiscalize(controller, payment)
 
         payment_helper.save(payment)
