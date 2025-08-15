@@ -99,7 +99,7 @@ class LaundryService(BaseIoTService):
             and not controller.liqpay_active
         ) or (
             data.gateway_type is PaymentGatewayType.MONOPAY
-            and controller.monopay_active
+            and not controller.monopay_active
         ):
             raise UnsupportedPaymentGatewayTypeError
 
