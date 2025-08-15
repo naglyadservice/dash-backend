@@ -106,20 +106,11 @@ class PaymentRepository(BaseRepository):
                 date_expression,
                 func.sum(Payment.amount).label("total"),
                 func.sum(
-                    case((Payment.type == PaymentType.BILL, Payment.amount), else_=0)
-                ).label("bill"),
+                    case((Payment.type == PaymentType.CASH, Payment.amount), else_=0)
+                ).label("cash"),
                 func.sum(
-                    case((Payment.type == PaymentType.COIN, Payment.amount), else_=0)
-                ).label("coin"),
-                func.sum(
-                    case((Payment.type == PaymentType.PAYPASS, Payment.amount), else_=0)
-                ).label("paypass"),
-                func.sum(
-                    case((Payment.type == PaymentType.MONOPAY, Payment.amount), else_=0)
-                ).label("qr"),
-                func.sum(
-                    case((Payment.type == PaymentType.FREE, Payment.amount), else_=0)
-                ).label("free"),
+                    case((Payment.type == PaymentType.CASHLESS, Payment.amount), else_=0)
+                ).label("cashless"),
             )
             .where(
                 Payment.created_at >= now - timedelta(days=data.period),

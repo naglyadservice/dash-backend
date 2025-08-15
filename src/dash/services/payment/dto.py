@@ -81,10 +81,8 @@ class GetPaymentStatsRequest(BasePaymentFilters):
 class PaymentStatDTO(BaseModel):
     date: date
     total: int
-    bill: int
-    coin: int
-    qr: int
-    paypass: int
+    cash: int
+    cashless: int
 
 
 class GetPaymentStatsResponse(BaseModel):
