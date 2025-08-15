@@ -77,13 +77,6 @@ class CheckboxService:
         payment: Payment,
         receipt_id: UUID,
     ) -> UUID | None:
-        if not controller.checkbox_active:
-            logger.info(
-                "Ignoring fiscalization request: Checkbox is not active",
-                controller_id=controller.id,
-            )
-            return None
-
         if (
             not controller.checkbox_login
             or not controller.checkbox_password
@@ -107,8 +100,6 @@ class CheckboxService:
             )
             return None
 
-        is_online_payment = payment.type in (PaymentType.LIQPAY, PaymentType.MONOPAY)
-
         data = {
             "id": str(receipt_id),
             "goods": [
@@ -124,9 +115,10 @@ class CheckboxService:
             ],
             "payments": [
                 {
-                    "type": "CASHLESS" if is_online_payment else "CASH",
+                    "type": payment.type.value,
                     "value": payment.amount,
-                    "payment_system": payment.type.value if is_online_payment else None,
+                    "payment_system": payment.gateway_type
+                    and payment.gateway_type.value,
                 }
             ],
         }
