@@ -63,10 +63,6 @@ class FiscalizerService(BaseIoTService):
         amount = round(amount / 100, 2)  # type: ignore
         return await super().send_qr_payment_infra(device_id, order_id, amount)
 
-    async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
-        data.payment.amount = round(data.payment.amount / 100, 2)  # type: ignore
-        return await super().send_free_payment(data)
-
     async def setup_quick_deposit_buttons(
         self, data: SetupQuickDepositButtonsRequest
     ) -> None:
