@@ -144,6 +144,7 @@ class BaseIoTService(ABC):
                     "amount": amount,
                 }
             },
+            ttl=10,
         )
 
     async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
@@ -153,6 +154,13 @@ class BaseIoTService(ABC):
             device_id=controller.device_id,
             payload={"addFree": {"amount": data.payment.amount}},
         )
+        payment = self.payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            amount=data.payment.amount,
+            payment_type=PaymentType.FREE,
+        )
+        await self.payment_helper.save_and_commit(payment)
 
     async def send_free_payment_infra(self, device_id: str, amount: int) -> None:
         await self.iot_client.set_payment(

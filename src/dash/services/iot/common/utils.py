@@ -33,7 +33,7 @@ class ServiceBitMaskCodec(Generic[TService, TBit]):
         return result
 
     def encode_int_mask(self, data: dict[TService, int]) -> list[int]:
-        return [data.get(s, 0) for s in self.service_enum]
+        return [data[s] for s in self.service_enum]
 
     def decode_int_mask(self, mask: list[float]) -> dict[TService, float]:
         return {self.service_enum(s): mask[i] for i, s in enumerate(self.service_enum)}
