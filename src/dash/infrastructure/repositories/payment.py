@@ -109,7 +109,9 @@ class PaymentRepository(BaseRepository):
                     case((Payment.type == PaymentType.CASH, Payment.amount), else_=0)
                 ).label("cash"),
                 func.sum(
-                    case((Payment.type == PaymentType.CASHLESS, Payment.amount), else_=0)
+                    case(
+                        (Payment.type == PaymentType.CASHLESS, Payment.amount), else_=0
+                    )
                 ).label("cashless"),
             )
             .where(

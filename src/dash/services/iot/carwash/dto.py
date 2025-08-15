@@ -49,14 +49,14 @@ class CarwashRelayBit(IntEnum):
 
 
 class CarwashServicesRelayDTO(BaseModel):
-    foam: list[CarwashRelayBit] | None = None
-    foam_extra: list[CarwashRelayBit] | None = None
-    water_pressured: list[CarwashRelayBit] | None = None
-    water_warm: list[CarwashRelayBit] | None = None
-    osmos: list[CarwashRelayBit] | None = None
-    wax: list[CarwashRelayBit] | None = None
-    winter: list[CarwashRelayBit] | None = None
-    blackening: list[CarwashRelayBit] | None = None
+    foam: list[CarwashRelayBit]
+    foam_extra: list[CarwashRelayBit]
+    water_pressured: list[CarwashRelayBit]
+    water_warm: list[CarwashRelayBit]
+    osmos: list[CarwashRelayBit]
+    wax: list[CarwashRelayBit]
+    winter: list[CarwashRelayBit]
+    blackening: list[CarwashRelayBit]
 
 
 class CarwashServiceEnum(StrEnum):
@@ -71,14 +71,14 @@ class CarwashServiceEnum(StrEnum):
 
 
 class CarwashServicesIntListDTO(BaseModel):
-    foam: int | None = None
-    foam_extra: int | None = None
-    water_pressured: int | None = None
-    water_warm: int | None = None
-    osmos: int | None = None
-    wax: int | None = None
-    winter: int | None = None
-    blackening: int | None = None
+    foam: int
+    foam_extra: int
+    water_pressured: int
+    water_warm: int
+    osmos: int
+    wax: int
+    winter: int
+    blackening: int
 
 
 class CarwashServicesPauseDTO(CarwashServicesIntListDTO):
@@ -166,8 +166,8 @@ class CarwashState(BaseModel):
 
 
 class CarwashIoTControllerScheme(IoTControllerBaseDTO):
-    config: CarwashConfig | None
-    settings: CarwashSettings | None
+    config: CarwashConfig
+    settings: CarwashSettings
     state: CarwashState | None = None
 
     @classmethod

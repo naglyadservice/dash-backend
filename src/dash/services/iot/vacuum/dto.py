@@ -49,11 +49,11 @@ class VacuumRelayBit(IntEnum):
 
 
 class VacuumServicesRelayDTO(BaseModel):
-    vacuum_cleaner: list[VacuumRelayBit] | None = None
-    blowing: list[VacuumRelayBit] | None = None
-    wheel_inflation: list[VacuumRelayBit] | None = None
-    glass_washer: list[VacuumRelayBit] | None = None
-    blackening: list[VacuumRelayBit] | None = None
+    vacuum_cleaner: list[VacuumRelayBit]
+    blowing: list[VacuumRelayBit]
+    wheel_inflation: list[VacuumRelayBit]
+    glass_washer: list[VacuumRelayBit]
+    blackening: list[VacuumRelayBit]
 
 
 class VacuumServiceEnum(StrEnum):
@@ -65,11 +65,11 @@ class VacuumServiceEnum(StrEnum):
 
 
 class VacuumServicesIntListDTO(BaseModel):
-    vacuum_cleaner: int | None = None
-    blowing: int | None = None
-    wheel_inflation: int | None = None
-    glass_washer: int | None = None
-    blackening: int | None = None
+    vacuum_cleaner: int
+    blowing: int
+    wheel_inflation: int
+    glass_washer: int
+    blackening: int
 
 
 class VacuumServicesPauseDTO(VacuumServicesIntListDTO):
@@ -148,8 +148,8 @@ class VacuumState(BaseModel):
 
 
 class VacuumIoTControllerScheme(IoTControllerBaseDTO):
-    config: VacuumConfig | None
-    settings: VacuumSettings | None
+    config: VacuumConfig
+    settings: VacuumSettings
     state: VacuumState | None = None
 
     @classmethod
