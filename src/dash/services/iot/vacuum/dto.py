@@ -177,7 +177,6 @@ class VacuumActionDTO(BaseModel):
         ]
         | None
     ) = None
-    Blocking: bool | None = None
 
 
 class SendVacuumActionRequest(SendActionRequest):
