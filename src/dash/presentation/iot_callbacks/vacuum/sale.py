@@ -8,11 +8,11 @@ from adaptix import Retort, name_mapping
 from ddtrace.trace import tracer
 from dishka import FromDishka
 
-from dash.infrastructure.iot.carwash.client import CarwashIoTClient
+from dash.infrastructure.iot.vacuum.client import VacuumIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
-from dash.models import CarwashTransaction
+from dash.models import VacuumTransaction
 from dash.models.payment import PaymentType, PaymentStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -22,14 +22,14 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     request_scope,
 )
 from dash.services.common.payment_helper import PaymentHelper
-from dash.services.iot.carwash.dto import CarwashServiceEnum, CarwashRelayBit
 from dash.services.iot.common.utils import ServiceBitMaskCodec
+from dash.services.iot.vacuum.dto import VacuumServiceEnum, VacuumRelayBit
 
 logger = structlog.get_logger()
 
 
 @dataclass
-class CarwashSaleCallbackPayload:
+class VacuumSaleCallbackPayload:
     id: int
     add_coin: int
     add_bill: int
@@ -48,11 +48,11 @@ class CarwashSaleCallbackPayload:
     replenishment_ratio: int | None = None
 
 
-carwash_sale_callback_retort = Retort(
+vacuum_sale_callback_retort = Retort(
     recipe=[
         *datetime_recipe,
         name_mapping(
-            CarwashSaleCallbackPayload,
+            VacuumSaleCallbackPayload,
             map={
                 "add_coin": "addCoin",
                 "add_bill": "addBill",
@@ -73,24 +73,24 @@ carwash_sale_callback_retort = Retort(
 
 
 @tracer.wrap()
-@parse_payload(retort=carwash_sale_callback_retort)
+@parse_payload(retort=vacuum_sale_callback_retort)
 @request_scope
 @inject
-async def carwash_sale_callback(
+async def vacuum_sale_callback(
     device_id: str,
-    data: CarwashSaleCallbackPayload,
+    data: VacuumSaleCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
-    carwash_client: FromDishka[CarwashIoTClient],
+    vacuum_client: FromDishka[VacuumIoTClient],
     payment_helper: FromDishka[PaymentHelper],
 ) -> None:
-    dict_data = carwash_sale_callback_retort.dump(data)
-    controller = await controller_repository.get_carwash_by_device_id(device_id)
+    dict_data = vacuum_sale_callback_retort.dump(data)
+    controller = await controller_repository.get_vacuum_by_device_id(device_id)
 
     if controller is None:
         logger.info(
-            "Carwash sale request ignored: controller not found",
+            "Vacuum sale request ignored: controller not found",
             device_id=device_id,
             data=dict_data,
         )
@@ -115,7 +115,7 @@ async def carwash_sale_callback(
             card_amount = card_balance_in - card_balance_out
         else:
             logger.error(
-                "Carwash sale request ignored: customer not found",
+                "Vacuum sale request ignored: customer not found",
                 device_id=device_id,
                 controller_id=controller.id,
                 company_id=company_id,
@@ -124,12 +124,12 @@ async def carwash_sale_callback(
             )
 
     logger.info(
-        "Carwash sale request received",
+        "Vacuum sale request received",
         device_id=device_id,
         data=dict_data,
     )
-    codec = ServiceBitMaskCodec(CarwashServiceEnum, CarwashRelayBit)
-    transaction = CarwashTransaction(
+    codec = ServiceBitMaskCodec(VacuumServiceEnum, VacuumRelayBit)
+    transaction = VacuumTransaction(
         controller_transaction_id=data.id,
         controller_id=controller.id,
         location_id=controller.location_id,
@@ -141,7 +141,7 @@ async def carwash_sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         card_amount=card_amount,
-        type=TransactionType.CARWASH,
+        type=TransactionType.VACUUM,
         created_at_controller=data.created or data.sended,
         sale_type=data.sale_type,
         services_sold_seconds=codec.decode_int_mask(data.services_sold),
@@ -156,13 +156,13 @@ async def carwash_sale_callback(
 
     if not was_inserted:
         logger.info(
-            "Carwash transaction was not inserted due to conflict",
+            "Vacuum transaction was not inserted due to conflict",
             device_id=device_id,
             controller_id=controller.id,
             transaction_id=transaction.id,
             data=dict_data,
         )
-        await carwash_client.sale_ack(device_id, data.id)
+        await vacuum_client.sale_ack(device_id, data.id)
         return
 
     if data.add_bill + data.add_coin > 0:
@@ -180,7 +180,7 @@ async def carwash_sale_callback(
         payment_helper.save(payment)
 
     await transaction_repository.commit()
-    await carwash_client.sale_ack(device_id, data.id)
+    await vacuum_client.sale_ack(device_id, data.id)
 
     logger.info(
         "Sale ack sent",

@@ -3,13 +3,13 @@ from typing import Any, Literal
 from pydantic import BaseModel
 
 from dash.models.controllers.laundry import LaundryStatus, LaundryTariffType
-from dash.models.payment import PaymentType
+from dash.models.payment import PaymentGatewayType
 from dash.services.common.dto import ControllerID
 from dash.services.iot.dto import IoTControllerBaseDTO
 
 
 class CreateLaundryInvoiceRequest(ControllerID):
-    payment_type: Literal[PaymentType.LIQPAY, PaymentType.MONOPAY]
+    gateway_type: Literal[PaymentGatewayType.MONOPAY, PaymentGatewayType.LIQPAY]
 
 
 class LaundryState(BaseModel):

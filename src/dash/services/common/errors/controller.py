@@ -36,3 +36,13 @@ class DeviceIDAlreadyTakenError(ConflictError):
 @dataclass
 class ControllerIsBusyError(ValidationError):
     message: str = "Controller is busy"
+
+
+@dataclass
+class UnsupportedPaymentGatewayTypeError(ApplicationError):
+    message: str = "Unsupported payment gateway type"
+
+
+@dataclass
+class InsufficientDepositAmountError(ValidationError):
+    message: str = "Insufficient deposit amount"

@@ -10,6 +10,7 @@ from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.laundry import LaundryController
+from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
@@ -35,11 +36,17 @@ class ControllerRepository(BaseRepository):
         | CarwashController
         | FiscalizerController
         | LaundryController
+        | VacuumController
         | None
     ):
         loader_opt = selectin_polymorphic(
             Controller,
-            [WaterVendingController, CarwashController, FiscalizerController],
+            [
+                WaterVendingController,
+                CarwashController,
+                FiscalizerController,
+                VacuumController,
+            ],
         )
         stmt = (
             select(Controller).where(Controller.id == controller_id).options(loader_opt)
@@ -53,7 +60,12 @@ class ControllerRepository(BaseRepository):
     ]:
         loader_opt = selectin_polymorphic(
             Controller,
-            [WaterVendingController, CarwashController, FiscalizerController],
+            [
+                WaterVendingController,
+                CarwashController,
+                FiscalizerController,
+                VacuumController,
+            ],
         )
         stmt = select(Controller)
         if location_id:
@@ -81,7 +93,12 @@ class ControllerRepository(BaseRepository):
     ) -> WaterVendingController | CarwashController | FiscalizerController | None:
         loader_opt = selectin_polymorphic(
             Controller,
-            [WaterVendingController, CarwashController, FiscalizerController],
+            [
+                WaterVendingController,
+                CarwashController,
+                FiscalizerController,
+                VacuumController,
+            ],
         )
         stmt = select(Controller).where(Controller.qr == qr).options(loader_opt)
         return await self.session.scalar(stmt)  # type: ignore
@@ -138,6 +155,14 @@ class ControllerRepository(BaseRepository):
         self, device_id: str
     ) -> LaundryController | None:
         stmt = select(LaundryController).where(LaundryController.device_id == device_id)
+        return await self.session.scalar(stmt)
+
+    async def get_vacuum(self, controller_id: UUID) -> VacuumController | None:
+        stmt = select(VacuumController).where(VacuumController.id == controller_id)
+        return await self.session.scalar(stmt)
+
+    async def get_vacuum_by_device_id(self, device_id: str) -> VacuumController | None:
+        stmt = select(VacuumController).where(VacuumController.device_id == device_id)
         return await self.session.scalar(stmt)
 
     async def _get_list(

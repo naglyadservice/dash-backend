@@ -2,10 +2,7 @@ import base64
 import hashlib
 import json
 import uuid
-from dataclasses import dataclass
 from typing import Any, Literal
-
-from structlog import get_logger
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.api_client import APIClient
@@ -13,22 +10,12 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.main.config import LiqpayConfig
 from dash.models.controllers import Controller
-from dash.models.payment import Payment, PaymentStatus, PaymentType
-from dash.services.common.errors.base import ValidationError
-from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
-from dash.services.common.payment_service import PaymentService
+from dash.models.payment import Payment
+from dash.services.common.payment_gateway import PaymentGateway
 from dash.services.iot.dto import CreateInvoiceResponse
 
 
-@dataclass
-class ControllerNotSupportLiqpayError(ValidationError):
-    message: str = "Controller does not support LiqPay"
-
-
-logger = get_logger()
-
-
-class LiqpayService(PaymentService):
+class LiqpayGateway(PaymentGateway):
     def __init__(
         self,
         config: LiqpayConfig,
@@ -67,14 +54,6 @@ class LiqpayService(PaymentService):
         amount: int,
         hold_money: bool = True,
     ) -> CreateInvoiceResponse:
-        if not controller.liqpay_active or not (
-            controller.liqpay_public_key and controller.liqpay_private_key
-        ):
-            raise ControllerNotSupportLiqpayError
-
-        if amount < controller.min_deposit_amount:
-            raise InsufficientDepositAmountError
-
         invoice_id = str(uuid.uuid4())
         liqpay_data = {
             "public_key": controller.liqpay_public_key,
@@ -90,23 +69,9 @@ class LiqpayService(PaymentService):
         params = self._prepare_data(liqpay_data, controller.liqpay_private_key)
         invoice_url = f"https://www.liqpay.ua/api/3/checkout?data={params['data']}&signature={params['signature']}"
 
-        payment = Payment(
-            controller_id=controller.id,
-            location_id=controller.location_id,
-            amount=amount,
-            type=PaymentType.LIQPAY,
-            status=PaymentStatus.CREATED,
-            invoice_id=invoice_id,
-        )
-        self.payment_repository.add(payment)
-        await self.payment_repository.commit()
-
         return CreateInvoiceResponse(invoice_url=invoice_url, invoice_id=invoice_id)
 
     async def refund(self, controller: Controller, payment: Payment) -> None:
-        if not controller.liqpay_active or not controller.liqpay_private_key:
-            raise ControllerNotSupportLiqpayError
-
         await self._make_request(
             method="POST",
             data=self._prepare_data(
@@ -124,9 +89,6 @@ class LiqpayService(PaymentService):
     async def finalize(
         self, controller: Controller, payment: Payment, amount: int
     ) -> None:
-        if not controller.liqpay_active or not controller.liqpay_private_key:
-            raise ControllerNotSupportLiqpayError
-
         await self._make_request(
             method="POST",
             data=self._prepare_data(

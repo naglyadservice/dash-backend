@@ -10,6 +10,7 @@ from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models import FiscalizerTransaction
+from dash.models.payment import PaymentType, PaymentStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -17,6 +18,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
+from dash.services.common.payment_helper import PaymentHelper
 
 logger = structlog.get_logger()
 
@@ -58,6 +60,7 @@ async def fiscalizer_sale_callback(
     controller_repository: FromDishka[ControllerRepository],
     transaction_repository: FromDishka[TransactionRepository],
     fiscalizer_client: FromDishka[FiscalizerIoTClient],
+    payment_helper: FromDishka[PaymentHelper],
 ) -> None:
     dict_data = fiscalizer_sale_callback_retort.dump(data)
     controller = await controller_repository.get_fiscalizer_by_device_id(device_id)
@@ -88,7 +91,7 @@ async def fiscalizer_sale_callback(
         paypass_amount=0,
         card_amount=0,
         sale_type="money",
-        type=TransactionType.FISCALIZER.value,
+        type=TransactionType.FISCALIZER,
         created_at_controller=data.created or data.sended,
     )
 
@@ -105,9 +108,22 @@ async def fiscalizer_sale_callback(
         await fiscalizer_client.sale_ack(device_id, data.id)
         return
 
+    if data.add_bill + data.add_coin > 0:
+        payment = payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            transaction_id=transaction.id,
+            amount=data.add_bill + data.add_coin,
+            payment_type=PaymentType.CASH,
+            status=PaymentStatus.COMPLETED,
+        )
+        if controller.checkbox_active and controller.fiscalize_cash:
+            await payment_helper.fiscalize(controller, payment)
+
+        payment_helper.save(payment)
+
     await transaction_repository.commit()
     await fiscalizer_client.sale_ack(device_id, data.id)
-
     logger.info(
         "Sale ack sent",
         device_id=device_id,

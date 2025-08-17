@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from dash.models.controllers.controller import Controller, ControllerType
-from dash.models.payment import PaymentType
+from dash.models.payment import PaymentGatewayType
 from dash.services.common.dto import CompanyDTO, ControllerID, LocationDTO
 
 
@@ -153,7 +153,7 @@ class SyncSettingsResponse(BaseModel):
 
 class CreateInvoiceRequest(ControllerID):
     amount: int
-    payment_type: Literal[PaymentType.LIQPAY, PaymentType.MONOPAY]
+    gateway_type: Literal[PaymentGatewayType.LIQPAY, PaymentGatewayType.MONOPAY]
 
 
 class CreateInvoiceResponse(BaseModel):

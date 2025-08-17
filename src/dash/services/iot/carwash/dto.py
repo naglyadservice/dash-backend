@@ -32,7 +32,7 @@ class CarwashConfig(BaseModel):
     cardReaderType: Literal["no", "card", "keyfob"] | None = None
 
 
-class RelayBit(IntEnum):
+class CarwashRelayBit(IntEnum):
     VALVE_FOAM = 1
     VALVE_COLD_WATER = 2
     VALVE_HOT_WATER = 3
@@ -49,14 +49,14 @@ class RelayBit(IntEnum):
 
 
 class CarwashServicesRelayDTO(BaseModel):
-    foam: list[RelayBit] | None = None
-    foam_extra: list[RelayBit] | None = None
-    water_pressured: list[RelayBit] | None = None
-    water_warm: list[RelayBit] | None = None
-    osmos: list[RelayBit] | None = None
-    wax: list[RelayBit] | None = None
-    winter: list[RelayBit] | None = None
-    blackening: list[RelayBit] | None = None
+    foam: list[CarwashRelayBit]
+    foam_extra: list[CarwashRelayBit]
+    water_pressured: list[CarwashRelayBit]
+    water_warm: list[CarwashRelayBit]
+    osmos: list[CarwashRelayBit]
+    wax: list[CarwashRelayBit]
+    winter: list[CarwashRelayBit]
+    blackening: list[CarwashRelayBit]
 
 
 class CarwashServiceEnum(StrEnum):
@@ -70,26 +70,26 @@ class CarwashServiceEnum(StrEnum):
     BLACKENING = "blackening"
 
 
-class ServicesIntListDTO(BaseModel):
-    foam: int | None = None
-    foam_extra: int | None = None
-    water_pressured: int | None = None
-    water_warm: int | None = None
-    osmos: int | None = None
-    wax: int | None = None
-    winter: int | None = None
-    blackening: int | None = None
+class CarwashServicesIntListDTO(BaseModel):
+    foam: int
+    foam_extra: int
+    water_pressured: int
+    water_warm: int
+    osmos: int
+    wax: int
+    winter: int
+    blackening: int
 
 
-class CarwashServicesPauseDTO(ServicesIntListDTO):
+class CarwashServicesPauseDTO(CarwashServicesIntListDTO):
     pass
 
 
-class CarwashServicesVfdFrequencyDTO(ServicesIntListDTO):
+class CarwashServicesVfdFrequencyDTO(CarwashServicesIntListDTO):
     pass
 
 
-class CarwashTariffDTO(ServicesIntListDTO):
+class CarwashTariffDTO(CarwashServicesIntListDTO):
     pass
 
 
@@ -159,15 +159,15 @@ class CarwashState(BaseModel):
     depositBoxSensor: bool
     doorSensor: bool
     coinState: int
-    billState: int
+    billState: int | str
     sensors: CarwashSensorState
     ext_sensors: CarwashSensorState
     errors: CarwashStateErrors
 
 
 class CarwashIoTControllerScheme(IoTControllerBaseDTO):
-    config: CarwashConfig | None
-    settings: CarwashSettings | None
+    config: CarwashConfig
+    settings: CarwashSettings
     state: CarwashState | None = None
 
     @classmethod
@@ -207,5 +207,5 @@ class SendCarwashActionRequest(SendActionRequest):
 class GetCarwashDisplayResponse(BaseModel):
     mode: str
     service: str
-    summa: int
+    summa: float
     time: int

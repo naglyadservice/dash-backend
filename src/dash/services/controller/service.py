@@ -1,6 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
+
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.encashment import EncashmentRepository
@@ -52,6 +53,8 @@ from dash.services.controller.dto import (
     ReadPublicControllerResponse,
     SetMinDepositAmountRequest,
     SetupTasmotaRequest,
+    PublicVacuumScheme,
+    CONTROLLER_PUBLIC_SCHEME_TYPE,
 )
 from dash.services.controller.utils import generate_qr
 from dash.services.iot.factory import IoTServiceFactory
@@ -148,6 +151,9 @@ class ControllerService:
 
         elif data.type is ControllerType.LAUNDRY:
             controller = LaundryController(**controller_dict)
+
+        elif data.type is ControllerType.VACUUM:
+            controller = VacuumController(**controller_dict)
 
         await self.factory.get(controller.type).sync_settings_infra(controller)
 
@@ -249,6 +255,22 @@ class ControllerService:
 
         await self.encashment_repository.commit()
 
+    def _get_controller_public_scheme(
+        self, controller
+    ) -> CONTROLLER_PUBLIC_SCHEME_TYPE:
+        if controller.type is ControllerType.CARWASH:
+            controller_scheme = PublicCarwashScheme.model_validate(controller)
+        elif controller.type is ControllerType.WATER_VENDING:
+            controller_scheme = PublicWsmScheme.model_validate(controller)
+        elif controller.type is ControllerType.FISCALIZER:
+            controller_scheme = PublicFiscalizerScheme.model_validate(controller)
+        elif controller.type is ControllerType.VACUUM:
+            controller_scheme = PublicVacuumScheme.model_validate(controller)
+        else:
+            raise ValueError("This controller type is not supported yet")
+
+        return controller_scheme
+
     async def read_controller_public(
         self, data: ReadPublicControllerRequest
     ) -> ReadPublicControllerResponse:
@@ -256,21 +278,12 @@ class ControllerService:
         if not controller:
             raise ControllerNotFoundError
 
-        if controller.type is ControllerType.CARWASH:
-            controller_scheme = PublicCarwashScheme.model_validate(controller)
-        elif controller.type is ControllerType.WATER_VENDING:
-            controller_scheme = PublicWsmScheme.model_validate(controller)
-        elif controller.type is ControllerType.FISCALIZER:
-            controller_scheme = PublicFiscalizerScheme.model_validate(controller)
-        else:
-            raise ValueError("This controller type is not supported yet")
-
         return ReadPublicControllerResponse(
             company=controller.company
             and PublicCompanyDTO.model_validate(controller.company),
             location=controller.location
             and PublicLocationDTO.model_validate(controller.location),
-            controller=controller_scheme,
+            controller=self._get_controller_public_scheme(controller),
         )
 
     async def read_controller_list_public(
@@ -283,24 +296,14 @@ class ControllerService:
         if not location:
             raise LocationNotFoundError
 
-        controller_list = []
-        for controller in controllers:
-            if controller.type is ControllerType.CARWASH:
-                controller_list.append(PublicCarwashScheme.model_validate(controller))
-            elif controller.type is ControllerType.WATER_VENDING:
-                controller_list.append(PublicWsmScheme.model_validate(controller))
-            elif controller.type is ControllerType.FISCALIZER:
-                controller_list.append(
-                    PublicFiscalizerScheme.model_validate(controller)
-                )
-            else:
-                raise ValueError("This controller type is not supported yet")
-
         return ReadPublicControllerListResponse(
             company=location.company
             and PublicCompanyDTO.model_validate(location.company),
             location=PublicLocationDTO.model_validate(location),
-            controllers=controller_list,
+            controllers=[
+                self._get_controller_public_scheme(controller)
+                for controller in controllers
+            ],
         )
 
     async def setup_tasmota(self, data: SetupTasmotaRequest) -> None:

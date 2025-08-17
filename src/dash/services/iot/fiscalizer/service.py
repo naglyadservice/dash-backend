@@ -1,19 +1,15 @@
 from uuid import UUID
 
-from dash.infrastructure.acquiring.checkbox import CheckboxService
-from dash.infrastructure.acquiring.liqpay import LiqpayService
-from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
-from dash.services.iot.dto import SendFreePaymentRequest
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     SetDescriptionRequest,
@@ -27,10 +23,7 @@ class FiscalizerService(BaseIoTService):
         self,
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
-        payment_repository: PaymentRepository,
-        liqpay_service: LiqpayService,
-        monopay_service: MonopayService,
-        checkbox_service: CheckboxService,
+        payment_helper: PaymentHelper,
         iot_storage: IoTStorage,
         fiscalizer_client: FiscalizerIoTClient,
         check_online_interactor: CheckOnlineInteractor,
@@ -39,10 +32,7 @@ class FiscalizerService(BaseIoTService):
             fiscalizer_client,
             identity_provider,
             controller_repository,
-            payment_repository,
-            liqpay_service,
-            monopay_service,
-            checkbox_service,
+            payment_helper,
         )
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
@@ -67,14 +57,6 @@ class FiscalizerService(BaseIoTService):
             energy_state=await self.iot_storage.get_energy_state(controller.id),
             is_online=await self.check_online(controller),
         )
-
-    async def send_qr_payment_infra(self, device_id: str, order_id: str, amount: int):
-        amount = round(amount / 100, 2)  # type: ignore
-        return await super().send_qr_payment_infra(device_id, order_id, amount)
-
-    async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
-        data.payment.amount = round(data.payment.amount / 100, 2)  # type: ignore
-        return await super().send_free_payment(data)
 
     async def setup_quick_deposit_buttons(
         self, data: SetupQuickDepositButtonsRequest

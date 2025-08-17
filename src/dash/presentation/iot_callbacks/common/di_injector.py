@@ -4,10 +4,12 @@ from collections.abc import Callable
 from datetime import datetime
 from inspect import Parameter
 from typing import Awaitable, ParamSpec, TypeVar, get_type_hints
+from unittest.mock import Mock
 
 from adaptix import Retort, dumper, loader
 from dishka import AsyncContainer, Scope
 from dishka.integrations.base import wrap_injection
+from fastapi import Request
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -36,7 +38,7 @@ def parse_payload(retort: Retort | None = None):
     if retort is None:
         retort = default_retort
 
-    def _parse_paylaad(func):
+    def _parse_payload(func):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
             tp = get_arg_type(func, 1)
@@ -49,7 +51,7 @@ def parse_payload(retort: Retort | None = None):
 
         return wrapper
 
-    return _parse_paylaad
+    return _parse_payload
 
 
 def request_scope(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
@@ -57,7 +59,9 @@ def request_scope(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         di_container: AsyncContainer = kwargs["di_container"]  # type: ignore
         if di_container.scope is Scope.APP:
-            async with di_container(scope=Scope.REQUEST) as container:
+            async with di_container(
+                scope=Scope.REQUEST, context={Request: Mock(spec=Request)}
+            ) as container:
                 kwargs["di_container"] = container
                 return await func(*args, **kwargs)
         else:

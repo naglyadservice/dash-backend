@@ -14,18 +14,11 @@ from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.main.config import MonopayConfig
 from dash.models.controllers import Controller
 from dash.models.payment import Payment
-from dash.services.common.errors.base import ValidationError, dataclass
-from dash.services.common.errors.customer_carwash import InsufficientDepositAmountError
-from dash.services.common.payment_service import PaymentService
+from dash.services.common.payment_gateway import PaymentGateway
 from dash.services.iot.dto import CreateInvoiceResponse
 
 
-@dataclass
-class ControllerNotSupportMonopayError(ValidationError):
-    message: str = "Controller does not support monopay"
-
-
-class MonopayService(PaymentService):
+class MonopayGateway(PaymentGateway):
     def __init__(
         self,
         config: MonopayConfig,
@@ -107,12 +100,6 @@ class MonopayService(PaymentService):
     async def create_invoice(
         self, controller: Controller, amount: int, hold_money: bool = True
     ) -> CreateInvoiceResponse:
-        if not controller.monopay_active or not controller.monopay_token:
-            raise ControllerNotSupportMonopayError
-
-        if amount < controller.min_deposit_amount:
-            raise InsufficientDepositAmountError
-
         response = await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/create",
@@ -121,7 +108,7 @@ class MonopayService(PaymentService):
                 "ccy": 980,
                 "webHookUrl": self.config.webhook_url,
                 "redirectUrl": self.config.redirect_url,
-                "paymentType": "hold",
+                "paymentType": "hold" if hold_money else "debit",
             },
             headers=self._prepare_headers(controller.monopay_token),
         )
@@ -137,9 +124,6 @@ class MonopayService(PaymentService):
     async def finalize(
         self, controller: Controller, payment: Payment, amount: int
     ) -> None:
-        if not controller.monopay_active or not controller.monopay_token:
-            raise ControllerNotSupportMonopayError
-
         await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/finalize",
@@ -148,9 +132,6 @@ class MonopayService(PaymentService):
         )
 
     async def refund(self, controller: Controller, payment: Payment) -> None:
-        if not controller.monopay_active or not controller.monopay_token:
-            raise ControllerNotSupportMonopayError
-
         await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/cancel",

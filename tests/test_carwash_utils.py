@@ -1,9 +1,7 @@
-from dash.services.iot.carwash.utils import (
-    decode_service_bit_mask,
-    decode_service_int_mask,
-    encode_service_bit_mask,
-    encode_service_int_mask,
-)
+from dash.services.iot.carwash.dto import CarwashServiceEnum, CarwashRelayBit
+from dash.services.iot.common.utils import ServiceBitMaskCodec
+
+codec = ServiceBitMaskCodec(CarwashServiceEnum, CarwashRelayBit)
 
 
 def test_bit_mask_encoding():
@@ -18,8 +16,8 @@ def test_bit_mask_encoding():
         "winter": [3, 8, 11],
         "blackening": [5],
     }
-    assert encode_service_bit_mask(services_relay_dict) == services_realy_int_list  # type: ignore
-    assert decode_service_bit_mask(services_realy_int_list) == services_relay_dict
+    assert codec.encode_bit_mask(services_relay_dict) == services_realy_int_list  # type: ignore
+    assert codec.decode_bit_mask(services_realy_int_list) == services_relay_dict
 
 
 def test_int_list_encoding():
@@ -34,5 +32,5 @@ def test_int_list_encoding():
         "winter": 7,
         "blackening": 8,
     }
-    assert encode_service_int_mask(tariff_dict) == tariff_list  # type: ignore
-    assert decode_service_int_mask(tariff_list) == tariff_dict
+    assert codec.encode_int_mask(tariff_dict) == tariff_list  # type: ignore
+    assert codec.decode_int_mask(tariff_list) == tariff_dict

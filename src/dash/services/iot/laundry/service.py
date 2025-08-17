@@ -4,13 +4,9 @@ from uuid import UUID
 
 from structlog import get_logger
 
-from dash.infrastructure.acquiring.checkbox import CheckboxService
-from dash.infrastructure.acquiring.liqpay import LiqpayService
-from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.laundry.client import LaundryIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
-from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models import Payment
@@ -19,7 +15,7 @@ from dash.models.controllers.laundry import (
     LaundryStatus,
     LaundryTariffType,
 )
-from dash.models.payment import PaymentStatus
+from dash.models.payment import PaymentStatus, PaymentType, PaymentGatewayType
 from dash.models.transactions.laundry import LaundrySessionStatus, LaundryTransaction
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
@@ -28,7 +24,9 @@ from dash.services.common.errors.controller import (
     ControllerNotFoundError,
     ControllerResponseError,
     ControllerTimeoutError,
+    UnsupportedPaymentGatewayTypeError,
 )
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.dto import CreateInvoiceResponse
 from dash.services.iot.laundry.dto import (
@@ -45,10 +43,7 @@ class LaundryService(BaseIoTService):
         self,
         identity_provider: IdProvider,
         controller_repository: ControllerRepository,
-        payment_repository: PaymentRepository,
-        liqpay_service: LiqpayService,
-        monopay_service: MonopayService,
-        checkbox_service: CheckboxService,
+        payment_helper: PaymentHelper,
         transaction_repository: TransactionRepository,
         iot_storage: IoTStorage,
         laundry_client: LaundryIoTClient,
@@ -58,12 +53,9 @@ class LaundryService(BaseIoTService):
             laundry_client,
             identity_provider,
             controller_repository,
-            payment_repository,
-            liqpay_service,
-            monopay_service,
-            checkbox_service,
+            payment_helper,
         )
-        self.iot_client: LaundryIoTClient
+        self.iot_client: LaundryIoTClient = laundry_client
         self.transaction_repository = transaction_repository
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
@@ -102,6 +94,15 @@ class LaundryService(BaseIoTService):
     ) -> CreateInvoiceResponse:
         controller = await self._get_controller(data.controller_id)
 
+        if (
+            data.gateway_type is PaymentGatewayType.LIQPAY
+            and not controller.liqpay_active
+        ) or (
+            data.gateway_type is PaymentGatewayType.MONOPAY
+            and not controller.monopay_active
+        ):
+            raise UnsupportedPaymentGatewayTypeError
+
         if controller.laundry_status is not LaundryStatus.AVAILABLE:
             raise ControllerIsBusyError
 
@@ -115,21 +116,23 @@ class LaundryService(BaseIoTService):
         hold_money = controller.tariff_type is LaundryTariffType.PER_MINUTE
 
         controller = await self._get_controller(data.controller_id)
-        processor = self._get_payment_processor(data.payment_type)
-
-        result = await processor.create_invoice(controller, amount, hold_money)
-        payment = Payment(
+        invoice_result = await self.payment_helper.create_invoice(
+            controller=controller,
+            amount=amount,
+            gateway_type=data.gateway_type,
+            hold_money=hold_money,
+        )
+        payment = self.payment_helper.create_payment(
             controller_id=controller.id,
             location_id=controller.location_id,
+            payment_type=PaymentType.CASHLESS,
+            gateway_type=data.gateway_type,
             amount=amount,
-            type=data.payment_type,
-            status=PaymentStatus.CREATED,
-            invoice_id=result.invoice_id,
+            invoice_id=invoice_result.invoice_id,
         )
-        self.payment_repository.add(payment)
-        await self.payment_repository.commit()
+        await self.payment_helper.save_and_commit(payment)
 
-        return result
+        return invoice_result
 
     async def handle_door_locked(self, controller_id: UUID) -> None:
         transaction = await self.transaction_repository.get_last_laundry(controller_id)
@@ -166,14 +169,20 @@ class LaundryService(BaseIoTService):
         transaction.qr_amount = transaction.final_amount
         controller.laundry_status = LaundryStatus.AVAILABLE
 
-        processor = self._get_payment_processor(transaction.payment.type)
-        await processor.finalize(
+        await self.payment_helper.finalize_hold(
             controller, transaction.payment, transaction.final_amount
         )
         await self.transaction_repository.commit()
 
     async def process_hold_status(self, payment: Payment) -> None:
         await self._start_laundry_session(payment)
+
+    async def process_success_status(self, payment: Payment) -> None:
+        controller = await self._get_controller(payment.controller_id)
+        if controller.tariff_type is LaundryTariffType.FIXED:
+            await self._start_laundry_session(payment)
+
+        await super().process_success_status(payment)
 
     async def _start_laundry_session(self, payment: Payment) -> None:
         controller = await self._get_controller(payment.controller_id)
@@ -192,7 +201,7 @@ class LaundryService(BaseIoTService):
             controller_id=controller.id,
             location_id=controller.location_id,
             payment_id=payment.id,
-            tariff_type=controller.tariff_type.value,
+            tariff_type=controller.tariff_type,
             session_status=LaundrySessionStatus.WAITING_START,
             sale_type="money",
             hold_amount=hold_amount,
@@ -216,7 +225,7 @@ class LaundryService(BaseIoTService):
                 device_id=controller.device_id,
             )
             transaction.session_status = LaundrySessionStatus.ERROR
-            await self._get_payment_processor(payment.type).refund(controller, payment)
+            await self.payment_helper.refund(controller, payment)
             raise
         finally:
             payment.status = PaymentStatus.HOLD

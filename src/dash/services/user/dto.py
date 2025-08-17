@@ -23,7 +23,7 @@ class CreateUserResponse(BaseModel):
 class UserDTO(BaseModel):
     id: UUID
     name: str
-    email: EmailStr
+    email: str
     role: AdminRole
     locations: list[LocationDTO] | None
     message: str | None

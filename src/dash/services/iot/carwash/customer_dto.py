@@ -29,4 +29,4 @@ class GetCarwashSummaRequest(ControllerID):
 
 
 class GetCarwashSummaResponse(BaseModel):
-    summa: int
+    summa: float

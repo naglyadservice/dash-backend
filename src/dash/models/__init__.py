@@ -6,6 +6,7 @@ from .controllers import (
     Controller,
     FiscalizerController,
     LaundryController,
+    VacuumController,
     WaterVendingController,
 )
 from .customer import Customer
@@ -45,4 +46,5 @@ __all__ = [
     "FiscalizerController",
     "LaundryController",
     "LaundryTransaction",
+    "VacuumController",
 ]
