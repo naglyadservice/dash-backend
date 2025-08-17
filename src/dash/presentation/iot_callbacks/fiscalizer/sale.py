@@ -113,7 +113,7 @@ async def fiscalizer_sale_callback(
             controller_id=controller.id,
             location_id=controller.location_id,
             transaction_id=transaction.id,
-            amount=data.add_bill + data.add_coin,
+            amount=(data.add_bill + data.add_coin) * 100,
             payment_type=PaymentType.CASH,
             status=PaymentStatus.COMPLETED,
         )
