@@ -64,7 +64,7 @@ class PaymentHelper:
         controller: Controller,
         amount: int,
         gateway_type: PaymentGatewayType,
-        hold_money: bool = False,
+        hold_money: bool = True,
     ) -> CreateInvoiceResponse:
         gateway = self._get_payment_gateway(gateway_type)
         return await gateway.create_invoice(controller, amount, hold_money)
