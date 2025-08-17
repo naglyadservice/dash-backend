@@ -59,6 +59,7 @@ from dash.services.common.payment_helper import PaymentHelper
 from dash.services.company.service import CompanyService
 from dash.services.controller.service import ControllerService
 from dash.services.customer.service import CustomerService
+from dash.services.dashboard.service import DashboardService
 from dash.services.iot.carwash.customer_service import CustomerCarwashService
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.factory import IoTServiceFactory
@@ -122,6 +123,7 @@ def provide_services() -> Provider:
         IoTServiceFactory,
         CheckOnlineInteractor,
         PaymentHelper,
+        DashboardService,
     )
     return provider
 

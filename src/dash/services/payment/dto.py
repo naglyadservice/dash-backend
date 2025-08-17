@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -72,18 +72,3 @@ class ReadPublicPaymentListRequest(BaseModel):
 
 class ReadPublicPaymentListResponse(BaseModel):
     payments: list[PublicPaymentScheme]
-
-
-class GetPaymentStatsRequest(BasePaymentFilters):
-    period: int
-
-
-class PaymentStatDTO(BaseModel):
-    date: date
-    total: int
-    cash: int
-    cashless: int
-
-
-class GetPaymentStatsResponse(BaseModel):
-    statistics: list[PaymentStatDTO]

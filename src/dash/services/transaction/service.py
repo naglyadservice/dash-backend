@@ -7,12 +7,9 @@ from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.transactions.transaction import Transaction, TransactionType
 from dash.services.common.errors.base import AccessForbiddenError
-from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.transaction.dto import (
     CarwashTransactionScheme,
     FiscalizerTransactionScheme,
-    GetTransactionStatsRequest,
-    GetTransactionStatsResponse,
     LaundryTransactionScheme,
     ReadTransactionListRequest,
     ReadTransactionListResponse,
@@ -97,32 +94,3 @@ class TransactionService:
                 raise ValueError("Unknown transaction type")
 
         return ReadTransactionListResponse(transactions=transaction_list, total=total)
-
-    async def get_stats(
-        self, data: GetTransactionStatsRequest
-    ) -> GetTransactionStatsResponse:
-        user = await self.identity_provider.authorize()
-
-        if data.company_id:
-            await self.identity_provider.ensure_company_owner(data.company_id)
-
-        elif data.location_id:
-            await self.identity_provider.ensure_location_admin(data.location_id)
-
-        elif data.controller_id:
-            controller = await self.controller_repository.get(data.controller_id)
-            if not controller:
-                raise ControllerNotFoundError
-            await self.identity_provider.ensure_location_admin(controller.location_id)
-
-        else:
-            if user.role is AdminRole.COMPANY_OWNER:
-                return await self.transaction_repository.get_stats_by_owner(
-                    data, user.id
-                )
-            elif user.role is AdminRole.LOCATION_ADMIN:
-                return await self.transaction_repository.get_stats_by_admin(
-                    data, user.id
-                )
-
-        return await self.transaction_repository.get_stats(data)

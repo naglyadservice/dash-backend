@@ -11,6 +11,7 @@ from dash.presentation.routes.controllers.laundry import laundry_router
 from dash.presentation.routes.controllers.vacuum import vacuum_router
 from dash.presentation.routes.controllers.wsm import wsm_router
 from dash.presentation.routes.customer import customer_router
+from dash.presentation.routes.dashboard import dashboard_router
 from dash.presentation.routes.location import location_router
 from dash.presentation.routes.payment import payment_router
 from dash.presentation.routes.transaction import transaction_router
@@ -32,6 +33,7 @@ root_router.include_router(location_router)
 root_router.include_router(company_router)
 root_router.include_router(customer_router)
 root_router.include_router(customer_carwash_router)
+root_router.include_router(dashboard_router)
 
 
 @root_router.get("/health")

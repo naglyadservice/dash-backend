@@ -178,10 +178,10 @@ class ControllerRepository(BaseRepository):
         if data.company_id is not None:
             stmt = stmt.where(Controller.company_id == data.company_id)
 
-        elif data.location_id is not None:
+        if data.location_id is not None:
             stmt = stmt.where(Controller.location_id == data.location_id)
 
-        elif whereclause is not None:
+        if whereclause is not None:
             stmt = stmt.where(whereclause)
 
         paginated_stmt = (
