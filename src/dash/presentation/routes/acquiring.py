@@ -106,7 +106,7 @@ async def monopay_webhook(
     service = factory.get(controller.type)
     status = dict_data["status"]
 
-    if status == "hold_wait":
+    if status == "hold":
         await service.process_hold_status(payment)
     elif status == "processing":
         await service.process_processing_status(payment)
