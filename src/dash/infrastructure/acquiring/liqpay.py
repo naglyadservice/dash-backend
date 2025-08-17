@@ -48,6 +48,12 @@ class LiqpayGateway(PaymentGateway):
         )
         return response
 
+    def _require_private_key(self, controller: Controller) -> str:
+        if controller.liqpay_private_key is None:
+            raise ValueError("LiqPay private key is missing")
+
+        return controller.liqpay_private_key
+
     async def create_invoice(
         self,
         controller: Controller,
@@ -66,7 +72,9 @@ class LiqpayGateway(PaymentGateway):
             "result_url": self.config.redirect_url,
             "server_url": self.config.webhook_url,
         }
-        params = self._prepare_data(liqpay_data, controller.liqpay_private_key)
+        params = self._prepare_data(
+            data=liqpay_data, private_key=self._require_private_key(controller)
+        )
         invoice_url = f"https://www.liqpay.ua/api/3/checkout?data={params['data']}&signature={params['signature']}"
 
         return CreateInvoiceResponse(invoice_url=invoice_url, invoice_id=invoice_id)
@@ -75,14 +83,14 @@ class LiqpayGateway(PaymentGateway):
         await self._make_request(
             method="POST",
             data=self._prepare_data(
-                {
+                data={
                     "public_key": controller.liqpay_public_key,
                     "action": "refund",
                     "order_id": payment.invoice_id,
                     "version": "3",
                     "amount": payment.amount / 100,
                 },
-                controller.liqpay_private_key,
+                private_key=self._require_private_key(controller),
             ),
         )
 
@@ -92,14 +100,14 @@ class LiqpayGateway(PaymentGateway):
         await self._make_request(
             method="POST",
             data=self._prepare_data(
-                {
+                data={
                     "public_key": controller.liqpay_public_key,
                     "action": "hold_completion",
                     "order_id": payment.invoice_id,
                     "version": "3",
                     "amount": amount / 100,
                 },
-                controller.liqpay_private_key,
+                private_key=self._require_private_key(controller),
             ),
         )
 

@@ -155,24 +155,6 @@ class VacuumService(BaseIoTService):
             time=display_info.get("time", 0),
         )
 
-    async def start_session_infra(self, device_id: str, card_id: str) -> None:
-        await self.iot_client.set_session(
-            device_id=device_id,
-            payload={
-                "cardUID": card_id,
-                "session": "open",
-            },
-        )
-
-    async def finish_session_infra(self, device_id: str, card_id: str) -> None:
-        await self.iot_client.set_session(
-            device_id=device_id,
-            payload={
-                "cardUID": card_id,
-                "session": "close",
-            },
-        )
-
     @staticmethod
     def _prepare_settings_payload(settings: dict[str, Any]) -> dict[str, Any]:
         payload = settings.copy()

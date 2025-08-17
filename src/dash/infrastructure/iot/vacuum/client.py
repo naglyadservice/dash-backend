@@ -8,13 +8,4 @@ class VacuumIoTDispatcher(BaseIoTDispatcher):
 
 
 class VacuumIoTClient(BaseIoTClient):
-    async def set_session(
-        self, device_id: str, payload: dict[str, str], ttl: int | None = 5
-    ) -> None:
-        await self._wait_for_response(
-            device_id=device_id,
-            topic="client/payment/card/set",
-            payload=payload,
-            ttl=ttl,
-            qos=1,
-        )
+    pass

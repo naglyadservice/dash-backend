@@ -32,7 +32,7 @@ class RebootControllerRequest(ControllerID, RebootDelayDTO):
 
 class QRPaymentDTO(BaseModel):
     order_id: str
-    amount: float
+    amount: int
 
 
 class SendQRPaymentRequest(ControllerID):
@@ -40,7 +40,7 @@ class SendQRPaymentRequest(ControllerID):
 
 
 class FreePaymentDTO(BaseModel):
-    amount: float
+    amount: int
 
 
 class SendFreePaymentRequest(ControllerID):

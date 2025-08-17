@@ -9,7 +9,7 @@ class CarwashIoTDispatcher(BaseIoTDispatcher):
 
 class CarwashIoTClient(BaseIoTClient):
     async def set_session(
-        self, device_id: str, payload: dict[str, str], ttl: int | None = 5
+        self, device_id: str, payload: dict[str, str], ttl: int = 5
     ) -> None:
         await self._wait_for_response(
             device_id=device_id,

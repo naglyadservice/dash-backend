@@ -1,5 +1,4 @@
 import asyncio
-from typing import Sequence
 
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -60,7 +59,7 @@ class DashboardService:
         return ReadDashboardStatsResponse(
             revenue=await self._get_revenue_by_role(data, user),
             payment_analytics=await self._get_payment_analytics_by_role(data, user),
-            active_controllers=await self._count_active_controllers(controllers, total),
+            active_controllers=await self._count_active_controllers(controllers, total),  # type: ignore
             today_clients=await self._get_today_clients_by_role(data, user),
             transaction_stats=await self._get_transaction_stats_by_role(data, user),
             payment_stats=await self._get_payment_stats_by_role(data, user),
@@ -197,7 +196,7 @@ class DashboardService:
         )
 
     async def _count_active_controllers(
-        self, controller_list: Sequence[Controller], total: int
+        self, controller_list: list[Controller], total: int
     ) -> ActiveControllersDTO:
         results = await asyncio.gather(*[self.check_online(c) for c in controller_list])
         return ActiveControllersDTO(total=total, active=sum(results))
