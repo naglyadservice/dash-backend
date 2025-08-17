@@ -22,6 +22,7 @@ from dash.services.dashboard.dto import (
     RevenueDTO,
     ReadTransactionStatsRequest,
     TransactionStatsDTO,
+    TodayClientsDTO,
 )
 from dash.services.transaction.dto import (
     ReadTransactionListRequest,
@@ -284,6 +285,53 @@ class TransactionRepository(BaseRepository):
             select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_revenue(data, whereclause)
+
+    async def _get_today_clients(
+        self,
+        data: GetRevenueRequest,
+        whereclause: ColumnElement[Any] | None = None,
+    ) -> TodayClientsDTO:
+        now = datetime.now(UTC)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        query = select(func.count(Transaction.id)).where(
+            Transaction.created_at >= today_start, Transaction.created_at <= now
+        )
+
+        if data.company_id:
+            query = query.join(Controller).where(
+                Controller.company_id == data.company_id
+            )
+        elif data.location_id:
+            query = query.where(Transaction.location_id == data.location_id)
+        elif data.controller_id:
+            query = query.where(Transaction.controller_id == data.controller_id)
+        elif whereclause is not None:
+            query = query.where(whereclause)
+
+        result = await self.session.execute(query)
+        count = result.scalar() or 0
+
+        return TodayClientsDTO(count=count)
+
+    async def get_today_clients_all(self, data: GetRevenueRequest) -> TodayClientsDTO:
+        return await self._get_today_clients(data)
+
+    async def get_today_clients_by_owner(
+        self, data: GetRevenueRequest, user_id: UUID
+    ) -> TodayClientsDTO:
+        whereclause = Transaction.location_id.in_(
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
+        )
+        return await self._get_today_clients(data, whereclause)
+
+    async def get_today_clients_by_admin(
+        self, data: GetRevenueRequest, user_id: UUID
+    ) -> TodayClientsDTO:
+        whereclause = Transaction.location_id.in_(
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
+        )
+        return await self._get_today_clients(data, whereclause)
 
     async def get_last_laundry(self, controller_id: UUID) -> LaundryTransaction | None:
         query = (

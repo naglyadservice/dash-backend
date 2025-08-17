@@ -19,6 +19,7 @@ from dash.services.dashboard.dto import (
     ReadPaymentStatsRequest,
     ReadTransactionStatsRequest,
     ActiveControllersDTO,
+    TodayClientsDTO,
 )
 
 
@@ -54,18 +55,15 @@ class DashboardService:
                 raise ControllerNotFoundError
             await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        revenue = await self._get_revenue_by_role(data, user)
-        payment_analytics = await self._get_payment_analytics_by_role(data, user)
         controllers, total = await self._get_controllers_by_role(data, user)
-        transaction_stats = await self._get_transaction_stats_by_role(data, user)
-        payment_stats = await self._get_payment_stats_by_role(data, user)
 
         return ReadDashboardStatsResponse(
-            revenue=revenue,
-            payment_analytics=payment_analytics,
+            revenue=await self._get_revenue_by_role(data, user),
+            payment_analytics=await self._get_payment_analytics_by_role(data, user),
             active_controllers=await self._count_active_controllers(controllers, total),
-            transaction_stats=transaction_stats,
-            payment_stats=payment_stats,
+            today_clients=await self._get_today_clients_by_role(data, user),
+            transaction_stats=await self._get_transaction_stats_by_role(data, user),
+            payment_stats=await self._get_payment_stats_by_role(data, user),
         )
 
     async def _call_by_role(self, user: AdminUser, superadmin_fn, owner_fn, admin_fn):
@@ -115,6 +113,25 @@ class DashboardService:
             ),
             lambda user_id: self.payment_repository.get_payment_analytics_by_admin(
                 analytics_data, user_id
+            ),
+        )
+
+    async def _get_today_clients_by_role(
+        self, data: ReadDashboardStatsRequest, user: AdminUser
+    ) -> TodayClientsDTO:
+        clients_data = GetRevenueRequest(
+            company_id=data.company_id,
+            location_id=data.location_id,
+            controller_id=data.controller_id,
+        )
+        return await self._call_by_role(
+            user,
+            lambda: self.transaction_repository.get_today_clients_all(clients_data),
+            lambda user_id: self.transaction_repository.get_today_clients_by_owner(
+                clients_data, user_id
+            ),
+            lambda user_id: self.transaction_repository.get_today_clients_by_admin(
+                clients_data, user_id
             ),
         )
 

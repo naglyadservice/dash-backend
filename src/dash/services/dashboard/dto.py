@@ -27,6 +27,10 @@ class ActiveControllersDTO(BaseModel):
     active: int
 
 
+class TodayClientsDTO(BaseModel):
+    count: int
+
+
 class TransactionStatsDTO(BaseModel):
     date: date
     total: int
@@ -71,6 +75,7 @@ class ReadPaymentStatsRequest(ReadDashboardStatsRequest):
 class ReadDashboardStatsResponse(BaseModel):
     revenue: RevenueDTO
     payment_analytics: PaymentAnalyticsDTO
+    active_controllers: ActiveControllersDTO
+    today_clients: TodayClientsDTO
     transaction_stats: list[TransactionStatsDTO]
     payment_stats: list[PaymentStatsDTO]
-    active_controllers: ActiveControllersDTO
