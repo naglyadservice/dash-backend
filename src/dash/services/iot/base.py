@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from structlog import get_logger
 
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.common.base_client import BaseIoTClient
@@ -29,6 +30,9 @@ from dash.services.iot.dto import (
     SyncSettingsRequest,
     SyncSettingsResponse,
 )
+
+
+logger = get_logger()
 
 
 class BaseIoTService(ABC):
@@ -240,12 +244,26 @@ class BaseIoTService(ABC):
         try:
             await self.send_qr_payment_infra(
                 device_id=controller.device_id,
-                order_id=payment.invoice_id,  # type: ignore
+                order_id=payment.invoice_id,
                 amount=payment.amount,
             )
         except (ControllerResponseError, ControllerTimeoutError):
+            logger.info(
+                "Controller timeout while processing hold payment",
+                controller=controller.id,
+                device_id=controller.device_id,
+            )
             await self.payment_helper.refund(controller, payment)
             payment.failure_reason = "Не вдалося встановити зв'язок з пристроєм"
+        except Exception as e:
+            logger.error(
+                "Fatal error while processing hold payment",
+                exc_info=e,
+                controller=controller.id,
+                device_id=controller.device_id,
+            )
+            await self.payment_helper.refund(controller, payment)
+            payment.failure_reason = "Невідома помилка"
         else:
             await self.payment_helper.finalize_hold(controller, payment, payment.amount)
 
