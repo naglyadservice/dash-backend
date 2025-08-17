@@ -10,6 +10,7 @@ from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
+from dash.services.iot.dto import SendFreePaymentRequest, SendQRPaymentRequest
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     SetDescriptionRequest,
@@ -89,15 +90,18 @@ class FiscalizerService(BaseIoTService):
         controller.description = data.description
         await self.controller_repository.commit()
 
-
-    async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
-        data.payment.amount = round(data.payment.amount / 100, 2)
-        return await super().send_free_payment(data)
-
-    async def send_qr_payment(self, data: SendQrPaymentRequest) -> None:
+    async def send_qr_payment(self, data: SendQRPaymentRequest) -> None:
         data.payment.amount = round(data.payment.amount / 100, 2)
         return await super().send_qr_payment(data)
 
     async def send_qr_payment_infra(self, device_id: str, order_id: str, amount: int):
         amount = round(amount / 100, 2)
         return await super().send_qr_payment_infra(device_id, order_id, amount)
+
+    async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
+        data.payment.amount = round(data.payment.amount / 100, 2)
+        return await super().send_free_payment(data)
+
+    async def send_free_payment_infra(self, device_id: str, amount: int) -> None:
+        amount = round(amount / 100, 2)
+        return await super().send_free_payment_infra(device_id, amount)
