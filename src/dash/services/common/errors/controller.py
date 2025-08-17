@@ -4,6 +4,7 @@ from dash.services.common.errors.base import (
     ApplicationError,
     ConflictError,
     EntityNotFoundError,
+    ValidationError,
 )
 
 
@@ -30,3 +31,8 @@ class TasmotaIDAlreadyTakenError(ConflictError):
 @dataclass
 class DeviceIDAlreadyTakenError(ConflictError):
     message: str = "Device id already taken"
+
+
+@dataclass
+class ControllerIsBusyError(ValidationError):
+    message: str = "Controller is busy"

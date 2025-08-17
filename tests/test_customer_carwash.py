@@ -47,7 +47,7 @@ async def deps(request_di_container: AsyncContainer):
 
 @pytest.fixture
 async def auth_customer(test_env: TestEnvironment, deps: Deps, mocker):
-    customer = test_env.customer_1
+    customer = test_env.customer_2
     mocker.patch.object(
         deps.token_processor,
         "validate_access_token",

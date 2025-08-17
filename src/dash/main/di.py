@@ -18,6 +18,8 @@ from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.carwash.di import get_carwash_client
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.fiscalizer.di import get_fiscalizer_client
+from dash.infrastructure.iot.laundry.client import LaundryIoTClient
+from dash.infrastructure.iot.laundry.di import get_laundry_client
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.mqtt.di import get_mqtt_client
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
@@ -58,6 +60,7 @@ from dash.services.iot.carwash.customer_service import CustomerCarwashService
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.factory import IoTServiceFactory
 from dash.services.iot.fiscalizer.service import FiscalizerService
+from dash.services.iot.laundry.service import LaundryService
 from dash.services.iot.wsm.service import WsmService
 from dash.services.location.service import LocationService
 from dash.services.payment.service import PaymentService
@@ -110,6 +113,7 @@ def provide_services() -> Provider:
         CustomerCarwashService,
         CarwashService,
         FiscalizerService,
+        LaundryService,
         IoTServiceFactory,
         CheckOnlineInteractor,
     )
@@ -154,6 +158,7 @@ def provide_infrastructure() -> Provider:
         get_fiscalizer_client, scope=Scope.APP, provides=FiscalizerIoTClient
     )
     provider.provide(get_mqtt_client, scope=Scope.APP, provides=MqttClient)
+    provider.provide(get_laundry_client, scope=Scope.APP, provides=LaundryIoTClient)
 
     provider.provide(MonopayService, scope=Scope.REQUEST)
     provider.provide(LiqpayService, scope=Scope.REQUEST)

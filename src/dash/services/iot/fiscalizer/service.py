@@ -1,8 +1,12 @@
 from uuid import UUID
 
+from dash.infrastructure.acquiring.checkbox import CheckboxService
+from dash.infrastructure.acquiring.liqpay import LiqpayService
+from dash.infrastructure.acquiring.monopay import MonopayService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.payment import PaymentRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
@@ -13,8 +17,6 @@ from dash.services.iot.dto import SendFreePaymentRequest
 from dash.services.iot.fiscalizer.dto import (
     FiscalizerIoTControllerScheme,
     SetDescriptionRequest,
-    SetFiscalizerConfigRequest,
-    SetFiscalizerSettingsRequest,
     SetupQuickDepositButtonsRequest,
     SetupSIMRequest,
 )
@@ -23,13 +25,25 @@ from dash.services.iot.fiscalizer.dto import (
 class FiscalizerService(BaseIoTService):
     def __init__(
         self,
-        controller_repository: ControllerRepository,
         identity_provider: IdProvider,
+        controller_repository: ControllerRepository,
+        payment_repository: PaymentRepository,
+        liqpay_service: LiqpayService,
+        monopay_service: MonopayService,
+        checkbox_service: CheckboxService,
         iot_storage: IoTStorage,
         fiscalizer_client: FiscalizerIoTClient,
         check_online_interactor: CheckOnlineInteractor,
     ):
-        super().__init__(fiscalizer_client, identity_provider, controller_repository)
+        super().__init__(
+            fiscalizer_client,
+            identity_provider,
+            controller_repository,
+            payment_repository,
+            liqpay_service,
+            monopay_service,
+            checkbox_service,
+        )
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
 
@@ -40,12 +54,6 @@ class FiscalizerService(BaseIoTService):
             raise ControllerNotFoundError
 
         return controller
-
-    async def update_config(self, data: SetFiscalizerConfigRequest) -> None:
-        await super().update_config(data)
-
-    async def update_settings(self, data: SetFiscalizerSettingsRequest) -> None:
-        await super().update_settings(data)
 
     async def read_controller(
         self, data: ControllerID
@@ -75,8 +83,9 @@ class FiscalizerService(BaseIoTService):
         await self.identity_provider.ensure_company_owner(controller.company_id)
 
         dict_data = data.buttons.model_dump()
-        for k, v in dict_data.items():
-            setattr(controller, k, v)
+        for key, value in dict_data.items():
+            if hasattr(controller, key):
+                setattr(controller, key, value)
 
         await self.controller_repository.commit()
 
@@ -85,8 +94,9 @@ class FiscalizerService(BaseIoTService):
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
         dict_data = data.sim.model_dump()
-        for k, v in dict_data.items():
-            setattr(controller, k, v)
+        for key, value in dict_data.items():
+            if hasattr(controller, key):
+                setattr(controller, key, value)
 
         await self.controller_repository.commit()
 

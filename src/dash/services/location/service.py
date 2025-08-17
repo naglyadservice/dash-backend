@@ -92,9 +92,9 @@ class LocationService:
             raise LocationNotFoundError
 
         dict_data = data.data.model_dump(exclude_unset=True)
-        for k, v in dict_data.items():
-            if hasattr(location, k):
-                setattr(location, k, v)
+        for key, value in dict_data.items():
+            if hasattr(location, key):
+                setattr(location, key, value)
 
         await self.location_repository.commit()
 

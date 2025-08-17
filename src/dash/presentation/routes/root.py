@@ -7,6 +7,7 @@ from dash.presentation.routes.companies import company_router
 from dash.presentation.routes.controllers.carwash import carwash_router
 from dash.presentation.routes.controllers.controller import controller_router
 from dash.presentation.routes.controllers.fiscalizer import fiscalizer_router
+from dash.presentation.routes.controllers.laundry import laundry_router
 from dash.presentation.routes.controllers.wsm import wsm_router
 from dash.presentation.routes.customer import customer_router
 from dash.presentation.routes.location import location_router
@@ -20,6 +21,7 @@ root_router.include_router(auth_router)
 root_router.include_router(wsm_router)
 root_router.include_router(carwash_router)
 root_router.include_router(fiscalizer_router)
+root_router.include_router(laundry_router)
 root_router.include_router(controller_router)
 root_router.include_router(transaction_router)
 root_router.include_router(payment_router)
