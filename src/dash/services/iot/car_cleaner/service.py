@@ -21,42 +21,21 @@ from dash.services.iot.car_cleaner.dto import (
     CarCleanerServiceEnum,
     CarCleanerRelayBit,
 )
-from dash.services.iot.common.utils import ServiceBitMaskCodec
+from dash.services.iot.common.utils import MODE_LABELS, ServiceBitMaskCodec
 from dash.services.iot.dto import GetDisplayInfoRequest
 
 logger = get_logger()
 
-# Human-readable labels for display information that the controller returns
-MODE_LABELS: dict[int, str] = {
-    0x00: "Логотип",
-    0x01: "Очікування оплати",
-    0x02: "Двері відкриті",
-    0x03: "Блокування",
-    0x04: "Сервісний режим 0",
-    0x05: "Сервісний режим 1",
-    0x06: "Сервісний режим 2",
-    0x07: "Продажа готівкою",
-    0x08: "Подяка",
-    0x09: "Оплата PayPass 0",
-    0x0A: "Оплата PayPass 1",
-    0x0B: "Продажа карткою 0",
-    0x0C: "Продажа карткою 1",
-    0x0D: "Продажа карткою 2",
-    0x0E: "Продажа карткою 3",
-    0x0F: "Інкасація",
-    0x10: "Перевірка при старі",
-    0x80: "Реклама",
-}
-
-SERVICE_LABELS: dict[int, str] = {
-    0x00: "Сесія закрита",
-    0x01: "Пауза",
-    0x02: "Пилосос",
-    0x03: "Вологий пилосос",
-    0x04: "Пилосос з паром",
-    0x05: "Обдув",
-    0x06: "Спреєр",
-    0x07: "Торнадор",
+car_cleaner_services_labels: dict[int, str] = {
+    0: "Пилосос",
+    1: "Вологий пилосос",
+    2: "Паровий пилосос",
+    3: "Обдув",
+    4: "Спреєр",
+    5: "Торнадор",
+    6: "Максимум",
+    128: "Пауза",
+    255: "Без послуги",
 }
 
 
@@ -86,7 +65,11 @@ class CarCleanerService(BaseIoTService):
             raise ControllerNotFoundError
         return controller
 
-    async def _decode_settings(self, controller: Controller, settings: dict[str, Any]):
+    async def sync_settings_infra(self, controller: Controller) -> None:
+        config = await self.iot_client.get_config(controller.device_id)
+        config.pop("request_id")
+
+        settings = await self.iot_client.get_settings(controller.device_id)
         codec = ServiceBitMaskCodec(CarCleanerServiceEnum, CarCleanerRelayBit)
 
         settings["servicesRelay"] = codec.decode_bit_mask(settings["servicesRelay"])
@@ -94,43 +77,24 @@ class CarCleanerService(BaseIoTService):
         settings["servicesPause"] = codec.decode_int_mask(settings["servicesPause"])
         settings.pop("request_id")
 
+        controller.config = config
         controller.settings = settings
 
-        await self.controller_repository.commit()
-
-    async def update_settings(
-        self, data: SetCarCleanerSettingsRequest
-    ) -> CarCleanerIoTControllerScheme:
+    async def update_settings(self, data: SetCarCleanerSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
-        await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        payload = self._prepare_settings_payload(controller.settings)
-        payload.update(data.settings.model_dump(exclude_none=True))
+        await self.identity_provider.ensure_company_owner(
+            location_id=controller.location_id
+        )
+
+        incoming_settings = data.settings.model_dump(exclude_unset=True)
+        controller.settings = {**controller.settings, **incoming_settings}
 
         await self.iot_client.set_settings(
-            controller.device_id,
-            payload=self._prepare_settings_payload(payload),
+            device_id=controller.device_id,
+            payload=self._prepare_settings_payload(controller.settings),
         )
         await self.controller_repository.commit()
-
-        state = await self.iot_storage.get_state(controller.id)
-        return CarCleanerIoTControllerScheme.make(
-            controller,
-            state=state,
-            energy_state=None,
-            is_online=False,
-        )
-
-    @staticmethod
-    def _prepare_settings_payload(settings: dict[str, Any]) -> dict[str, Any]:
-        payload = settings.copy()
-        codec = ServiceBitMaskCodec(CarCleanerServiceEnum, CarCleanerRelayBit)
-
-        payload["servicesRelay"] = codec.encode_bit_mask(payload["servicesRelay"])
-        payload["tariff"] = codec.encode_int_mask(payload["tariff"])
-        payload["servicesPause"] = codec.encode_int_mask(payload["servicesPause"])
-
-        return payload
 
     async def read_controller(
         self, data: ControllerID
@@ -155,7 +119,20 @@ class CarCleanerService(BaseIoTService):
 
         return GetCarCleanerDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            service=car_cleaner_services_labels.get(
+                display_info.get("service", 0), "-"
+            ),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
         )
+
+    @staticmethod
+    def _prepare_settings_payload(settings: dict[str, Any]) -> dict[str, Any]:
+        payload = settings.copy()
+        codec = ServiceBitMaskCodec(CarCleanerServiceEnum, CarCleanerRelayBit)
+
+        payload["servicesRelay"] = codec.encode_bit_mask(payload["servicesRelay"])
+        payload["tariff"] = codec.encode_int_mask(payload["tariff"])
+        payload["servicesPause"] = codec.encode_int_mask(payload["servicesPause"])
+
+        return payload

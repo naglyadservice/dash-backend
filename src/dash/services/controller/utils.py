@@ -8,7 +8,7 @@ QR_PREFIX_MAP = {
     ControllerType.FISCALIZER: "f",
     ControllerType.VACUUM: "v",
     ControllerType.LAUNDRY: "l",
-    ControllerType.CAR_CLEANER: "cс"
+    ControllerType.CAR_CLEANER: "cс",
 }
 
 

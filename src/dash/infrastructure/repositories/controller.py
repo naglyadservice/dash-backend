@@ -47,6 +47,7 @@ class ControllerRepository(BaseRepository):
                 WaterVendingController,
                 CarwashController,
                 FiscalizerController,
+                LaundryController,
                 VacuumController,
                 CarCleanerController,
             ],
@@ -74,6 +75,7 @@ class ControllerRepository(BaseRepository):
                 WaterVendingController,
                 CarwashController,
                 FiscalizerController,
+                LaundryController,
                 VacuumController,
                 CarCleanerController,
             ],
@@ -108,7 +110,9 @@ class ControllerRepository(BaseRepository):
                 WaterVendingController,
                 CarwashController,
                 FiscalizerController,
+                LaundryController,
                 VacuumController,
+                CarCleanerController,
             ],
         )
         stmt = select(Controller).where(Controller.qr == qr).options(loader_opt)

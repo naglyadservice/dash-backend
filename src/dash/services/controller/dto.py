@@ -9,6 +9,7 @@ from dash.models.controllers.controller import (
     ControllerStatus,
     ControllerType,
 )
+from dash.models.controllers.laundry import LaundryTariffType
 from dash.services.common.dto import ControllerID, PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
@@ -203,6 +204,16 @@ class PublicVacuumScheme(BasePublicControllerScheme):
 class PublicCarCleanerScheme(BasePublicControllerScheme):
     type: Literal[ControllerType.CAR_CLEANER]
     tariff: CarCleanerTariffDTO
+
+
+class PublicLaundryScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.LAUNDRY]
+    tariff_type: LaundryTariffType
+    fixed_price: int
+    price_per_minute_before_transition: int
+    max_hold_amount: int
+    transition_after_minutes: int
+    price_per_minute_after_transition: int
 
 
 CONTROLLER_PUBLIC_SCHEME_TYPE = (

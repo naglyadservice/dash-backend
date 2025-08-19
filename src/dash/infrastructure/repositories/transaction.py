@@ -13,6 +13,7 @@ from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
+from dash.models.transactions.car_cleaner import CarCleanerTransaction
 from dash.models.transactions.fiscalizer import FiscalizerTransaction
 from dash.models.transactions.laundry import LaundryTransaction
 from dash.models.transactions.transaction import Transaction
@@ -78,7 +79,9 @@ class TransactionRepository(BaseRepository):
                 WsmTransaction,
                 CarwashTransaction,
                 FiscalizerTransaction,
+                LaundryTransaction,
                 VacuumTransaction,
+                CarCleanerTransaction,
             ],
         )
 

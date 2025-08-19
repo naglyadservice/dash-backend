@@ -21,34 +21,13 @@ from dash.services.iot.carwash.dto import (
     CarwashServiceEnum,
     CarwashRelayBit,
 )
-from dash.services.iot.common.utils import ServiceBitMaskCodec
+from dash.services.iot.common.utils import MODE_LABELS, ServiceBitMaskCodec
 from dash.services.iot.dto import GetDisplayInfoRequest
 
 logger = get_logger()
 
-# Human-readable labels for display information that the controller returns
-MODE_LABELS: dict[int, str] = {
-    0x00: "Логотип",
-    0x01: "Очікування оплати",
-    0x02: "Двері відкриті",
-    0x03: "Блокування",
-    0x04: "Сервісний режим 0",
-    0x05: "Сервісний режим 1",
-    0x06: "Сервісний режим 2",
-    0x07: "Продажа готівкою",
-    0x08: "Подяка",
-    0x09: "Оплата PayPass 0",
-    0x0A: "Оплата PayPass 1",
-    0x0B: "Продажа карткою 0",
-    0x0C: "Продажа карткою 1",
-    0x0D: "Продажа карткою 2",
-    0x0E: "Продажа карткою 3",
-    0x0F: "Інкасація",
-    0x10: "Перевірка при старі",
-    0x80: "Реклама",
-}
 
-SERVICE_LABELS: dict[int, str] = {
+carwash_service_labels: dict[int, str] = {
     0: "Піна",
     1: "Екстра піна",
     2: "Вода під тиском",
@@ -153,7 +132,7 @@ class CarwashService(BaseIoTService):
 
         return GetCarwashDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            service=carwash_service_labels.get(display_info.get("service", 0), "-"),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
         )
@@ -163,7 +142,7 @@ class CarwashService(BaseIoTService):
 
         return GetCarwashDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            service=carwash_service_labels.get(display_info.get("service", 0), "-"),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
         )
