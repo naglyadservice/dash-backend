@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.company import Company
+from dash.models.controllers.car_cleaner import CarCleanerController
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.fiscalizer import FiscalizerController
@@ -37,6 +38,7 @@ class ControllerRepository(BaseRepository):
         | FiscalizerController
         | LaundryController
         | VacuumController
+        | CarCleanerController
         | None
     ):
         loader_opt = selectin_polymorphic(
@@ -46,6 +48,7 @@ class ControllerRepository(BaseRepository):
                 CarwashController,
                 FiscalizerController,
                 VacuumController,
+                CarCleanerController,
             ],
         )
         stmt = (
@@ -56,7 +59,14 @@ class ControllerRepository(BaseRepository):
     async def get_list_concrete(
         self, location_id: UUID | None = None
     ) -> tuple[
-        Sequence[CarwashController | WaterVendingController | FiscalizerController], int
+        Sequence[
+            CarwashController
+            | WaterVendingController
+            | FiscalizerController
+            | VacuumController
+            | CarCleanerController
+        ],
+        int,
     ]:
         loader_opt = selectin_polymorphic(
             Controller,
@@ -65,6 +75,7 @@ class ControllerRepository(BaseRepository):
                 CarwashController,
                 FiscalizerController,
                 VacuumController,
+                CarCleanerController,
             ],
         )
         stmt = select(Controller)
@@ -163,6 +174,14 @@ class ControllerRepository(BaseRepository):
 
     async def get_vacuum_by_device_id(self, device_id: str) -> VacuumController | None:
         stmt = select(VacuumController).where(VacuumController.device_id == device_id)
+        return await self.session.scalar(stmt)
+
+    async def get_car_cleaner_by_device_id(
+        self, device_id: str
+    ) -> CarCleanerController | None:
+        stmt = select(CarCleanerController).where(
+            CarCleanerController.device_id == device_id
+        )
         return await self.session.scalar(stmt)
 
     async def _get_list(

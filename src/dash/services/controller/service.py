@@ -8,6 +8,7 @@ from dash.infrastructure.repositories.encashment import EncashmentRepository
 from dash.infrastructure.repositories.energy_state import EnergyStateRepository
 from dash.infrastructure.repositories.location import LocationRepository
 from dash.models.admin_user import AdminRole, AdminUser
+from dash.models.controllers.car_cleaner import CarCleanerController
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller, ControllerType
 from dash.models.controllers.fiscalizer import FiscalizerController
@@ -140,20 +141,23 @@ class ControllerService:
         if data.type is ControllerType.WATER_VENDING:
             controller = WaterVendingController(**controller_dict)
 
-        elif data.type is ControllerType.CARWASH:
+        if data.type is ControllerType.CARWASH:
             controller = CarwashController(**controller_dict)
 
-        elif data.type is ControllerType.VACUUM:
+        if data.type is ControllerType.VACUUM:
             controller = VacuumController(**controller_dict)
 
-        elif data.type is ControllerType.FISCALIZER:
+        if data.type is ControllerType.FISCALIZER:
             controller = FiscalizerController(**controller_dict)
 
         elif data.type is ControllerType.LAUNDRY:
             controller = LaundryController(**controller_dict)
 
-        elif data.type is ControllerType.VACUUM:
+        if data.type is ControllerType.VACUUM:
             controller = VacuumController(**controller_dict)
+
+        if data.type is ControllerType.CAR_CLEANER:
+            controller = CarCleanerController(**controller_dict)
 
         await self.factory.get(controller.type).sync_settings_infra(controller)
 

@@ -8,6 +8,7 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.transactions.transaction import Transaction, TransactionType
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.transaction.dto import (
+    CarCleanerTransactionScheme,
     CarwashTransactionScheme,
     FiscalizerTransactionScheme,
     LaundryTransactionScheme,
@@ -89,6 +90,10 @@ class TransactionService:
             elif transaction.type is TransactionType.VACUUM:
                 transaction_list.append(
                     VacuumTransactionScheme.model_validate(transaction),
+                )
+            elif transaction.type is TransactionType.CAR_CLEANER:
+                transaction_list.append(
+                    CarCleanerTransactionScheme.model_validate(transaction),
                 )
             else:
                 raise ValueError("Unknown transaction type")

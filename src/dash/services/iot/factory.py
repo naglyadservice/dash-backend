@@ -1,5 +1,6 @@
 from dash.models.controllers.controller import ControllerType
 from dash.services.iot.base import BaseIoTService
+from dash.services.iot.car_cleaner.service import CarCleanerService
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.fiscalizer.service import FiscalizerService
 from dash.services.iot.laundry.service import LaundryService
@@ -12,12 +13,14 @@ class IoTServiceFactory:
         self,
         wsm: WsmService,
         carwash: CarwashService,
+        car_cleaner: CarCleanerService,
         fiscalizer: FiscalizerService,
         laundry: LaundryService,
         vacuum: VacuumService,
     ) -> None:
         self.wsm = wsm
         self.carwash = carwash
+        self.car_cleaner = car_cleaner
         self.fiscalizer = fiscalizer
         self.laundry = laundry
         self.vacuum = vacuum
@@ -26,6 +29,8 @@ class IoTServiceFactory:
         match controller_type:
             case ControllerType.CARWASH:
                 return self.carwash
+            case ControllerType.CAR_CLEANER:
+                return self.car_cleaner
             case ControllerType.WATER_VENDING:
                 return self.wsm
             case ControllerType.FISCALIZER:

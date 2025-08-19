@@ -4,9 +4,10 @@ from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dash.infrastructure.auth.password_processor import PasswordProcessor
-from dash.models import CarwashController, Customer
+from dash.models import CarwashController, Customer, VacuumController
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.company import Company
+from dash.models.controllers.car_cleaner import CarCleanerController
 from dash.models.controllers.controller import ControllerStatus, ControllerType
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.laundry import (
@@ -18,6 +19,8 @@ from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from tests.context.settings import (
+    car_cleaner_config,
+    car_cleaner_settings,
     carwash_config,
     carwash_settings,
     fiscalizer_config,
@@ -26,6 +29,8 @@ from tests.context.settings import (
     laundry_settings,
     wsm_config,
     wsm_settings,
+    vacuum_config,
+    vacuum_settings,
 )
 
 
@@ -112,7 +117,7 @@ class TestEnvironment:
         await db_session.flush()
 
         self.controller_1 = WaterVendingController(
-            name="Test Controller 1",
+            name="Test WaterVending Controller",
             device_id="test_device_id_1",
             tasmota_id="test_tasmota_id_1",
             location_id=self.location_1.id,
@@ -124,7 +129,7 @@ class TestEnvironment:
             qr="test_qr_1",
         )
         self.controller_2 = CarwashController(
-            name="Test Controller 2",
+            name="Test Carwash Controller",
             device_id="test_device_id_2",
             location_id=self.location_2.id,
             type=ControllerType.CARWASH,
@@ -135,7 +140,7 @@ class TestEnvironment:
             qr="test_qr_2",
         )
         self.controller_3 = FiscalizerController(
-            name="Test Controller 3",
+            name="Test Fiscalizer Controller",
             device_id="test_device_id_3",
             location_id=self.location_1.id,
             type=ControllerType.FISCALIZER,
@@ -144,6 +149,28 @@ class TestEnvironment:
             config=fiscalizer_config,
             settings=fiscalizer_settings,
             qr="test_qr_3",
+        )
+        self.controller_4 = CarCleanerController(
+            name="Test CarCleaner Controller",
+            device_id="test_device_id_4",
+            location_id=self.location_1.id,
+            type=ControllerType.CAR_CLEANER,
+            version="1.0.0",
+            status=ControllerStatus.ACTIVE,
+            config=car_cleaner_config,
+            settings=car_cleaner_settings,
+            qr="test_qr_4",
+        )
+        self.controller_5 = VacuumController(
+            name="Test Vacuum Controller",
+            device_id="test_device_id_5",
+            location_id=self.location_1.id,
+            type=ControllerType.VACUUM,
+            version="1.0.0",
+            status=ControllerStatus.ACTIVE,
+            config=vacuum_config,
+            settings=vacuum_settings,
+            qr="test_qr_4",
         )
 
         self.laundry_controller_fixed = LaundryController(
@@ -212,6 +239,8 @@ class TestEnvironment:
                 self.controller_1,
                 self.controller_2,
                 self.controller_3,
+                self.controller_4,
+                self.controller_5,
                 self.laundry_controller_fixed,
                 self.laundry_controller_per_minute,
                 LocationAdmin(

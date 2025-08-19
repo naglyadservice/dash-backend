@@ -12,6 +12,7 @@ from dash.models.controllers.controller import (
 from dash.services.common.dto import ControllerID, PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
+from dash.services.iot.car_cleaner.dto import CarCleanerTariffDTO
 from dash.services.iot.carwash.dto import CarwashTariffDTO
 from dash.services.iot.vacuum.dto import VacuumTariffDTO
 
@@ -199,8 +200,17 @@ class PublicVacuumScheme(BasePublicControllerScheme):
     tariff: VacuumTariffDTO
 
 
+class PublicCarCleanerScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.CAR_CLEANER]
+    tariff: CarCleanerTariffDTO
+
+
 CONTROLLER_PUBLIC_SCHEME_TYPE = (
-    PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme | PublicVacuumScheme
+    PublicWsmScheme
+    | PublicCarwashScheme
+    | PublicFiscalizerScheme
+    | PublicVacuumScheme
+    | PublicCarCleanerScheme
 )
 
 

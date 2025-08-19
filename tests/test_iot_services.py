@@ -7,6 +7,7 @@ from dishka import AsyncContainer
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.admin_user import AdminUser
 from dash.services.common.dto import ControllerID
+from dash.services.iot.car_cleaner.service import CarCleanerService
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.fiscalizer.service import FiscalizerService
 from dash.services.iot.wsm.service import WsmService
@@ -19,6 +20,7 @@ pytestmark = pytest.mark.usefixtures("create_tables")
 class IoTDependencies:
     wsm_service: WsmService
     carwash_service: CarwashService
+    car_cleaner_service: CarCleanerService
     fiscalizer_service: FiscalizerService
     iot_storage: IoTStorage
 
@@ -28,6 +30,7 @@ async def deps(request_di_container: AsyncContainer):
     return IoTDependencies(
         wsm_service=await request_di_container.get(WsmService),
         carwash_service=await request_di_container.get(CarwashService),
+        car_cleaner_service=await request_di_container.get(CarCleanerService),
         fiscalizer_service=await request_di_container.get(FiscalizerService),
         iot_storage=await request_di_container.get(IoTStorage),
     )
@@ -55,5 +58,10 @@ async def test_read_iot_controller(
 
     response = await deps.fiscalizer_service.read_controller(
         ControllerID(controller_id=test_env.controller_3.id)
+    )
+    assert response is not None
+
+    response = await deps.car_cleaner_service.read_controller(
+        ControllerID(controller_id=test_env.controller_4.id)
     )
     assert response is not None

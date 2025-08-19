@@ -9,6 +9,10 @@ from dash.models.transactions.laundry import LaundrySessionStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.services.common.dto import BaseFilters
 from dash.services.common.pagination import Pagination
+from dash.services.iot.car_cleaner.dto import (
+    CarCleanerTariffDTO,
+    CarCleanerServicesIntListDTO,
+)
 from dash.services.iot.carwash.dto import CarwashTariffDTO, CarwashServicesIntListDTO
 from dash.services.iot.vacuum.dto import VacuumServicesIntListDTO, VacuumTariffDTO
 
@@ -49,8 +53,18 @@ class WsmTransactionScheme(TransactionBase):
     out_liters_2: int
 
 
+class CarCleanerServicesSoldDTO(CarCleanerServicesIntListDTO):
+    pass
+
+
 class CarwashServicesSoldDTO(CarwashServicesIntListDTO):
     pass
+
+
+class CarCleanerTransactionScheme(TransactionBase):
+    services_sold_seconds: CarCleanerServicesSoldDTO
+    tariff: CarCleanerTariffDTO
+    replenishment_ratio: int | None
 
 
 class CarwashTransactionScheme(TransactionBase):
@@ -85,6 +99,7 @@ class VacuumTransactionScheme(TransactionBase):
 
 TRANSACTION_SCHEME_TYPE = (
     WsmTransactionScheme
+    | CarCleanerTransactionScheme
     | CarwashTransactionScheme
     | FiscalizerTransactionScheme
     | LaundryTransactionScheme
