@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.controller import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
@@ -148,6 +149,7 @@ class VacuumState(BaseModel):
 
 
 class VacuumIoTControllerScheme(IoTControllerBaseDTO):
+    type: Literal[ControllerType.VACUUM]
     config: VacuumConfig
     settings: VacuumSettings
     state: VacuumState | None = None

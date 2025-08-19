@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.car_cleaner import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
@@ -152,6 +153,7 @@ class CarCleanerState(BaseModel):
 
 
 class CarCleanerIoTControllerScheme(IoTControllerBaseDTO):
+    type: Literal[ControllerType.CAR_CLEANER]
     config: CarCleanerConfig | None
     settings: CarCleanerSettings | None
     state: CarCleanerState | None = None

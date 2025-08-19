@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.controller import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
@@ -166,6 +167,7 @@ class CarwashState(BaseModel):
 
 
 class CarwashIoTControllerScheme(IoTControllerBaseDTO):
+    type: Literal[ControllerType.CARWASH]
     config: CarwashConfig
     settings: CarwashSettings
     state: CarwashState | None = None
