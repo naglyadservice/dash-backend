@@ -3,12 +3,12 @@ import random
 from dash.models.controllers.controller import ControllerType
 
 QR_PREFIX_MAP = {
-    ControllerType.CARWASH: "c",
-    ControllerType.WATER_VENDING: "w",
+    ControllerType.WATER_VENDING: "ws",
     ControllerType.FISCALIZER: "f",
-    ControllerType.VACUUM: "v",
     ControllerType.LAUNDRY: "l",
-    ControllerType.CAR_CLEANER: "cс",
+    ControllerType.CARWASH: "cw",
+    ControllerType.VACUUM: "vc",
+    ControllerType.CAR_CLEANER: "dc",
 }
 
 
