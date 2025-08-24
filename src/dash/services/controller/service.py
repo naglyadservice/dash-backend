@@ -274,7 +274,7 @@ class ControllerService:
             controller_scheme = PublicVacuumScheme.model_validate(controller)
         elif controller.type is ControllerType.LAUNDRY:
             controller_scheme = PublicLaundryScheme.model_validate(controller)
-        if controller.type is ControllerType.CAR_CLEANER:
+        elif controller.type is ControllerType.CAR_CLEANER:
             controller_scheme = PublicCarCleanerScheme.model_validate(controller)
         else:
             raise ValueError("This controller type is not supported yet")
