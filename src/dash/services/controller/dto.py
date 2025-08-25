@@ -220,6 +220,7 @@ CONTROLLER_PUBLIC_SCHEME_TYPE = (
     PublicWsmScheme
     | PublicCarwashScheme
     | PublicFiscalizerScheme
+    | PublicLaundryScheme
     | PublicVacuumScheme
     | PublicCarCleanerScheme
 )
