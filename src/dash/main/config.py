@@ -35,7 +35,7 @@ class PostgresConfig(BaseModel):
 class RedisConfig(BaseModel):
     host: str
     port: int
-    password: str
+    password: str | None = None
 
 
 class MqttConfig(BaseModel):

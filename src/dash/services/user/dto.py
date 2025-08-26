@@ -1,7 +1,7 @@
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.models.admin_user import AdminRole
 from dash.services.common.dto import LocationDTO
@@ -23,7 +23,7 @@ class CreateUserResponse(BaseModel):
 class UserDTO(BaseModel):
     id: UUID
     name: str
-    email: EmailStr
+    email: str
     role: AdminRole
     locations: list[LocationDTO] | None
     message: str | None

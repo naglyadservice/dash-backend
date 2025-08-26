@@ -6,7 +6,9 @@ from structlog import get_logger
 
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IoTStorage
+from dash.models.controllers.controller import ControllerType
 from dash.presentation.iot_callbacks.common.di_injector import inject, request_scope
+from dash.presentation.iot_callbacks.common.utils import parse_bill_state
 
 logger = get_logger()
 
@@ -35,10 +37,15 @@ async def state_info_callback(
         device_id=device_id,
         data=data,
     )
-    
-    if bill_state := data.get("bill_state") is not None:
-        data["billState"] = bill_state
-    if coin_state := data.get("coin_state") is not None:
-        data["coinState"] = coin_state
+
+    # casting bill_state to billState - inconsistency in fiscalizer spelling
+    if controller.type is ControllerType.FISCALIZER:
+        if "bill_state" in data:
+            data["billState"] = data.pop("bill_state")
+        if "coin_state" in data:
+            data["coinState"] = data.pop("coin_state")
+
+    if "billState" in data:
+        data["billState"] = parse_bill_state(data["billState"])
 
     await iot_storage.set_state(data, controller.id)

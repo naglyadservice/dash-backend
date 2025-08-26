@@ -13,6 +13,7 @@ from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
 from dash.models import CarwashTransaction
+from dash.models.payment import PaymentType, PaymentStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -20,7 +21,9 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
-from dash.services.iot.carwash.utils import decode_service_int_mask
+from dash.services.common.payment_helper import PaymentHelper
+from dash.services.iot.carwash.dto import CarwashServiceEnum, CarwashRelayBit
+from dash.services.iot.common.utils import ServiceBitMaskCodec
 
 logger = structlog.get_logger()
 
@@ -35,7 +38,7 @@ class CarwashSaleCallbackPayload:
     add_qr: int
     add_pp: int
     sale_type: str
-    services_sold: list[int]
+    services_sold: list[float]
     tariff: list[int]
     created: datetime | None = None
     sended: datetime | None = None
@@ -80,6 +83,7 @@ async def carwash_sale_callback(
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
     carwash_client: FromDishka[CarwashIoTClient],
+    payment_helper: FromDishka[PaymentHelper],
 ) -> None:
     dict_data = carwash_sale_callback_retort.dump(data)
     controller = await controller_repository.get_carwash_by_device_id(device_id)
@@ -93,19 +97,10 @@ async def carwash_sale_callback(
         return
 
     company_id = controller.company_id
-    if company_id is None:
-        logger.info(
-            "Carwash sale request ignored: company_id is None",
-            device_id=device_id,
-            controller_id=controller.id,
-            data=dict_data,
-        )
-        return
-
     customer_id = None
     card_amount = 0
 
-    if data.sale_type == "card":
+    if data.sale_type == "card" and company_id is not None:
         customer = await customer_repository.get_by_card_id(
             company_id=company_id,
             card_id=cast(str, data.card_uid),
@@ -133,7 +128,7 @@ async def carwash_sale_callback(
         device_id=device_id,
         data=dict_data,
     )
-
+    codec = ServiceBitMaskCodec(CarwashServiceEnum, CarwashRelayBit)
     transaction = CarwashTransaction(
         controller_transaction_id=data.id,
         controller_id=controller.id,
@@ -146,11 +141,11 @@ async def carwash_sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         card_amount=card_amount,
-        type=TransactionType.CARWASH.value,
+        type=TransactionType.CARWASH,
         created_at_controller=data.created or data.sended,
         sale_type=data.sale_type,
-        services_sold_seconds=decode_service_int_mask(data.services_sold),
-        tariff=decode_service_int_mask(data.tariff),
+        services_sold_seconds=codec.decode_int_mask(data.services_sold),
+        tariff=codec.decode_int_mask(data.tariff),  # type: ignore
         card_balance_in=data.card_balance_in,
         card_balance_out=data.card_balance_out,
         card_uid=data.card_uid,
@@ -169,6 +164,20 @@ async def carwash_sale_callback(
         )
         await carwash_client.sale_ack(device_id, data.id)
         return
+
+    if data.add_bill + data.add_coin > 0:
+        payment = payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            transaction_id=transaction.id,
+            amount=data.add_bill + data.add_coin,
+            payment_type=PaymentType.CASH,
+            status=PaymentStatus.COMPLETED,
+        )
+        if controller.checkbox_active and controller.fiscalize_cash:
+            await payment_helper.fiscalize(controller, payment)
+
+        payment_helper.save(payment)
 
     await transaction_repository.commit()
     await carwash_client.sale_ack(device_id, data.id)

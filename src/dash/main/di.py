@@ -2,8 +2,8 @@ from dishka import AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
-from dash.infrastructure.acquiring.liqpay import LiqpayService
-from dash.infrastructure.acquiring.monopay import MonopayService
+from dash.infrastructure.acquiring.liqpay import LiqpayGateway
+from dash.infrastructure.acquiring.monopay import MonopayGateway
 from dash.infrastructure.auth.auth_service import AuthService
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.auth.password_processor import PasswordProcessor
@@ -14,12 +14,18 @@ from dash.infrastructure.db.setup import (
     get_async_session,
     get_async_sessionmaker,
 )
+from dash.infrastructure.iot.car_cleaner.client import CarCleanerIoTClient
+from dash.infrastructure.iot.car_cleaner.di import get_car_cleaner_client
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.carwash.di import get_carwash_client
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.fiscalizer.di import get_fiscalizer_client
+from dash.infrastructure.iot.laundry.client import LaundryIoTClient
+from dash.infrastructure.iot.laundry.di import get_laundry_client
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.mqtt.di import get_mqtt_client
+from dash.infrastructure.iot.vacuum.client import VacuumIoTClient
+from dash.infrastructure.iot.vacuum.di import get_vacuum_client
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.iot.wsm.di import get_wsm_client
 from dash.infrastructure.repositories.company import CompanyRepository
@@ -51,13 +57,18 @@ from dash.main.config import (
     SMSConfig,
 )
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.company.service import CompanyService
 from dash.services.controller.service import ControllerService
 from dash.services.customer.service import CustomerService
+from dash.services.dashboard.service import DashboardService
+from dash.services.iot.car_cleaner.service import CarCleanerService
 from dash.services.iot.carwash.customer_service import CustomerCarwashService
 from dash.services.iot.carwash.service import CarwashService
 from dash.services.iot.factory import IoTServiceFactory
 from dash.services.iot.fiscalizer.service import FiscalizerService
+from dash.services.iot.laundry.service import LaundryService
+from dash.services.iot.vacuum.service import VacuumService
 from dash.services.iot.wsm.service import WsmService
 from dash.services.location.service import LocationService
 from dash.services.payment.service import PaymentService
@@ -110,8 +121,13 @@ def provide_services() -> Provider:
         CustomerCarwashService,
         CarwashService,
         FiscalizerService,
+        LaundryService,
+        VacuumService,
         IoTServiceFactory,
         CheckOnlineInteractor,
+        PaymentHelper,
+        DashboardService,
+        CarCleanerService,
     )
     return provider
 
@@ -154,9 +170,14 @@ def provide_infrastructure() -> Provider:
         get_fiscalizer_client, scope=Scope.APP, provides=FiscalizerIoTClient
     )
     provider.provide(get_mqtt_client, scope=Scope.APP, provides=MqttClient)
+    provider.provide(get_laundry_client, scope=Scope.APP, provides=LaundryIoTClient)
+    provider.provide(get_vacuum_client, scope=Scope.APP, provides=VacuumIoTClient)
+    provider.provide(
+        get_car_cleaner_client, scope=Scope.APP, provides=CarCleanerIoTClient
+    )
 
-    provider.provide(MonopayService, scope=Scope.REQUEST)
-    provider.provide(LiqpayService, scope=Scope.REQUEST)
+    provider.provide(LiqpayGateway, scope=Scope.REQUEST)
+    provider.provide(MonopayGateway, scope=Scope.REQUEST)
     provider.provide(CheckboxService, scope=Scope.REQUEST)
 
     provider.provide(SMSClient, scope=Scope.REQUEST)

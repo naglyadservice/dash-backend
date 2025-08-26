@@ -33,12 +33,11 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         topic: str,
         qos: Literal[0, 1, 2],
         payload: Mapping[str, Any] | None,
-        ttl: int | None,
-        timeout: int = 2,
+        ttl: int,
     ) -> dict[str, Any]:
         waiter = await self.send_message(device_id, topic, qos, payload, ttl)
         try:
-            response = await waiter.wait(timeout=timeout)
+            response = await waiter.wait(timeout=ttl)
         except DeviceResponceError:
             raise ControllerResponseError
         except TimeoutError:
@@ -50,7 +49,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         self,
         device_id: str,
         payload: dict[str, Any],
-        ttl: int | None = 5,
+        ttl: int = 5,
     ) -> dict[str, Any]:
         return await self._wait_for_response(
             device_id=device_id,
@@ -61,7 +60,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         )
 
     async def set_config(
-        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+        self, device_id: str, payload: dict[str, Any], ttl: int = 5
     ) -> dict[str, Any]:
         return await self._wait_for_response(
             device_id=device_id,
@@ -72,7 +71,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         )
 
     async def get_config(
-        self, device_id: str, fields: list | None = None, ttl: int | None = 5
+        self, device_id: str, fields: list | None = None, ttl: int = 7
     ) -> dict[str, Any]:
         if fields is None:
             fields = []
@@ -83,11 +82,10 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
             qos=1,
             payload={"fields": fields},
             ttl=ttl,
-            timeout=5,
         )
 
     async def set_settings(
-        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+        self, device_id: str, payload: dict[str, Any], ttl: int = 5
     ) -> dict[str, Any]:
         return await self._wait_for_response(
             device_id=device_id,
@@ -98,7 +96,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         )
 
     async def get_settings(
-        self, device_id: str, fields: list | None = None, ttl: int | None = 5
+        self, device_id: str, fields: list | None = None, ttl: int = 7
     ) -> dict[str, Any]:
         if fields is None:
             fields = []
@@ -109,11 +107,10 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
             qos=1,
             payload={"fields": fields},
             ttl=ttl,
-            timeout=5,
         )
 
     async def get_display(
-        self, device_id: str, fields: list | None = None, ttl: int | None = 5
+        self, device_id: str, fields: list | None = None, ttl: int = 5
     ) -> dict[str, Any]:
         if fields is None:
             fields = []
@@ -127,7 +124,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         )
 
     async def set_payment(
-        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+        self, device_id: str, payload: dict[str, Any], ttl: int = 5
     ) -> dict[str, Any]:
         return await self._wait_for_response(
             device_id=device_id,
@@ -138,7 +135,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         )
 
     async def set_action(
-        self, device_id: str, payload: dict[str, Any], ttl: int | None = 5
+        self, device_id: str, payload: dict[str, Any], ttl: int = 5
     ) -> dict[str, Any]:
         return await self._wait_for_response(
             device_id=device_id,
@@ -176,7 +173,7 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
         )
 
     async def get_state(
-        self, device_id: str, fields: list | None = None, ttl: int | None = 5
+        self, device_id: str, fields: list | None = None, ttl: int = 5
     ) -> dict[str, Any]:
         if fields is None:
             fields = []

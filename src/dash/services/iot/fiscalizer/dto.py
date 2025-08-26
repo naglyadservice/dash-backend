@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.controller import ControllerType
 from dash.services.common.dto import ControllerID
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
@@ -58,25 +59,26 @@ class IPInfo(BaseModel):
 
 class FiscalizerState(BaseModel):
     created: datetime
-    input: bool
+    input: bool | None = None
     IP_info: IPInfo | None = None
-    billState: int | None = None
+    billState: int | str | None = None
     coinState: int | None = None
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
-    settings: FiscalizerSettings | None = None
-    config: FiscalizerConfig | None = None
+    type: Literal[ControllerType.FISCALIZER]
+    settings: FiscalizerSettings | None
+    config: FiscalizerConfig | None
     state: FiscalizerState | None = None
 
-    quick_deposit_button_1: int | None = None
-    quick_deposit_button_2: int | None = None
-    quick_deposit_button_3: int | None = None
+    quick_deposit_button_1: int | None
+    quick_deposit_button_2: int | None
+    quick_deposit_button_3: int | None
 
-    sim_number: str | None = None
-    sim_serial: str | None = None
+    sim_number: str | None
+    sim_serial: str | None
 
-    description: str | None = None
+    description: str | None
 
     @classmethod
     def get_state_dto(cls):

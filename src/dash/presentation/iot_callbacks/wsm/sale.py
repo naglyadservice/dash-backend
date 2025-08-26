@@ -12,6 +12,7 @@ from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.transaction import TransactionRepository
+from dash.models.payment import PaymentType, PaymentStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.models.transactions.water_vending import WsmTransaction
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -20,6 +21,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
+from dash.services.common.payment_helper import PaymentHelper
 
 logger = structlog.get_logger()
 
@@ -78,6 +80,7 @@ async def wsm_sale_callback(
     transaction_repository: FromDishka[TransactionRepository],
     customer_repository: FromDishka[CustomerRepository],
     wsm_client: FromDishka[WsmIoTClient],
+    payment_helper: FromDishka[PaymentHelper],
 ) -> None:
     dict_data = wsm_sale_callback_retort.dump(data)
     controller = await controller_repository.get_by_device_id(device_id)
@@ -138,7 +141,7 @@ async def wsm_sale_callback(
         qr_amount=data.add_qr,
         paypass_amount=data.add_pp,
         card_amount=card_amount,
-        type=TransactionType.WATER_VENDING.value,
+        type=TransactionType.WATER_VENDING,
         created_at_controller=data.created or data.sended,
         out_liters_1=data.out_liters_1,
         out_liters_2=data.out_liters_2,
@@ -160,6 +163,20 @@ async def wsm_sale_callback(
         )
         await wsm_client.sale_ack(device_id, data.id)
         return
+
+    if data.add_bill + data.add_coin > 0:
+        payment = payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            transaction_id=transaction.id,
+            amount=data.add_bill + data.add_coin,
+            payment_type=PaymentType.CASH,
+            status=PaymentStatus.COMPLETED,
+        )
+        if controller.checkbox_active and controller.fiscalize_cash:
+            await payment_helper.fiscalize(controller, payment)
+
+        payment_helper.save(payment)
 
     await transaction_repository.commit()
     await wsm_client.sale_ack(device_id, data.id)

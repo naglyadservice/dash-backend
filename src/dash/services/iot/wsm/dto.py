@@ -4,6 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.controller import ControllerType
 from dash.services.common.const import COIN_VALIDATOR_TYPE
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
@@ -90,11 +91,12 @@ class WsmState(BaseModel):
     depositBoxSensor: bool
     doorSensor: bool
     coinState: int
-    billState: int
+    billState: int | str
     errors: WsmStateErrors
 
 
 class WsmIoTControllerScheme(IoTControllerBaseDTO):
+    type: Literal[ControllerType.WATER_VENDING]
     config: WsmConfig | None
     settings: WsmSettings | None
     state: WsmState | None = None

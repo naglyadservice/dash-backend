@@ -1,35 +1,20 @@
-from datetime import date, datetime
-from typing import Any, Literal
+from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict
 
+from dash.models.controllers.laundry import LaundryTariffType
+from dash.models.transactions.laundry import LaundrySessionStatus
 from dash.models.transactions.transaction import TransactionType
-from dash.services.common.errors.base import ValidationError
+from dash.services.common.dto import BaseFilters
 from dash.services.common.pagination import Pagination
-from dash.services.iot.carwash.dto import CarwashTariffDTO, ServicesIntListDTO
-
-
-class BaseTransactionFilters(BaseModel):
-    controller_id: UUID | None = None
-    location_id: UUID | None = None
-    company_id: UUID | None = None
-
-    @model_validator(mode="before")
-    @classmethod
-    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
-        filters = [
-            values.get("controller_id"),
-            values.get("location_id"),
-            values.get("company_id"),
-        ]
-        active_filters = [f for f in filters if f is not None]
-
-        if len(active_filters) > 1:
-            raise ValidationError(
-                "Only one filter can be used at a time. Please use either 'controller_id', 'location_id', or 'company_id'"
-            )
-        return values
+from dash.services.iot.car_cleaner.dto import (
+    CarCleanerTariffDTO,
+    CarCleanerServicesIntListDTO,
+)
+from dash.services.iot.carwash.dto import CarwashTariffDTO, CarwashServicesIntListDTO
+from dash.services.iot.vacuum.dto import VacuumServicesIntListDTO, VacuumTariffDTO
 
 
 class CustomerDTO(BaseModel):
@@ -68,8 +53,18 @@ class WsmTransactionScheme(TransactionBase):
     out_liters_2: int
 
 
-class CarwashServicesSoldDTO(ServicesIntListDTO):
+class CarCleanerServicesSoldDTO(CarCleanerServicesIntListDTO):
     pass
+
+
+class CarwashServicesSoldDTO(CarwashServicesIntListDTO):
+    pass
+
+
+class CarCleanerTransactionScheme(TransactionBase):
+    services_sold_seconds: CarCleanerServicesSoldDTO
+    tariff: CarCleanerTariffDTO
+    replenishment_ratio: int | None
 
 
 class CarwashTransactionScheme(TransactionBase):
@@ -82,32 +77,40 @@ class FiscalizerTransactionScheme(TransactionBase):
     pass
 
 
+class LaundryTransactionScheme(TransactionBase):
+    tariff_type: LaundryTariffType
+    session_status: LaundrySessionStatus
+    session_start_time: datetime | None
+    session_end_time: datetime | None
+    hold_amount: int | None
+    refund_amount: int | None
+    final_amount: int
+
+
+class VacuumServicesSoldDTO(VacuumServicesIntListDTO):
+    glass_washer: float
+
+
+class VacuumTransactionScheme(TransactionBase):
+    services_sold_seconds: VacuumServicesSoldDTO
+    tariff: VacuumTariffDTO
+    replenishment_ratio: int | None
+
+
 TRANSACTION_SCHEME_TYPE = (
-    WsmTransactionScheme | CarwashTransactionScheme | FiscalizerTransactionScheme
+    WsmTransactionScheme
+    | CarCleanerTransactionScheme
+    | CarwashTransactionScheme
+    | FiscalizerTransactionScheme
+    | LaundryTransactionScheme
+    | VacuumTransactionScheme
 )
 
 
-class ReadTransactionListRequest(Pagination, BaseTransactionFilters):
+class ReadTransactionListRequest(Pagination, BaseFilters):
     pass
 
 
 class ReadTransactionListResponse(BaseModel):
     transactions: list[TRANSACTION_SCHEME_TYPE]
     total: int
-
-
-class GetTransactionStatsRequest(BaseTransactionFilters):
-    period: int
-
-
-class TransactionStatDTO(BaseModel):
-    date: date
-    total: int
-    bill: int
-    coin: int
-    qr: int
-    paypass: int
-
-
-class GetTransactionStatsResponse(BaseModel):
-    statistics: list[TransactionStatDTO]

@@ -19,12 +19,15 @@ class PaymentStatus(StrEnum):
 
 
 class PaymentType(StrEnum):
-    BILL = "BILL"
-    COIN = "COIN"
-    PAYPASS = "PAYPASS"
+    CASH = "CASH"
+    CASHLESS = "CASHLESS"
+    FREE = "FREE"
+
+
+class PaymentGatewayType(StrEnum):
     MONOPAY = "MONOPAY"
     LIQPAY = "LIQPAY"
-    FREE = "FREE"
+    PAYPASS = "PAYPASS"
 
 
 class Payment(Base, UUIDMixin, TimestampMixin):
@@ -37,10 +40,14 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     location_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL")
     )
+    transaction_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("transactions.id", ondelete="SET NULL")
+    )
     receipt_id: Mapped[UUID | None] = mapped_column()
     amount: Mapped[int] = mapped_column()
     status: Mapped[PaymentStatus] = mapped_column()
     type: Mapped[PaymentType] = mapped_column()
+    gateway_type: Mapped[PaymentGatewayType | None] = mapped_column()
     failure_reason: Mapped[str | None] = mapped_column()
     checkbox_error: Mapped[str | None] = mapped_column()
     created_at_controller: Mapped[datetime | None] = mapped_column()

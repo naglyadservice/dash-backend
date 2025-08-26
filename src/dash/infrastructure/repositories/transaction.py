@@ -7,20 +7,26 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
-from dash.models import CarwashTransaction
+from dash.models import CarwashTransaction, VacuumTransaction
 from dash.models.base import Base
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
+from dash.models.transactions.car_cleaner import CarCleanerTransaction
 from dash.models.transactions.fiscalizer import FiscalizerTransaction
+from dash.models.transactions.laundry import LaundryTransaction
 from dash.models.transactions.transaction import Transaction
 from dash.models.transactions.water_vending import WsmTransaction
+from dash.services.dashboard.dto import (
+    GetRevenueRequest,
+    RevenueDTO,
+    ReadTransactionStatsRequest,
+    TransactionStatsDTO,
+    TodayClientsDTO,
+)
 from dash.services.transaction.dto import (
-    GetTransactionStatsRequest,
-    GetTransactionStatsResponse,
     ReadTransactionListRequest,
-    TransactionStatDTO,
 )
 
 
@@ -68,7 +74,15 @@ class TransactionRepository(BaseRepository):
         Sequence[WsmTransaction | CarwashTransaction | FiscalizerTransaction], int
     ]:
         loader_opt = selectin_polymorphic(
-            Transaction, [WsmTransaction, CarwashTransaction, FiscalizerTransaction]
+            Transaction,
+            [
+                WsmTransaction,
+                CarwashTransaction,
+                FiscalizerTransaction,
+                LaundryTransaction,
+                VacuumTransaction,
+                CarCleanerTransaction,
+            ],
         )
 
         stmt = select(Transaction).options(loader_opt)
@@ -120,9 +134,9 @@ class TransactionRepository(BaseRepository):
 
     async def _get_stats(
         self,
-        data: GetTransactionStatsRequest,
+        data: ReadTransactionStatsRequest,
         whereclause: ColumnElement[Any] | None = None,
-    ) -> GetTransactionStatsResponse:
+    ) -> list[TransactionStatsDTO]:
         date_expression = cast(Transaction.created_at, Date).label("date")
 
         now = datetime.now(UTC)
@@ -135,11 +149,13 @@ class TransactionRepository(BaseRepository):
                     + Transaction.coin_amount
                     + Transaction.qr_amount
                     + Transaction.paypass_amount
+                    + Transaction.card_amount
                 ).label("total"),
                 func.sum(Transaction.bill_amount).label("bill"),
                 func.sum(Transaction.coin_amount).label("coin"),
                 func.sum(Transaction.qr_amount).label("qr"),
                 func.sum(Transaction.paypass_amount).label("paypass"),
+                func.sum(Transaction.card_amount).label("card"),
             )
             .where(
                 Transaction.created_at >= now - timedelta(days=data.period),
@@ -152,39 +168,182 @@ class TransactionRepository(BaseRepository):
         if data.company_id:
             stmt = stmt.join(Controller).where(Controller.company_id == data.company_id)
 
-        elif data.location_id:
+        if data.location_id:
             stmt = stmt.where(Transaction.location_id == data.location_id)
 
-        elif data.controller_id:
+        if data.controller_id:
             stmt = stmt.where(Transaction.controller_id == data.controller_id)
 
-        elif whereclause is not None:
+        if whereclause is not None:
             stmt = stmt.where(whereclause)
 
         result = await self.session.execute(stmt)
         rows = result.mappings().fetchall()
 
-        return GetTransactionStatsResponse(
-            statistics=[TransactionStatDTO.model_validate(row) for row in rows]
-        )
+        return [TransactionStatsDTO.model_validate(row) for row in rows]
 
-    async def get_stats(
-        self, data: GetTransactionStatsRequest
-    ) -> GetTransactionStatsResponse:
+    async def get_stats_all(
+        self, data: ReadTransactionStatsRequest
+    ) -> list[TransactionStatsDTO]:
         return await self._get_stats(data)
 
     async def get_stats_by_owner(
-        self, data: GetTransactionStatsRequest, user_id: UUID
-    ) -> GetTransactionStatsResponse:
+        self, data: ReadTransactionStatsRequest, user_id: UUID
+    ) -> list[TransactionStatsDTO]:
         whereclause = Transaction.location_id.in_(
             select(Location.id).join(Company).where(Company.owner_id == user_id)
         )
         return await self._get_stats(data, whereclause)
 
     async def get_stats_by_admin(
-        self, data: GetTransactionStatsRequest, user_id: UUID
-    ) -> GetTransactionStatsResponse:
+        self, data: ReadTransactionStatsRequest, user_id: UUID
+    ) -> list[TransactionStatsDTO]:
         whereclause = Transaction.location_id.in_(
             select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_stats(data, whereclause)
+
+    async def _get_revenue(
+        self,
+        data: GetRevenueRequest,
+        whereclause: ColumnElement[Any] | None = None,
+    ) -> RevenueDTO:
+        now = datetime.now(UTC)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        total_revenue_query = select(
+            func.coalesce(
+                func.sum(
+                    Transaction.bill_amount
+                    + Transaction.coin_amount
+                    + Transaction.qr_amount
+                    + Transaction.paypass_amount
+                    + Transaction.card_amount
+                ),
+                0,
+            ).label("total_revenue")
+        )
+
+        today_revenue_query = select(
+            func.coalesce(
+                func.sum(
+                    Transaction.bill_amount
+                    + Transaction.coin_amount
+                    + Transaction.qr_amount
+                    + Transaction.paypass_amount
+                    + Transaction.card_amount
+                ),
+                0,
+            ).label("today_revenue")
+        ).where(Transaction.created_at >= today_start)
+
+        if data.company_id:
+            total_revenue_query = total_revenue_query.join(Controller).where(
+                Controller.company_id == data.company_id
+            )
+            today_revenue_query = today_revenue_query.join(Controller).where(
+                Controller.company_id == data.company_id
+            )
+        elif data.location_id:
+            total_revenue_query = total_revenue_query.where(
+                Transaction.location_id == data.location_id
+            )
+            today_revenue_query = today_revenue_query.where(
+                Transaction.location_id == data.location_id
+            )
+        elif data.controller_id:
+            total_revenue_query = total_revenue_query.where(
+                Transaction.controller_id == data.controller_id
+            )
+            today_revenue_query = today_revenue_query.where(
+                Transaction.controller_id == data.controller_id
+            )
+        elif whereclause is not None:
+            total_revenue_query = total_revenue_query.where(whereclause)
+            today_revenue_query = today_revenue_query.where(whereclause)
+
+        total_result = await self.session.execute(total_revenue_query)
+        today_result = await self.session.execute(today_revenue_query)
+
+        total_revenue = total_result.scalar() or 0
+        today_revenue = today_result.scalar() or 0
+
+        return RevenueDTO(total=total_revenue, today=today_revenue)
+
+    async def get_revenue_all(self, data: GetRevenueRequest) -> RevenueDTO:
+        return await self._get_revenue(data)
+
+    async def get_revenue_by_owner(
+        self, data: GetRevenueRequest, user_id: UUID
+    ) -> RevenueDTO:
+        whereclause = Transaction.location_id.in_(
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
+        )
+        return await self._get_revenue(data, whereclause)
+
+    async def get_revenue_by_admin(
+        self, data: GetRevenueRequest, user_id: UUID
+    ) -> RevenueDTO:
+        whereclause = Transaction.location_id.in_(
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
+        )
+        return await self._get_revenue(data, whereclause)
+
+    async def _get_today_clients(
+        self,
+        data: GetRevenueRequest,
+        whereclause: ColumnElement[Any] | None = None,
+    ) -> TodayClientsDTO:
+        now = datetime.now(UTC)
+        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        query = select(func.count(Transaction.id)).where(
+            Transaction.created_at >= today_start, Transaction.created_at <= now
+        )
+
+        if data.company_id:
+            query = query.join(Controller).where(
+                Controller.company_id == data.company_id
+            )
+        elif data.location_id:
+            query = query.where(Transaction.location_id == data.location_id)
+        elif data.controller_id:
+            query = query.where(Transaction.controller_id == data.controller_id)
+        elif whereclause is not None:
+            query = query.where(whereclause)
+
+        result = await self.session.execute(query)
+        count = result.scalar() or 0
+
+        return TodayClientsDTO(count=count)
+
+    async def get_today_clients_all(self, data: GetRevenueRequest) -> TodayClientsDTO:
+        return await self._get_today_clients(data)
+
+    async def get_today_clients_by_owner(
+        self, data: GetRevenueRequest, user_id: UUID
+    ) -> TodayClientsDTO:
+        whereclause = Transaction.location_id.in_(
+            select(Location.id).join(Company).where(Company.owner_id == user_id)
+        )
+        return await self._get_today_clients(data, whereclause)
+
+    async def get_today_clients_by_admin(
+        self, data: GetRevenueRequest, user_id: UUID
+    ) -> TodayClientsDTO:
+        whereclause = Transaction.location_id.in_(
+            select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
+        )
+        return await self._get_today_clients(data, whereclause)
+
+    async def get_last_laundry(self, controller_id: UUID) -> LaundryTransaction | None:
+        query = (
+            select(LaundryTransaction)
+            .where(LaundryTransaction.controller_id == controller_id)
+            .order_by(LaundryTransaction.created_at.desc())
+            .limit(1)
+        )
+        return await self.session.scalar(query)
+
+    async def get_laundry(self, transaction_id: UUID) -> LaundryTransaction | None:
+        return await self.session.get(LaundryTransaction, transaction_id)

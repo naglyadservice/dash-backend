@@ -1,10 +1,10 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from dash.models.payment import PaymentStatus, PaymentType
+from dash.models.payment import PaymentStatus, PaymentType, PaymentGatewayType
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 
@@ -38,6 +38,7 @@ class PaymentScheme(BaseModel):
     amount: int
     status: PaymentStatus
     type: PaymentType
+    gateway_type: PaymentGatewayType | None
     created_at: datetime
     created_at_controller: datetime | None
     failure_reason: str | None
@@ -71,20 +72,3 @@ class ReadPublicPaymentListRequest(BaseModel):
 
 class ReadPublicPaymentListResponse(BaseModel):
     payments: list[PublicPaymentScheme]
-
-
-class GetPaymentStatsRequest(BasePaymentFilters):
-    period: int
-
-
-class PaymentStatDTO(BaseModel):
-    date: date
-    total: int
-    bill: int
-    coin: int
-    qr: int
-    paypass: int
-
-
-class GetPaymentStatsResponse(BaseModel):
-    statistics: list[PaymentStatDTO]

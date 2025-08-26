@@ -94,4 +94,4 @@ async def test_read_controllers(
     controller_service = await request_di_container.get(ControllerService)
 
     response = await controller_service.read_controllers(ReadControllerListRequest())
-    assert len(response.controllers) == 3
+    assert len(response.controllers) == 7

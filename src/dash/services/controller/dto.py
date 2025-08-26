@@ -9,10 +9,13 @@ from dash.models.controllers.controller import (
     ControllerStatus,
     ControllerType,
 )
+from dash.models.controllers.laundry import LaundryTariffType
 from dash.services.common.dto import ControllerID, PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
+from dash.services.iot.car_cleaner.dto import CarCleanerTariffDTO
 from dash.services.iot.carwash.dto import CarwashTariffDTO
+from dash.services.iot.vacuum.dto import VacuumTariffDTO
 
 
 class BaseControllerFilters(BaseModel):
@@ -193,8 +196,33 @@ class PublicFiscalizerScheme(BasePublicControllerScheme):
     description: str | None
 
 
+class PublicVacuumScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.VACUUM]
+    tariff: VacuumTariffDTO
+
+
+class PublicCarCleanerScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.CAR_CLEANER]
+    tariff: CarCleanerTariffDTO
+
+
+class PublicLaundryScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.LAUNDRY]
+    tariff_type: LaundryTariffType
+    fixed_price: int
+    price_per_minute_before_transition: int
+    max_hold_amount: int
+    transition_after_minutes: int
+    price_per_minute_after_transition: int
+
+
 CONTROLLER_PUBLIC_SCHEME_TYPE = (
-    PublicWsmScheme | PublicCarwashScheme | PublicFiscalizerScheme
+    PublicWsmScheme
+    | PublicCarwashScheme
+    | PublicFiscalizerScheme
+    | PublicLaundryScheme
+    | PublicVacuumScheme
+    | PublicCarCleanerScheme
 )
 
 

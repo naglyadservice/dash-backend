@@ -12,46 +12,22 @@ from dash.models.controllers.carwash import CarwashController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.carwash.dto import (
     CarwashIoTControllerScheme,
     GetCarwashDisplayResponse,
-    SetCarwashConfigRequest,
     SetCarwashSettingsRequest,
+    CarwashServiceEnum,
+    CarwashRelayBit,
 )
-from dash.services.iot.carwash.utils import (
-    decode_service_bit_mask,
-    decode_service_int_mask,
-    encode_service_bit_mask,
-    encode_service_int_mask,
-)
+from dash.services.iot.common.utils import MODE_LABELS, ServiceBitMaskCodec
 from dash.services.iot.dto import GetDisplayInfoRequest
 
 logger = get_logger()
 
-# Human-readable labels for display information that the controller returns
-MODE_LABELS: dict[int, str] = {
-    0x00: "Логотип",
-    0x01: "Очікування оплати",
-    0x02: "Двері відкриті",
-    0x03: "Блокування",
-    0x04: "Сервісний режим 0",
-    0x05: "Сервісний режим 1",
-    0x06: "Сервісний режим 2",
-    0x07: "Продажа готівкою",
-    0x08: "Подяка",
-    0x09: "Оплата PayPass 0",
-    0x0A: "Оплата PayPass 1",
-    0x0B: "Продажа карткою 0",
-    0x0C: "Продажа карткою 1",
-    0x0D: "Продажа карткою 2",
-    0x0E: "Продажа карткою 3",
-    0x0F: "Інкасація",
-    0x10: "Перевірка при старі",
-    0x80: "Реклама",
-}
 
-SERVICE_LABELS: dict[int, str] = {
+carwash_service_labels: dict[int, str] = {
     0: "Піна",
     1: "Екстра піна",
     2: "Вода під тиском",
@@ -69,13 +45,16 @@ SERVICE_LABELS: dict[int, str] = {
 class CarwashService(BaseIoTService):
     def __init__(
         self,
-        controller_repository: ControllerRepository,
         identity_provider: IdProvider,
+        controller_repository: ControllerRepository,
+        payment_helper: PaymentHelper,
         iot_storage: IoTStorage,
         carwash_client: CarwashIoTClient,
         check_online_interactor: CheckOnlineInteractor,
     ):
-        super().__init__(carwash_client, identity_provider, controller_repository)
+        super().__init__(
+            carwash_client, identity_provider, controller_repository, payment_helper
+        )
         self.iot_client: CarwashIoTClient
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
@@ -93,17 +72,16 @@ class CarwashService(BaseIoTService):
         config.pop("request_id")
 
         settings = await self.iot_client.get_settings(controller.device_id)
-        settings["servicesRelay"] = decode_service_bit_mask(settings["servicesRelay"])
-        settings["tariff"] = decode_service_int_mask(settings["tariff"])
-        settings["servicesPause"] = decode_service_int_mask(settings["servicesPause"])
-        settings["vfdFrequency"] = decode_service_int_mask(settings["vfdFrequency"])
+        codec = ServiceBitMaskCodec(CarwashServiceEnum, CarwashRelayBit)
+
+        settings["servicesRelay"] = codec.decode_bit_mask(settings["servicesRelay"])
+        settings["tariff"] = codec.decode_int_mask(settings["tariff"])
+        settings["servicesPause"] = codec.decode_int_mask(settings["servicesPause"])
+        settings["vfdFrequency"] = codec.decode_int_mask(settings["vfdFrequency"])
         settings.pop("request_id")
 
         controller.config = config
         controller.settings = settings
-
-    async def update_config(self, data: SetCarwashConfigRequest) -> None:
-        await super().update_config(data)
 
     async def update_settings(self, data: SetCarwashSettingsRequest) -> None:
         controller = await self._get_controller(data.controller_id)
@@ -124,11 +102,12 @@ class CarwashService(BaseIoTService):
     @staticmethod
     def _prepare_settings_payload(settings: dict[str, Any]) -> dict[str, Any]:
         payload = settings.copy()
+        codec = ServiceBitMaskCodec(CarwashServiceEnum, CarwashRelayBit)
 
-        payload["servicesRelay"] = encode_service_bit_mask(payload["servicesRelay"])
-        payload["tariff"] = encode_service_int_mask(payload["tariff"])
-        payload["servicesPause"] = encode_service_int_mask(payload["servicesPause"])
-        payload["vfdFrequency"] = encode_service_int_mask(payload["vfdFrequency"])
+        payload["servicesRelay"] = codec.encode_bit_mask(payload["servicesRelay"])
+        payload["tariff"] = codec.encode_int_mask(payload["tariff"])
+        payload["servicesPause"] = codec.encode_int_mask(payload["servicesPause"])
+        payload["vfdFrequency"] = codec.encode_int_mask(payload["vfdFrequency"])
 
         return payload
 
@@ -153,7 +132,7 @@ class CarwashService(BaseIoTService):
 
         return GetCarwashDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            service=carwash_service_labels.get(display_info.get("service", 0), "-"),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
         )
@@ -163,7 +142,7 @@ class CarwashService(BaseIoTService):
 
         return GetCarwashDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            service=carwash_service_labels.get(display_info.get("service", 0), "-"),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
         )

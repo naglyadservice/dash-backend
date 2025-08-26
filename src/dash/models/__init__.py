@@ -5,6 +5,8 @@ from .controllers import (
     CarwashController,
     Controller,
     FiscalizerController,
+    LaundryController,
+    VacuumController,
     WaterVendingController,
 )
 from .customer import Customer
@@ -16,6 +18,7 @@ from .payment import Payment
 from .transactions import (
     CarwashTransaction,
     FiscalizerTransaction,
+    LaundryTransaction,
     Transaction,
     TransactionType,
     VacuumTransaction,
@@ -41,43 +44,7 @@ __all__ = [
     "Encashment",
     "DailyEnergyState",
     "FiscalizerController",
+    "LaundryController",
+    "LaundryTransaction",
+    "VacuumController",
 ]
-from adaptix.type_tools import exec_type_checking
-
-from . import (
-    admin_user,
-    company,
-    customer,
-    encashment,
-    energy_state,
-    location,
-    location_admin,
-    payment,
-)
-from .controllers import carwash as carwash_c
-from .controllers import controller
-from .controllers import fiscalizer as fiscalizer_c
-from .controllers import vacuum as vacuum_c
-from .controllers import water_vending as water_vending_c
-from .transactions import carwash as carwash_t
-from .transactions import transaction
-from .transactions import vacuum as vacuum_t
-from .transactions import water_vending as water_vending_t
-
-exec_type_checking(admin_user)
-exec_type_checking(company)
-exec_type_checking(controller)
-exec_type_checking(water_vending_c)
-exec_type_checking(carwash_c)
-exec_type_checking(vacuum_c)
-exec_type_checking(customer)
-exec_type_checking(location)
-exec_type_checking(location_admin)
-exec_type_checking(payment)
-exec_type_checking(transaction)
-exec_type_checking(water_vending_t)
-exec_type_checking(carwash_t)
-exec_type_checking(vacuum_t)
-exec_type_checking(encashment)
-exec_type_checking(energy_state)
-exec_type_checking(fiscalizer_c)

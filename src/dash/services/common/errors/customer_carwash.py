@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from dash.services.common.errors.base import (
     ConflictError,
     EntityNotFoundError,
-    ValidationError,
 )
 
 
@@ -15,8 +14,3 @@ class CarwashSessionActiveError(ConflictError):
 @dataclass
 class CarwashSessionNotFoundError(EntityNotFoundError):
     message: str = "Carwash session not found"
-
-
-@dataclass
-class InsufficientDepositAmountError(ValidationError):
-    message: str = "Insufficient deposit amount"

@@ -6,9 +6,12 @@ from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.company import Company
+from dash.models.controllers.car_cleaner import CarCleanerController
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller
 from dash.models.controllers.fiscalizer import FiscalizerController
+from dash.models.controllers.laundry import LaundryController
+from dash.models.controllers.vacuum import VacuumController
 from dash.models.controllers.water_vending import WaterVendingController
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
@@ -29,10 +32,25 @@ class ControllerRepository(BaseRepository):
 
     async def get_concrete(
         self, controller_id: UUID
-    ) -> WaterVendingController | CarwashController | FiscalizerController | None:
+    ) -> (
+        WaterVendingController
+        | CarwashController
+        | FiscalizerController
+        | LaundryController
+        | VacuumController
+        | CarCleanerController
+        | None
+    ):
         loader_opt = selectin_polymorphic(
             Controller,
-            [WaterVendingController, CarwashController, FiscalizerController],
+            [
+                WaterVendingController,
+                CarwashController,
+                FiscalizerController,
+                LaundryController,
+                VacuumController,
+                CarCleanerController,
+            ],
         )
         stmt = (
             select(Controller).where(Controller.id == controller_id).options(loader_opt)
@@ -42,11 +60,25 @@ class ControllerRepository(BaseRepository):
     async def get_list_concrete(
         self, location_id: UUID | None = None
     ) -> tuple[
-        Sequence[CarwashController | WaterVendingController | FiscalizerController], int
+        Sequence[
+            CarwashController
+            | WaterVendingController
+            | FiscalizerController
+            | VacuumController
+            | CarCleanerController
+        ],
+        int,
     ]:
         loader_opt = selectin_polymorphic(
             Controller,
-            [WaterVendingController, CarwashController, FiscalizerController],
+            [
+                WaterVendingController,
+                CarwashController,
+                FiscalizerController,
+                LaundryController,
+                VacuumController,
+                CarCleanerController,
+            ],
         )
         stmt = select(Controller)
         if location_id:
@@ -74,7 +106,14 @@ class ControllerRepository(BaseRepository):
     ) -> WaterVendingController | CarwashController | FiscalizerController | None:
         loader_opt = selectin_polymorphic(
             Controller,
-            [WaterVendingController, CarwashController, FiscalizerController],
+            [
+                WaterVendingController,
+                CarwashController,
+                FiscalizerController,
+                LaundryController,
+                VacuumController,
+                CarCleanerController,
+            ],
         )
         stmt = select(Controller).where(Controller.qr == qr).options(loader_opt)
         return await self.session.scalar(stmt)  # type: ignore
@@ -123,6 +162,32 @@ class ControllerRepository(BaseRepository):
         )
         return await self.session.scalar(stmt)
 
+    async def get_laundry(self, controller_id: UUID) -> LaundryController | None:
+        stmt = select(LaundryController).where(LaundryController.id == controller_id)
+        return await self.session.scalar(stmt)
+
+    async def get_laundry_by_device_id(
+        self, device_id: str
+    ) -> LaundryController | None:
+        stmt = select(LaundryController).where(LaundryController.device_id == device_id)
+        return await self.session.scalar(stmt)
+
+    async def get_vacuum(self, controller_id: UUID) -> VacuumController | None:
+        stmt = select(VacuumController).where(VacuumController.id == controller_id)
+        return await self.session.scalar(stmt)
+
+    async def get_vacuum_by_device_id(self, device_id: str) -> VacuumController | None:
+        stmt = select(VacuumController).where(VacuumController.device_id == device_id)
+        return await self.session.scalar(stmt)
+
+    async def get_car_cleaner_by_device_id(
+        self, device_id: str
+    ) -> CarCleanerController | None:
+        stmt = select(CarCleanerController).where(
+            CarCleanerController.device_id == device_id
+        )
+        return await self.session.scalar(stmt)
+
     async def _get_list(
         self,
         data: ReadControllerListRequest,
@@ -136,10 +201,10 @@ class ControllerRepository(BaseRepository):
         if data.company_id is not None:
             stmt = stmt.where(Controller.company_id == data.company_id)
 
-        elif data.location_id is not None:
+        if data.location_id is not None:
             stmt = stmt.where(Controller.location_id == data.location_id)
 
-        elif whereclause is not None:
+        if whereclause is not None:
             stmt = stmt.where(whereclause)
 
         paginated_stmt = (

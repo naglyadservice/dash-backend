@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from structlog import get_logger
+
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -8,25 +10,29 @@ from dash.models.controllers.water_vending import WaterVendingController
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
-from dash.services.iot.wsm.dto import (
-    SendWsmActionRequest,
-    SetWsmConfigRequest,
-    SetWsmSettingsRequest,
-    WsmIoTControllerScheme,
-)
+
+logger = get_logger()
+from dash.services.iot.wsm.dto import SendWsmActionRequest, WsmIoTControllerScheme
 
 
 class WsmService(BaseIoTService):
     def __init__(
         self,
-        controller_repository: ControllerRepository,
         identity_provider: IdProvider,
+        controller_repository: ControllerRepository,
+        payment_helper: PaymentHelper,
         iot_storage: IoTStorage,
         wsm_client: WsmIoTClient,
         check_online_interactor: CheckOnlineInteractor,
     ):
-        super().__init__(wsm_client, identity_provider, controller_repository)
+        super().__init__(
+            wsm_client,
+            identity_provider,
+            controller_repository,
+            payment_helper,
+        )
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
 
@@ -37,12 +43,6 @@ class WsmService(BaseIoTService):
             raise ControllerNotFoundError
 
         return controller
-
-    async def update_config(self, data: SetWsmConfigRequest) -> None:
-        await super().update_config(data)
-
-    async def update_settings(self, data: SetWsmSettingsRequest) -> None:
-        await super().update_settings(data)
 
     async def read_controller(self, data: ControllerID) -> WsmIoTControllerScheme:
         controller = await self._get_controller(data.controller_id)

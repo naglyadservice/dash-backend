@@ -14,30 +14,32 @@ class TransactionType(StrEnum):
     WATER_VENDING = "WATER_VENDING_TRANSACTION"
     VACUUM = "VACUUM_TRANSACTION"
     FISCALIZER = "FISCALIZER_TRANSACTION"
+    LAUNDRY = "LAUNDRY_TRANSACTION"
+    CAR_CLEANER = "CAR_CLEANER_TRANSACTION"
 
 
 class Transaction(Base, UUIDMixin, CreatedAtMixin):
     __tablename__ = "transactions"
 
-    controller_transaction_id: Mapped[int] = mapped_column()
     controller_id: Mapped[UUID] = mapped_column(
         ForeignKey("controllers.id", ondelete="SET NULL")
     )
+    controller_transaction_id: Mapped[int | None] = mapped_column()
     location_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("locations.id", ondelete="SET NULL")
     )
     customer_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("customers.id", ondelete="SET NULL")
     )
-    coin_amount: Mapped[int] = mapped_column()
-    bill_amount: Mapped[int] = mapped_column()
-    prev_amount: Mapped[int] = mapped_column()
-    free_amount: Mapped[int] = mapped_column()
-    qr_amount: Mapped[int] = mapped_column()
-    paypass_amount: Mapped[int] = mapped_column()
-    card_amount: Mapped[int] = mapped_column()
+    coin_amount: Mapped[int] = mapped_column(default=0)
+    bill_amount: Mapped[int] = mapped_column(default=0)
+    prev_amount: Mapped[int] = mapped_column(default=0)
+    free_amount: Mapped[int] = mapped_column(default=0)
+    qr_amount: Mapped[int] = mapped_column(default=0)
+    paypass_amount: Mapped[int] = mapped_column(default=0)
+    card_amount: Mapped[int] = mapped_column(default=0)
     type: Mapped[TransactionType] = mapped_column()
-    created_at_controller: Mapped[datetime] = mapped_column()
+    created_at_controller: Mapped[datetime | None] = mapped_column()
     sale_type: Mapped[str] = mapped_column()
     card_balance_in: Mapped[int | None] = mapped_column()
     card_balance_out: Mapped[int | None] = mapped_column()
