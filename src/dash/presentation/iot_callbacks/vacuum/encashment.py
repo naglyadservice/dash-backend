@@ -44,17 +44,17 @@ async def vacuum_encashment_callback(
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
     dict_data = vacuum_encashment_callback_retort.dump(data)
-
     controller = await controller_repository.get_by_device_id(device_id)
-    if not controller:
+
+    if controller is None:
         logger.info(
             "Vacuum encashment request ignored: controller not found",
             device_id=device_id,
             data=dict_data,
         )
-        await vacuum_client.encashment_ack(
-            device_id=device_id, payload={"id": data.id, "code": 1}
-        )
+        # await vacuum_client.encashment_ack(
+        #     device_id=device_id, payload={"id": data.id, "code": 1}
+        # )
         return
 
     logger.info(

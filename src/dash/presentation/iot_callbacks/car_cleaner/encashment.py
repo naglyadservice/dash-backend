@@ -6,7 +6,7 @@ from ddtrace.trace import tracer
 from dishka import FromDishka
 from structlog import get_logger
 
-from dash.infrastructure.iot.carwash.client import CarwashIoTClient
+from dash.infrastructure.iot.car_cleaner.client import CarCleanerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.encashment import Encashment
 from dash.presentation.iot_callbacks.common.di_injector import (
@@ -20,7 +20,7 @@ logger = get_logger()
 
 
 @dataclass
-class CarwashEncashmentCallbackPayload:
+class CarCleanerEncashmentCallbackPayload:
     id: int
     coin: list[int]
     bill: list[int]
@@ -29,21 +29,21 @@ class CarwashEncashmentCallbackPayload:
     sended: datetime | None = None
 
 
-carwash_encashment_callback_retort = Retort(recipe=[*datetime_recipe])
+car_cleaner_encashment_callback_retort = Retort(recipe=[*datetime_recipe])
 
 
 @tracer.wrap()
-@parse_payload(retort=carwash_encashment_callback_retort)
+@parse_payload(retort=car_cleaner_encashment_callback_retort)
 @request_scope
 @inject
-async def carwash_encashment_callback(
+async def car_cleaner_encashment_callback(
     device_id: str,
-    data: CarwashEncashmentCallbackPayload,
+    data: CarCleanerEncashmentCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
-    carwash_client: FromDishka[CarwashIoTClient],
+    car_cleaner_client: FromDishka[CarCleanerIoTClient],
     encashment_repository: FromDishka[ControllerRepository],
 ) -> None:
-    dict_data = carwash_encashment_callback_retort.dump(data)
+    dict_data = car_cleaner_encashment_callback_retort.dump(data)
     controller = await controller_repository.get_by_device_id(device_id)
 
     if not controller:
@@ -60,7 +60,7 @@ async def carwash_encashment_callback(
     logger.info(
         "Carwash encashment request received",
         device_id=device_id,
-        data=carwash_encashment_callback_retort.dump(data),
+        data=car_cleaner_encashment_callback_retort.dump(data),
     )
 
     encashment = Encashment(
@@ -85,6 +85,6 @@ async def carwash_encashment_callback(
     encashment_repository.add(encashment)
     await encashment_repository.commit()
 
-    await carwash_client.encashment_ack(
+    await car_cleaner_client.encashment_ack(
         device_id=device_id, payload={"id": data.id, "code": 0}
     )
