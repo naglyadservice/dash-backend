@@ -4,8 +4,6 @@ from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
 from dash.services.transaction.dto import (
-    GetTransactionStatsRequest,
-    GetTransactionStatsResponse,
     ReadTransactionListRequest,
     ReadTransactionListResponse,
 )
@@ -25,11 +23,3 @@ async def read_transactions(
     data: ReadTransactionListRequest = Depends(),
 ) -> ReadTransactionListResponse:
     return await transaction_service.read_transactions(data)
-
-
-@transaction_router.get("/statistics")
-async def get_stats(
-    transaction_service: FromDishka[TransactionService],
-    data: GetTransactionStatsRequest = Depends(),
-) -> GetTransactionStatsResponse:
-    return await transaction_service.get_stats(data)

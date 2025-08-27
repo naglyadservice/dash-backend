@@ -86,10 +86,14 @@ class PaymentHelper:
         )
         payment.receipt_id = receipt_id
 
-    def _get_payment_gateway(self, gateway_type: PaymentGatewayType) -> PaymentGateway:
+    def _get_payment_gateway(
+        self, gateway_type: PaymentGatewayType | None
+    ) -> PaymentGateway:
         if gateway_type is PaymentGatewayType.LIQPAY:
             return self.liqpay_gateway
         elif gateway_type is PaymentGatewayType.MONOPAY:
             return self.monopay_gateway
         else:
-            raise ValueError(f"No payment processor for {gateway_type.value} payment")
+            raise ValueError(
+                f"No payment processor for {gateway_type and gateway_type.value} gateway"
+            )

@@ -15,6 +15,7 @@ class TransactionType(StrEnum):
     VACUUM = "VACUUM_TRANSACTION"
     FISCALIZER = "FISCALIZER_TRANSACTION"
     LAUNDRY = "LAUNDRY_TRANSACTION"
+    CAR_CLEANER = "CAR_CLEANER_TRANSACTION"
 
 
 class Transaction(Base, UUIDMixin, CreatedAtMixin):

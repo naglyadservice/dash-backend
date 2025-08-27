@@ -145,7 +145,7 @@ async def carwash_sale_callback(
         created_at_controller=data.created or data.sended,
         sale_type=data.sale_type,
         services_sold_seconds=codec.decode_int_mask(data.services_sold),
-        tariff=codec.decode_int_mask(data.tariff),
+        tariff=codec.decode_int_mask(data.tariff),  # type: ignore
         card_balance_in=data.card_balance_in,
         card_balance_out=data.card_balance_out,
         card_uid=data.card_uid,

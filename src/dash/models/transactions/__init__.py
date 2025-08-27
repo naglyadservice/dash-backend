@@ -1,3 +1,4 @@
+from .car_cleaner import CarCleanerTransaction
 from .carwash import CarwashTransaction
 from .fiscalizer import FiscalizerTransaction
 from .laundry import LaundryTransaction

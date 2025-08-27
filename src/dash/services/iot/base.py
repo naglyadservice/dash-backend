@@ -243,7 +243,7 @@ class BaseIoTService(ABC):
         try:
             await self.send_qr_payment_infra(
                 device_id=controller.device_id,
-                order_id=payment.invoice_id,
+                order_id=payment.invoice_id,  # type: ignore
                 amount=payment.amount,
             )
         except (ControllerResponseError, ControllerTimeoutError):

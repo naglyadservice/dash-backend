@@ -1,4 +1,3 @@
-import asyncio
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -8,11 +7,16 @@ import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from dash.infrastructure.iot.car_cleaner.client import CarCleanerIoTClient
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.iot.mqtt.client import MqttClient
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.storages.iot import IoTStorage
+from dash.presentation.iot_callbacks.car_cleaner.sale import (
+    CarCleanerSaleCallbackPayload,
+    car_cleaner_sale_callback_retort,
+)
 from dash.presentation.iot_callbacks.carwash.sale import (
     CarwashSaleCallbackPayload,
     carwash_sale_callback_retort,
@@ -43,6 +47,7 @@ class CallbackDependencies:
     wsm_client: WsmIoTClient
     fiscalizer_client: FiscalizerIoTClient
     carwash_client: CarwashIoTClient
+    car_cleaner_client: CarCleanerIoTClient
     mqtt_client: MqttClient
 
 
@@ -53,6 +58,7 @@ async def deps(request_di_container: AsyncContainer) -> CallbackDependencies:
         wsm_client=await request_di_container.get(WsmIoTClient),
         fiscalizer_client=await request_di_container.get(FiscalizerIoTClient),
         carwash_client=await request_di_container.get(CarwashIoTClient),
+        car_cleaner_client=await request_di_container.get(CarCleanerIoTClient),
         mqtt_client=await request_di_container.get(MqttClient),
     )
 
@@ -123,7 +129,6 @@ async def test_state_info_callback(
         decoded_payload=state,
         di_container=di_container,  # type: ignore
     )
-    await asyncio.sleep(0.1)
 
     state = await deps.iot_storage.get_state(test_env.controller_1.id)
     assert state == state
@@ -328,3 +333,33 @@ async def test_fiscalizer_sale_callback(
     deps.fiscalizer_client.sale_ack.assert_called_once_with(  # type: ignore
         test_env.controller_3.device_id, payload.id
     )
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_car_cleaner_sale_callback(
+    deps: CallbackDependencies,
+    test_env: TestEnvironment,
+    mocker: Mock,
+    request_di_container: AsyncContainer,
+):
+    payload = CarCleanerSaleCallbackPayload(
+        id=1,
+        created=datetime(2022, 1, 1),
+        add_coin=1,
+        add_bill=2,
+        add_prev=3,
+        add_free=4,
+        add_qr=5,
+        add_pp=6,
+        tariff=[50, 0, 0, 0, 0, 0],
+        services_sold=[60, 0, 0, 0, 0, 0],
+        sale_type="money",
+    )
+    mocker.patch.object(deps.car_cleaner_client, "sale_ack")
+
+    await deps.car_cleaner_client.dispatcher.sale._process_callbacks(  # type: ignore
+        device_id=test_env.controller_4.device_id,
+        decoded_payload=car_cleaner_sale_callback_retort.dump(payload),
+        di_container=request_di_container,  # type: ignore
+    )
+    deps.car_cleaner_client.sale_ack.assert_called_once()  # type: ignore

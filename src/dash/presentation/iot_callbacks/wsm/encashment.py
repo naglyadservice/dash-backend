@@ -46,15 +46,15 @@ async def wsm_encashment_callback(
     dict_data = wsm_encashment_callback_retort.dump(data)
     controller = await controller_repository.get_by_device_id(device_id)
 
-    if not controller:
+    if controller is None:
         logger.info(
             "Wsm encashment request ignored: controller not found",
             device_id=device_id,
             data=dict_data,
         )
-        await wsm_client.encashment_ack(
-            device_id=device_id, payload={"id": data.id, "code": 1}
-        )
+        # await wsm_client.encashment_ack(
+        #     device_id=device_id, payload={"id": data.id, "code": 1}
+        # )
         return
 
     logger.info(

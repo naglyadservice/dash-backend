@@ -5,6 +5,7 @@ from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.models.controllers.fiscalizer import FiscalizerController
+from dash.models.payment import PaymentStatus, PaymentType
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
@@ -91,17 +92,54 @@ class FiscalizerService(BaseIoTService):
         await self.controller_repository.commit()
 
     async def send_qr_payment(self, data: SendQRPaymentRequest) -> None:
-        data.payment.amount = round(data.payment.amount / 100, 2)
-        return await super().send_qr_payment(data)
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        conv_amount = round(data.payment.amount / 100, 2)
+        await self.iot_client.set_payment(
+            device_id=controller.device_id,
+            payload={
+                "addQRcode": {
+                    "order_id": data.payment.order_id,
+                    "amount": conv_amount,
+                }
+            },
+        )
 
     async def send_qr_payment_infra(self, device_id: str, order_id: str, amount: int):
-        amount = round(amount / 100, 2)
-        return await super().send_qr_payment_infra(device_id, order_id, amount)
+        conv_amount = round(amount / 100, 2)
+        await self.iot_client.set_payment(
+            device_id=device_id,
+            payload={
+                "addQRcode": {
+                    "order_id": order_id,
+                    "amount": conv_amount,
+                }
+            },
+            ttl=10,
+        )
 
     async def send_free_payment(self, data: SendFreePaymentRequest) -> None:
-        data.payment.amount = round(data.payment.amount / 100, 2)
-        return await super().send_free_payment(data)
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        conv_amount = round(data.payment.amount / 100, 2)
+        await self.iot_client.set_payment(
+            device_id=controller.device_id,
+            payload={"addFree": {"amount": conv_amount}},
+        )
+        payment = self.payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            amount=data.payment.amount,
+            payment_type=PaymentType.FREE,
+            status=PaymentStatus.COMPLETED,
+        )
+        await self.payment_helper.save_and_commit(payment)
 
     async def send_free_payment_infra(self, device_id: str, amount: int) -> None:
-        amount = round(amount / 100, 2)
-        return await super().send_free_payment_infra(device_id, amount)
+        conv_amount = round(amount / 100, 2)
+        await self.iot_client.set_payment(
+            device_id=device_id,
+            payload={"addFree": {"amount": conv_amount}},
+        )

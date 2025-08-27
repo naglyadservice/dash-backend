@@ -1,3 +1,4 @@
+from .car_cleaner import CarCleanerController
 from .carwash import CarwashController
 from .controller import Controller
 from .fiscalizer import FiscalizerController

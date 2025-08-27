@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from dash.models.controllers.controller import ControllerType
 from dash.services.common.dto import ControllerID
 from dash.services.iot.dto import (
     IoTControllerBaseDTO,
@@ -65,6 +66,7 @@ class FiscalizerState(BaseModel):
 
 
 class FiscalizerIoTControllerScheme(IoTControllerBaseDTO):
+    type: Literal[ControllerType.FISCALIZER]
     settings: FiscalizerSettings | None
     config: FiscalizerConfig | None
     state: FiscalizerState | None = None

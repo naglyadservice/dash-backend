@@ -40,6 +40,12 @@ class MonopayGateway(PaymentGateway):
     def _prepare_headers(self, token: str) -> dict[str, str]:
         return {"X-Token": token}
 
+    def _require_token(self, controller: Controller) -> str:
+        if controller.monopay_token is None:
+            raise ValueError("Monopay token is missing")
+
+        return controller.monopay_token
+
     async def make_request(
         self,
         method: Literal["GET", "POST"],
@@ -100,6 +106,7 @@ class MonopayGateway(PaymentGateway):
     async def create_invoice(
         self, controller: Controller, amount: int, hold_money: bool = True
     ) -> CreateInvoiceResponse:
+        token = self._require_token(controller)
         response = await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/create",
@@ -110,12 +117,12 @@ class MonopayGateway(PaymentGateway):
                 "redirectUrl": self.config.redirect_url,
                 "paymentType": "hold" if hold_money else "debit",
             },
-            headers=self._prepare_headers(controller.monopay_token),
+            headers=self._prepare_headers(token),
         )
         invoice_id = response["invoiceId"]
 
         await self.acquiring_storage.set_monopay_token(
-            token=controller.monopay_token, invoice_id=invoice_id
+            token=token, invoice_id=invoice_id
         )
         return CreateInvoiceResponse(
             invoice_url=response["pageUrl"], invoice_id=invoice_id
@@ -128,7 +135,7 @@ class MonopayGateway(PaymentGateway):
             method="POST",
             endpoint="/merchant/invoice/finalize",
             json={"invoiceId": payment.invoice_id, "amount": amount},
-            headers=self._prepare_headers(controller.monopay_token),
+            headers=self._prepare_headers(self._require_token(controller)),
         )
 
     async def refund(self, controller: Controller, payment: Payment) -> None:
@@ -136,5 +143,5 @@ class MonopayGateway(PaymentGateway):
             method="POST",
             endpoint="/merchant/invoice/cancel",
             json={"invoiceId": payment.invoice_id},
-            headers=self._prepare_headers(controller.monopay_token),
+            headers=self._prepare_headers(self._require_token(controller)),
         )

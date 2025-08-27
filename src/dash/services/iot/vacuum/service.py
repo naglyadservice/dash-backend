@@ -14,7 +14,7 @@ from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService
-from dash.services.iot.common.utils import ServiceBitMaskCodec
+from dash.services.iot.common.utils import MODE_LABELS, ServiceBitMaskCodec
 from dash.services.iot.dto import GetDisplayInfoRequest
 from dash.services.iot.vacuum.dto import (
     GetVacuumDisplayResponse,
@@ -26,35 +26,13 @@ from dash.services.iot.vacuum.dto import (
 
 logger = get_logger()
 
-# Human-readable labels for display information that the controller returns
-MODE_LABELS: dict[int, str] = {
-    0x00: "Логотип",
-    0x01: "Очікування оплати",
-    0x02: "Двері відкриті",
-    0x03: "Блокування",
-    0x04: "Сервісний режим 0",
-    0x05: "Сервісний режим 1",
-    0x06: "Сервісний режим 2",
-    0x07: "Продажа готівкою",
-    0x08: "Подяка",
-    0x09: "Оплата PayPass 0",
-    0x0A: "Оплата PayPass 1",
-    0x0B: "Продажа карткою 0",
-    0x0C: "Продажа карткою 1",
-    0x0D: "Продажа карткою 2",
-    0x0E: "Продажа карткою 3",
-    0x0F: "Інкасація",
-    0x10: "Перевірка при старі",
-    0x80: "Реклама",
-}
-
-SERVICE_LABELS: dict[int, str] = {
+vacuum_service_labels: dict[int, str] = {
     0: "Пилосос",
     1: "Обдув",
     2: "Підкачка шин",
     3: "Омивання скла",
     4: "Чорніння",
-    5: "MAX",
+    5: "Mаксимум",
     128: "Пауза",
     255: "Без послуги",
 }
@@ -140,37 +118,9 @@ class VacuumService(BaseIoTService):
 
         return GetVacuumDisplayResponse(
             mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
+            service=vacuum_service_labels.get(display_info.get("service", 0), "-"),
             summa=display_info.get("summa", 0),
             time=display_info.get("time", 0),
-        )
-
-    async def get_display_infra(self, device_id: str) -> GetVacuumDisplayResponse:
-        display_info = await self.iot_client.get_display(device_id)
-
-        return GetVacuumDisplayResponse(
-            mode=MODE_LABELS.get(display_info.get("mode", 0), "-"),
-            service=SERVICE_LABELS.get(display_info.get("service", 0), "-"),
-            summa=display_info.get("summa", 0),
-            time=display_info.get("time", 0),
-        )
-
-    async def start_session_infra(self, device_id: str, card_id: str) -> None:
-        await self.iot_client.set_session(
-            device_id=device_id,
-            payload={
-                "cardUID": card_id,
-                "session": "open",
-            },
-        )
-
-    async def finish_session_infra(self, device_id: str, card_id: str) -> None:
-        await self.iot_client.set_session(
-            device_id=device_id,
-            payload={
-                "cardUID": card_id,
-                "session": "close",
-            },
         )
 
     @staticmethod

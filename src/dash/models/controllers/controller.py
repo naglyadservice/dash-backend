@@ -20,6 +20,7 @@ class ControllerType(StrEnum):
     VACUUM = "VACUUM_CONTROLLER"
     FISCALIZER = "FISCALIZER_CONTROLLER"
     LAUNDRY = "LAUNDRY_CONTROLLER"
+    CAR_CLEANER = "CAR_CLEANER_CONTROLLER"
 
 
 class ControllerStatus(StrEnum):

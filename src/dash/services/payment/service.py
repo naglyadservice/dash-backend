@@ -9,8 +9,6 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.payment import Payment
 from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.payment.dto import (
-    GetPaymentStatsRequest,
-    GetPaymentStatsResponse,
     PaymentScheme,
     PublicPaymentScheme,
     ReadPaymentListRequest,
@@ -80,26 +78,3 @@ class PaymentService:
                 PublicPaymentScheme.model_validate(payment) for payment in payments
             ]
         )
-
-    async def get_stats(self, data: GetPaymentStatsRequest) -> GetPaymentStatsResponse:
-        user = await self.identity_provider.authorize()
-
-        if data.company_id:
-            await self.identity_provider.ensure_company_owner(data.company_id)
-
-        elif data.location_id:
-            await self.identity_provider.ensure_location_admin(data.location_id)
-
-        elif data.controller_id:
-            controller = await self.controller_repository.get(data.controller_id)
-            await self.identity_provider.ensure_location_admin(
-                controller and controller.location_id
-            )
-
-        else:
-            if user.role is AdminRole.COMPANY_OWNER:
-                return await self.payment_repository.get_stats_by_owner(data, user.id)
-            elif user.role is AdminRole.LOCATION_ADMIN:
-                return await self.payment_repository.get_stats_by_admin(data, user.id)
-
-        return await self.payment_repository.get_stats(data)

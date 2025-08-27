@@ -2,6 +2,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel
 
+from dash.models.controllers.controller import ControllerType
 from dash.models.controllers.laundry import LaundryStatus, LaundryTariffType
 from dash.models.payment import PaymentGatewayType
 from dash.services.common.dto import ControllerID
@@ -38,6 +39,7 @@ class LaundryMqttSettings(BaseModel):
 
 
 class LaundryIoTControllerScheme(IoTControllerBaseDTO):
+    type: Literal[ControllerType.LAUNDRY]
     input_id: int
     tariff_type: LaundryTariffType
     timeout_minutes: int

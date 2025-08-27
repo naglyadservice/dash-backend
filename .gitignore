@@ -8,10 +8,11 @@ wheels/
 .DS_Store
 
 # Virtual environments
-venv
+venv/
 .venv
 .env
-.vscode/
-.idea
 
+# Dev environment
+.vscode/
+.idea/
 CLAUDE.md

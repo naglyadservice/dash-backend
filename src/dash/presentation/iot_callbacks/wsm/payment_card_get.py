@@ -57,14 +57,14 @@ async def wsm_payment_card_get_callback(
             card_id=data.card_uid,
             data=dict_data,
         )
-        await wsm_client.payment_card_ack(
-            device_id=device_id,
-            payload={
-                "request_id": data.request_id,
-                "cardUID": data.card_uid,
-                "code": 1,
-            },
-        )
+        # await wsm_client.payment_card_ack(
+        #     device_id=device_id,
+        #     payload={
+        #         "request_id": data.request_id,
+        #         "cardUID": data.card_uid,
+        #         "code": 1,
+        #     },
+        # )
         return
 
     if controller.company_id is None:
