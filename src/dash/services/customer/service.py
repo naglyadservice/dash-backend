@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Sequence
 
 from dash.infrastructure.auth.id_provider import IdProvider
@@ -122,6 +123,9 @@ class CustomerService:
         for key, value in dict_data.items():
             if hasattr(customer, key):
                 setattr(customer, key, value)
+                
+        if data.user.balance is not None:
+            customer.last_balance_update = datetime.now(UTC)
 
         await self.customer_repository.commit()
 

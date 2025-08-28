@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Numeric, UniqueConstraint
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Numeric, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from dash.models.base import Base, TimestampMixin, UUIDMixin
@@ -19,6 +19,7 @@ class Customer(Base, UUIDMixin, TimestampMixin):
     balance: Mapped[Decimal] = mapped_column(
         Numeric(10, 2, asdecimal=True), default=Decimal("0.00")
     )
+    last_balance_update: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     tariff_per_liter_1: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 2, asdecimal=True)
     )

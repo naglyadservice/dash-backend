@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 
 import structlog
@@ -120,6 +120,7 @@ async def wsm_sale_callback(
         if customer is not None:
             card_amount = data.card_balance_in - data.card_balance_out
             customer.balance -= Decimal(card_amount) / 100
+            customer.last_balance_update = datetime.now(UTC)
             customer_id = customer.id
         else:
             logger.error(
