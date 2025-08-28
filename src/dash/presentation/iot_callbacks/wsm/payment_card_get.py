@@ -74,18 +74,18 @@ async def wsm_payment_card_get_callback(
             controller_id=controller.id,
             data=dict_data,
         )
-        await wsm_client.payment_card_ack(
-            device_id=device_id,
-            payload={
-                "request_id": data.request_id,
-                "cardUID": data.card_uid,
-                "code": 1,
-            },
-        )
+        # await wsm_client.payment_card_ack(
+        #     device_id=device_id,
+        #     payload={
+        #         "request_id": data.request_id,
+        #         "cardUID": data.card_uid,
+        #         "code": 1,
+        #     },
+        # )
         return
 
     customer = await customer_repository.get_by_card_id(
-        company_id=controller.company_id, card_id=data.card_uid
+        company_id=controller.company_id, card_id=data.card_uid.rstrip("0"),
     )
 
     if customer is None:
@@ -95,14 +95,14 @@ async def wsm_payment_card_get_callback(
             card_id=data.card_uid,
             data=dict_data,
         )
-        await wsm_client.payment_card_ack(
-            device_id=device_id,
-            payload={
-                "request_id": data.request_id,
-                "cardUID": data.card_uid,
-                "code": 1,
-            },
-        )
+        # await wsm_client.payment_card_ack(
+        #     device_id=device_id,
+        #     payload={
+        #         "request_id": data.request_id,
+        #         "cardUID": data.card_uid,
+        #         "code": 1,
+        #     },
+        # )
         return
 
     tariff_per_liter_1 = customer.tariff_per_liter_1 or (
