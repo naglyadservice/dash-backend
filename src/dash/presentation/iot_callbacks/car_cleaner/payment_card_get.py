@@ -14,6 +14,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
+from dash.presentation.iot_callbacks.common.utils import parse_card_uid
 
 logger = get_logger()
 
@@ -86,7 +87,7 @@ async def car_cleaner_payment_card_get_callback(
         return
 
     customer = await customer_repository.get_by_card_id(
-        company_id=controller.company_id, card_id=data.card_uid.rstrip("0")
+        company_id=controller.company_id, card_id=parse_card_uid(data.card_uid)
     )
 
     if customer is None:
