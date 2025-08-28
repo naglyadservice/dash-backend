@@ -86,7 +86,7 @@ async def vacuum_payment_card_get_callback(
         return
 
     customer = await customer_repository.get_by_card_id(
-        company_id=controller.company_id, card_id=data.card_uid
+        company_id=controller.company_id, card_id=data.card_uid.rstrip("0")
     )
 
     if customer is None:
