@@ -93,3 +93,7 @@ def parse_bill_state(value: int) -> str:
         return f"Device Busy (wait {z2 * 100}) ms"
 
     return unknown_status_msg
+
+
+def parse_card_uid(card_uid: str) -> str:
+    return card_uid.strip("0")
