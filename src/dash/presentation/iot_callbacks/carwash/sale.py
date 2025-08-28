@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import cast
 
 import structlog
 from adaptix import Retort, name_mapping
@@ -21,6 +20,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
     parse_payload,
     request_scope,
 )
+from dash.presentation.iot_callbacks.common.utils import parse_card_uid
 from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.carwash.dto import CarwashServiceEnum, CarwashRelayBit
 from dash.services.iot.common.utils import ServiceBitMaskCodec
@@ -100,19 +100,21 @@ async def carwash_sale_callback(
     customer_id = None
     card_amount = 0
 
-    if data.sale_type == "card" and company_id is not None:
+    if (
+        data.sale_type == "card"
+        and data.card_uid
+        and data.card_balance_in
+        and data.card_balance_out
+        and company_id
+    ):
         customer = await customer_repository.get_by_card_id(
             company_id=company_id,
-            card_id=cast(str, data.card_uid),
+            card_id=parse_card_uid(data.card_uid),
         )
         if customer is not None:
-            card_balance_in = cast(int, data.card_balance_in)
-            card_balance_out = cast(int, data.card_balance_out)
-            card_amount = card_balance_in - card_balance_out
-
+            card_amount = data.card_balance_in - data.card_balance_out
             customer.balance -= Decimal(card_amount) / 100
             customer_id = customer.id
-            card_amount = card_balance_in - card_balance_out
         else:
             logger.error(
                 "Carwash sale request ignored: customer not found",
@@ -122,6 +124,7 @@ async def carwash_sale_callback(
                 card_id=data.card_uid,
                 data=dict_data,
             )
+            return
 
     logger.info(
         "Carwash sale request received",
