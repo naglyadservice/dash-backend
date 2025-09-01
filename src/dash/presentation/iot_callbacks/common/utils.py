@@ -96,4 +96,9 @@ def parse_bill_state(value: int) -> str:
 
 
 def parse_card_uid(card_uid: str) -> str:
-    return card_uid.strip("0")
+    stripped = card_uid.rstrip("0")
+    
+    if len(stripped) % 2 != 0:
+        stripped += "0"
+    
+    return stripped
