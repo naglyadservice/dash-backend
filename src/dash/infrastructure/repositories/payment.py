@@ -9,7 +9,7 @@ from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
-from dash.models.payment import Payment, PaymentType
+from dash.models.payment import Payment, PaymentStatus, PaymentType
 from dash.services.dashboard.dto import (
     GetPaymentAnalyticsRequest,
     PaymentAnalyticsDTO,
@@ -172,12 +172,20 @@ class PaymentRepository(BaseRepository):
         data: GetPaymentAnalyticsRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> float:
+        now = datetime.now(UTC)
+        
         total_stmt = select(func.count(Payment.id).label("total")).where(
-            Payment.type.in_((PaymentType.CASH, PaymentType.CASHLESS))
-        )
+            Payment.type.in_((PaymentType.CASH, PaymentType.CASHLESS)),
+            Payment.status == PaymentStatus.COMPLETED,
+            Payment.created_at >= now - timedelta(days=data.period),
+            Payment.created_at <= now,
+            )
 
         cashless_stmt = select(func.count(Payment.id).label("cashless")).where(
-            Payment.type == PaymentType.CASHLESS
+            Payment.type == PaymentType.CASHLESS,
+            Payment.status == PaymentStatus.COMPLETED,
+            Payment.created_at >= now - timedelta(days=data.period),
+            Payment.created_at <= now,
         )
 
         for stmt in [total_stmt, cashless_stmt]:
@@ -229,8 +237,15 @@ class PaymentRepository(BaseRepository):
         data: GetPaymentAnalyticsRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> list[GatewayAnalyticsDTO]:
+        now = datetime.now(UTC)
+        
         base_query = select(
             Payment.gateway_type, func.sum(Payment.amount).label("amount")
+        ).where(
+            Payment.status == PaymentStatus.COMPLETED,
+            Payment.type == PaymentType.CASHLESS,
+            Payment.created_at >= now - timedelta(days=data.period),
+            Payment.created_at <= now,
         )
 
         if data.company_id:
@@ -244,9 +259,7 @@ class PaymentRepository(BaseRepository):
         elif whereclause is not None:
             base_query = base_query.where(whereclause)
 
-        base_query = base_query.where(
-            Payment.type.in_([PaymentType.CASHLESS])
-        ).group_by(Payment.gateway_type)
+        base_query = base_query.group_by(Payment.gateway_type)
 
         result = await self.session.execute(base_query)
         gateway_data = result.fetchall()
