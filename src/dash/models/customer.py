@@ -16,6 +16,7 @@ class Customer(Base, UUIDMixin, TimestampMixin):
     phone_number: Mapped[str] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()
     card_id: Mapped[str | None] = mapped_column()
+    readable_card_code: Mapped[str | None] = mapped_column()
     balance: Mapped[Decimal] = mapped_column(
         Numeric(10, 2, asdecimal=True), default=Decimal("0.00")
     )
