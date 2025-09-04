@@ -20,6 +20,7 @@ from dash.services.iot.vacuum.dto import VacuumServicesIntListDTO, VacuumTariffD
 class CustomerDTO(BaseModel):
     id: UUID
     name: str
+    readable_card_code: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
