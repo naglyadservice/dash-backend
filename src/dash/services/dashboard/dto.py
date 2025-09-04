@@ -53,7 +53,7 @@ class GetRevenueRequest(BaseFilters):
 
 
 class GetPaymentAnalyticsRequest(BaseFilters):
-    pass
+    period: int
 
 
 class GetControllersRequest(BaseFilters):

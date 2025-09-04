@@ -103,6 +103,7 @@ class DashboardService:
             company_id=data.company_id,
             location_id=data.location_id,
             controller_id=data.controller_id,
+            period=data.period,
         )
         return await self._call_by_role(
             user,
