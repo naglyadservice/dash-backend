@@ -4,7 +4,7 @@ from dash.infrastructure.iot.common.base_client import BaseIoTClient, BaseIoTDis
 
 
 class CarwashIoTDispatcher(BaseIoTDispatcher):
-    card_set = MessageHandler(topic="/+/client/payment/card/ack", is_ack=True)
+    card_set = MessageHandler(topic="/+/server/payment/card/ack", is_ack=True)
 
 
 class CarwashIoTClient(BaseIoTClient):
