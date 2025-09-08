@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any, Sequence, Type
 from uuid import UUID
 
@@ -158,8 +158,8 @@ class TransactionRepository(BaseRepository):
                 func.sum(Transaction.card_amount).label("card"),
             )
             .where(
-                Transaction.created_at >= now - timedelta(days=data.period),
-                Transaction.created_at <= now,
+                Transaction.created_at >= data.date_from,
+                Transaction.created_at <= data.date_to,
             )
             .group_by(date_expression)
             .order_by(date_expression)

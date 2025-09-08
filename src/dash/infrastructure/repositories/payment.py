@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any, Sequence
 from uuid import UUID
 
@@ -119,8 +119,8 @@ class PaymentRepository(BaseRepository):
                 ).label("cashless"),
             )
             .where(
-                Payment.created_at >= now - timedelta(days=data.period),
-                Payment.created_at <= now,
+                Payment.created_at >= data.date_from,
+                Payment.created_at <= data.date_to,
                 Payment.status == "COMPLETED",
             )
             .group_by(date_expression)
@@ -173,19 +173,19 @@ class PaymentRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> float:
         now = datetime.now(UTC)
-        
+
         total_stmt = select(func.count(Payment.id).label("total")).where(
             Payment.type.in_((PaymentType.CASH, PaymentType.CASHLESS)),
             Payment.status == PaymentStatus.COMPLETED,
-            Payment.created_at >= now - timedelta(days=data.period),
-            Payment.created_at <= now,
-            )
+            Payment.created_at >= data.date_from,
+            Payment.created_at <= data.date_to,
+        )
 
         cashless_stmt = select(func.count(Payment.id).label("cashless")).where(
             Payment.type == PaymentType.CASHLESS,
             Payment.status == PaymentStatus.COMPLETED,
-            Payment.created_at >= now - timedelta(days=data.period),
-            Payment.created_at <= now,
+            Payment.created_at >= data.date_from,
+            Payment.created_at <= data.date_to,
         )
 
         for stmt in [total_stmt, cashless_stmt]:
@@ -237,15 +237,13 @@ class PaymentRepository(BaseRepository):
         data: GetPaymentAnalyticsRequest,
         whereclause: ColumnElement[Any] | None = None,
     ) -> list[GatewayAnalyticsDTO]:
-        now = datetime.now(UTC)
-        
         base_query = select(
             Payment.gateway_type, func.sum(Payment.amount).label("amount")
         ).where(
             Payment.status == PaymentStatus.COMPLETED,
             Payment.type == PaymentType.CASHLESS,
-            Payment.created_at >= now - timedelta(days=data.period),
-            Payment.created_at <= now,
+            Payment.created_at >= data.date_from,
+            Payment.created_at <= data.date_to,
         )
 
         if data.company_id:

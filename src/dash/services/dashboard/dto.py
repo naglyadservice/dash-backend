@@ -1,9 +1,10 @@
-from datetime import date
+from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from dash.models.payment import PaymentGatewayType
 from dash.services.common.dto import BaseFilters
+from dash.services.common.errors.base import ValidationError
 
 
 class RevenueDTO(BaseModel):
@@ -53,7 +54,8 @@ class GetRevenueRequest(BaseFilters):
 
 
 class GetPaymentAnalyticsRequest(BaseFilters):
-    period: int
+    date_from: datetime
+    date_to: datetime
 
 
 class GetControllersRequest(BaseFilters):
@@ -61,7 +63,16 @@ class GetControllersRequest(BaseFilters):
 
 
 class ReadDashboardStatsRequest(BaseFilters):
-    period: int = 30
+    date_from: datetime
+    date_to: datetime
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, datetime]) -> dict[str, datetime]:
+        if values["date_from"] > values["date_to"]:
+            raise ValidationError("date_from should be less than date_to")
+
+        return values
 
 
 class ReadTransactionStatsRequest(ReadDashboardStatsRequest):
