@@ -11,6 +11,10 @@ class DummyControllerIoTScheme(IoTControllerBaseDTO):
     type: Literal[ControllerType.DUMMY]
     description: str | None
     status: ControllerStatus
+    
+    @classmethod
+    def get_state_dto(cls):
+        pass
 
     model_config = ConfigDict(from_attributes=True)
 
