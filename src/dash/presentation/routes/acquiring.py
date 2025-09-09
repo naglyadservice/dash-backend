@@ -115,7 +115,7 @@ async def monopay_webhook(
     elif status == "reversed":
         await service.process_reversed_status(payment)
     elif status == "failure":
-        await service.process_failed_status(payment, dict_data["err_description"])
+        await service.process_failed_status(payment, dict_data["failureReason"])
 
 
 class CreateLiqpayInvoiceRequest(CreateInvoiceRequest):
