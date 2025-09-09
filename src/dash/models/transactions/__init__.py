@@ -1,6 +1,5 @@
 from .car_cleaner import CarCleanerTransaction
 from .carwash import CarwashTransaction
-from .dummy import DummyTransaction
 from .fiscalizer import FiscalizerTransaction
 from .laundry import LaundryTransaction
 from .transaction import Transaction, TransactionType

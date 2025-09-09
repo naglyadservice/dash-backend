@@ -9,7 +9,7 @@ QR_PREFIX_MAP = {
     ControllerType.CARWASH: "cw",
     ControllerType.VACUUM: "vc",
     ControllerType.CAR_CLEANER: "dc",
-    ControllerType.DUMMY: "du"
+    ControllerType.DUMMY: "du",
 }
 
 

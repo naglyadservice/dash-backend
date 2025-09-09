@@ -10,7 +10,6 @@ from dash.services.common.errors.base import AccessForbiddenError
 from dash.services.transaction.dto import (
     CarCleanerTransactionScheme,
     CarwashTransactionScheme,
-    DummyTransactionScheme,
     FiscalizerTransactionScheme,
     LaundryTransactionScheme,
     ReadTransactionListRequest,
@@ -95,10 +94,6 @@ class TransactionService:
             elif transaction.type is TransactionType.CAR_CLEANER:
                 transaction_list.append(
                     CarCleanerTransactionScheme.model_validate(transaction),
-                )
-            elif transaction.type is TransactionType.DUMMY:
-                transaction_list.append(
-                    DummyTransactionScheme.model_validate(transaction),
                 )
             else:
                 raise ValueError("Unknown transaction type")
