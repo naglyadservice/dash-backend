@@ -40,9 +40,11 @@ class DummyService(BaseIoTService):
         self.payment_helper = payment_helper
 
     async def _get_controller(self, controller_id: UUID) -> DummyController:
-        controller = await self.controller_repository.get_concrete(controller_id)
-        if not controller or not isinstance(controller, DummyController):
+        controller = await self.controller_repository.get_dummy(controller_id)
+
+        if not controller:
             raise ControllerNotFoundError
+
         return controller
 
     async def read_controller(self, data: ControllerID) -> DummyControllerIoTScheme:

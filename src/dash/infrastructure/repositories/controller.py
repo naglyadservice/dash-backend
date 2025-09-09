@@ -185,6 +185,10 @@ class ControllerRepository(BaseRepository):
         stmt = select(VacuumController).where(VacuumController.device_id == device_id)
         return await self.session.scalar(stmt)
 
+    async def get_dummy(self, controller_id: UUID) -> DummyController | None:
+        stmt = select(DummyController).where(DummyController.id == controller_id)
+        return await self.session.scalar(stmt)
+
     async def get_car_cleaner_by_device_id(
         self, device_id: str
     ) -> CarCleanerController | None:

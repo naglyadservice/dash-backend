@@ -114,7 +114,7 @@ class IoTControllerBaseDTO(BaseModel):
     fiscalize_cash: bool
 
     is_online: bool = True
-    state: BaseModel | None
+    state: BaseModel | None = None
     energy_state: EnergyStateDTO | None = None
 
     min_deposit_amount: int
