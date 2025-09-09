@@ -9,6 +9,7 @@ from dash.models.company import Company
 from dash.models.controllers.car_cleaner import CarCleanerController
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller
+from dash.models.controllers.dummy import DummyController
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.laundry import LaundryController
 from dash.models.controllers.vacuum import VacuumController
@@ -39,6 +40,7 @@ class ControllerRepository(BaseRepository):
         | LaundryController
         | VacuumController
         | CarCleanerController
+        | DummyController
         | None
     ):
         loader_opt = selectin_polymorphic(
@@ -50,6 +52,7 @@ class ControllerRepository(BaseRepository):
                 LaundryController,
                 VacuumController,
                 CarCleanerController,
+                DummyController,
             ],
         )
         stmt = (
@@ -78,6 +81,7 @@ class ControllerRepository(BaseRepository):
                 LaundryController,
                 VacuumController,
                 CarCleanerController,
+                DummyController,
             ],
         )
         stmt = select(Controller)
@@ -113,6 +117,7 @@ class ControllerRepository(BaseRepository):
                 LaundryController,
                 VacuumController,
                 CarCleanerController,
+                DummyController,
             ],
         )
         stmt = select(Controller).where(Controller.qr == qr).options(loader_opt)

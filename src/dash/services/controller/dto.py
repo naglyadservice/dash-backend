@@ -216,6 +216,11 @@ class PublicLaundryScheme(BasePublicControllerScheme):
     price_per_minute_after_transition: int
 
 
+class PublicDummyScheme(BasePublicControllerScheme):
+    type: Literal[ControllerType.DUMMY]
+    description: str | None
+
+
 CONTROLLER_PUBLIC_SCHEME_TYPE = (
     PublicWsmScheme
     | PublicCarwashScheme
@@ -223,6 +228,7 @@ CONTROLLER_PUBLIC_SCHEME_TYPE = (
     | PublicLaundryScheme
     | PublicVacuumScheme
     | PublicCarCleanerScheme
+    | PublicDummyScheme
 )
 
 

@@ -64,7 +64,11 @@ class ReadPaymentListRequest(Pagination, BasePaymentFilters):
     @model_validator(mode="before")
     @classmethod
     def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
-        if values["date_from"] > values["date_to"]:
+        if (
+            values.get("date_from")
+            and values.get("date_to")
+            and values["date_from"] > values["date_to"]
+        ):
             raise ValidationError("date_from should be less than date_to")
 
         return values

@@ -2,6 +2,7 @@ from dash.models.controllers.controller import ControllerType
 from dash.services.iot.base import BaseIoTService
 from dash.services.iot.car_cleaner.service import CarCleanerService
 from dash.services.iot.carwash.service import CarwashService
+from dash.services.iot.dummy.service import DummyService
 from dash.services.iot.fiscalizer.service import FiscalizerService
 from dash.services.iot.laundry.service import LaundryService
 from dash.services.iot.vacuum.service import VacuumService
@@ -17,6 +18,7 @@ class IoTServiceFactory:
         fiscalizer: FiscalizerService,
         laundry: LaundryService,
         vacuum: VacuumService,
+        dummy: DummyService,
     ) -> None:
         self.wsm = wsm
         self.carwash = carwash
@@ -24,6 +26,7 @@ class IoTServiceFactory:
         self.fiscalizer = fiscalizer
         self.laundry = laundry
         self.vacuum = vacuum
+        self.dummy = dummy
 
     def get(self, controller_type: ControllerType) -> BaseIoTService:
         match controller_type:
@@ -39,5 +42,7 @@ class IoTServiceFactory:
                 return self.laundry
             case ControllerType.VACUUM:
                 return self.vacuum
+            case ControllerType.DUMMY:
+                return self.dummy
             case _:
                 raise ValueError(f"Unsupported controller type: {controller_type}")
