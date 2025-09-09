@@ -38,6 +38,12 @@ class PaymentRepository(BaseRepository):
     ) -> tuple[Sequence[Payment], int]:
         stmt = select(Payment)
 
+        if data.date_from:
+            stmt = stmt.where(Payment.created_at >= data.date_from)
+
+        if data.date_to:
+            stmt = stmt.where(Payment.created_at <= data.date_to)
+
         if data.company_id is not None:
             stmt = stmt.join(Location).where(Location.company_id == data.company_id)
 

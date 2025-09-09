@@ -87,6 +87,12 @@ class TransactionRepository(BaseRepository):
 
         stmt = select(Transaction).options(loader_opt)
 
+        if data.date_from:
+            stmt = stmt.where(Transaction.created_at >= data.date_from)
+
+        if data.date_to:
+            stmt = stmt.where(Transaction.created_at <= data.date_to)
+
         if data.company_id is not None:
             stmt = stmt.join(Location).where(Location.company_id == data.company_id)
 

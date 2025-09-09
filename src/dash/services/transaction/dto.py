@@ -1,13 +1,14 @@
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from dash.models.controllers.laundry import LaundryTariffType
 from dash.models.transactions.laundry import LaundrySessionStatus
 from dash.models.transactions.transaction import TransactionType
 from dash.services.common.dto import BaseFilters
+from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
 from dash.services.iot.car_cleaner.dto import (
     CarCleanerTariffDTO,
@@ -108,7 +109,16 @@ TRANSACTION_SCHEME_TYPE = (
 
 
 class ReadTransactionListRequest(Pagination, BaseFilters):
-    pass
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["date_from"] > values["date_to"]:
+            raise ValidationError("date_from should be less than date_to")
+
+        return values
 
 
 class ReadTransactionListResponse(BaseModel):
