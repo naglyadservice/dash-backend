@@ -10,6 +10,7 @@ from dash.services.common.errors.controller import (
 
 
 class BaseIoTDispatcher(BaseDispatcher):
+    begin = MessageHandler(topic="/+/server/begin")
     state_info = MessageHandler(topic="/+/server/state/info")
     state = MessageHandler(topic="/+/server/state", is_result=True)
     config = MessageHandler(topic="/+/server/config", is_result=True)

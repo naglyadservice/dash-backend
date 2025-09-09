@@ -1,8 +1,9 @@
+from datetime import datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, select
+from sqlalchemy import DateTime, ForeignKey, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -39,6 +40,7 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     status: Mapped[ControllerStatus]
     tasmota_id: Mapped[str | None] = mapped_column()
     qr: Mapped[str] = mapped_column()
+    last_reboot: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     monopay_token: Mapped[str | None] = mapped_column()
     monopay_active: Mapped[bool] = mapped_column(default=False)

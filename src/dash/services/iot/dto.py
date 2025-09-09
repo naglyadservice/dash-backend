@@ -96,6 +96,7 @@ class IoTControllerBaseDTO(BaseModel):
     version: str
     location: LocationDTO | None
     company: CompanyDTO | None
+    last_reboot: datetime | None
 
     monopay_token: str | None
     monopay_active: bool

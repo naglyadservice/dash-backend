@@ -25,7 +25,9 @@ def upgrade() -> None:
         "customers",
         sa.Column("last_balance_update", sa.DateTime(timezone=True), nullable=True),
     )
-    op.execute("UPDATE customers SET last_balance_update = COALESCE(updated_at, created_at)")
+    op.execute(
+        "UPDATE customers SET last_balance_update = COALESCE(updated_at, created_at)"
+    )
     op.alter_column("customers", "last_balance_update", nullable=False)
     # ### end Alembic commands ###
 

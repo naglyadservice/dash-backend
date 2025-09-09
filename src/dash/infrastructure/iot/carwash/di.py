@@ -7,6 +7,7 @@ from dash.infrastructure.iot.carwash.client import (
     CarwashIoTDispatcher,
 )
 from dash.main.config import MqttConfig
+from dash.presentation.iot_callbacks.begin import begin_callback
 from dash.presentation.iot_callbacks.carwash.encashment import (
     carwash_encashment_callback,
 )
@@ -30,6 +31,7 @@ async def get_carwash_client(
         dispatcher_class=CarwashIoTDispatcher,
         dispatcher_kwargs={"callback_kwargs": {"di_container": di_container}},
     ) as client:
+        client.dispatcher.begin.register_callback(begin_callback)  # type: ignore
         client.dispatcher.state_info.register_callback(state_info_callback)  # type: ignore
         client.dispatcher.denomination.register_callback(denomination_callback)  # type: ignore
         client.dispatcher.sale.register_callback(carwash_sale_callback)  # type: ignore
