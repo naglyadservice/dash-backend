@@ -17,6 +17,7 @@ from dash.presentation.routes.location import location_router
 from dash.presentation.routes.payment import payment_router
 from dash.presentation.routes.transaction import transaction_router
 from dash.presentation.routes.user import user_router
+from dash.presentation.routes.controllers.dummy import dummy_router
 
 root_router = APIRouter(prefix="/api")
 root_router.include_router(acquiring_router)
@@ -27,6 +28,7 @@ root_router.include_router(car_cleaner_router)
 root_router.include_router(fiscalizer_router)
 root_router.include_router(laundry_router)
 root_router.include_router(vacuum_router)
+root_router.include_router(dummy_router)
 root_router.include_router(controller_router)
 root_router.include_router(transaction_router)
 root_router.include_router(payment_router)
