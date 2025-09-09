@@ -98,10 +98,6 @@ class VacuumTransactionScheme(TransactionBase):
     replenishment_ratio: int | None
 
 
-class DummyTransactionScheme(TransactionBase):
-    pass
-
-
 TRANSACTION_SCHEME_TYPE = (
     WsmTransactionScheme
     | CarCleanerTransactionScheme
@@ -109,7 +105,6 @@ TRANSACTION_SCHEME_TYPE = (
     | FiscalizerTransactionScheme
     | LaundryTransactionScheme
     | VacuumTransactionScheme
-    | DummyTransactionScheme
 )
 
 
