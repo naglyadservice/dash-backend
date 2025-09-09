@@ -44,13 +44,13 @@ def upgrade() -> None:
         enum_schema="public",
         enum_name="controllertype",
         new_values=[
-            "CARWASH_CONTROLLER",
-            "WATER_VENDING_CONTROLLER",
-            "VACUUM_CONTROLLER",
-            "FISCALIZER_CONTROLLER",
-            "LAUNDRY_CONTROLLER",
-            "CAR_CLEANER_CONTROLLER",
-            "DUMMY_CONTROLLER",
+            "CARWASH",
+            "WATER_VENDING",
+            "VACUUM",
+            "FISCALIZER",
+            "LAUNDRY",
+            "CAR_CLEANER",
+            "DUMMY",
         ],
         affected_columns=[
             TableReference(
@@ -63,13 +63,13 @@ def upgrade() -> None:
         enum_schema="public",
         enum_name="transactiontype",
         new_values=[
-            "CARWASH_TRANSACTION",
-            "WATER_VENDING_TRANSACTION",
-            "VACUUM_TRANSACTION",
-            "FISCALIZER_TRANSACTION",
-            "LAUNDRY_TRANSACTION",
-            "CAR_CLEANER_TRANSACTION",
-            "DUMMY_TRANSACTION",
+            "CARWASH",
+            "WATER_VENDING",
+            "VACUUM",
+            "FISCALIZER",
+            "LAUNDRY",
+            "CAR_CLEANER",
+            "DUMMY",
         ],
         affected_columns=[
             TableReference(
@@ -87,12 +87,12 @@ def downgrade() -> None:
         enum_schema="public",
         enum_name="transactiontype",
         new_values=[
-            "CARWASH_TRANSACTION",
-            "WATER_VENDING_TRANSACTION",
-            "VACUUM_TRANSACTION",
-            "FISCALIZER_TRANSACTION",
-            "LAUNDRY_TRANSACTION",
-            "CAR_CLEANER_TRANSACTION",
+            "CARWASH",
+            "WATER_VENDING",
+            "VACUUM",
+            "FISCALIZER",
+            "LAUNDRY",
+            "CAR_CLEANER",
         ],
         affected_columns=[
             TableReference(
@@ -105,12 +105,12 @@ def downgrade() -> None:
         enum_schema="public",
         enum_name="controllertype",
         new_values=[
-            "CARWASH_CONTROLLER",
-            "WATER_VENDING_CONTROLLER",
-            "VACUUM_CONTROLLER",
-            "FISCALIZER_CONTROLLER",
-            "LAUNDRY_CONTROLLER",
-            "CAR_CLEANER_CONTROLLER",
+            "CARWASH",
+            "WATER_VENDING",
+            "VACUUM",
+            "FISCALIZER",
+            "LAUNDRY",
+            "CAR_CLEANER",
         ],
         affected_columns=[
             TableReference(
