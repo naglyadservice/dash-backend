@@ -81,7 +81,7 @@ class FiscalizerTransactionScheme(TransactionBase):
 class LaundryTransactionScheme(TransactionBase):
     created_at_controller: None = None
     controller_transaction_id: None = None
-    
+
     tariff_type: LaundryTariffType
     session_status: LaundrySessionStatus
     session_start_time: datetime | None

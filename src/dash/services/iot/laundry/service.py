@@ -147,7 +147,9 @@ class LaundryService(BaseIoTService):
 
         try:
             await self.iot_client.lock_button_and_turn_off_led(
-                controller.device_id,
+                device_id=controller.device_id,
+                relay_id=controller.button_relay_id,
+                output_id=controller.led_output_id,
             )
         except (ControllerTimeoutError, ControllerResponseError):
             logger.error("Failed to lock laundry machine", controller_id=controller_id)
@@ -212,7 +214,10 @@ class LaundryService(BaseIoTService):
 
         try:
             await self.iot_client.unlock_button_and_turn_on_led(
-                controller.device_id, controller.timeout_minutes
+                device_id=controller.device_id,
+                duration_mins=controller.timeout_minutes,
+                relay_id=controller.button_relay_id,
+                ouput_id=controller.led_output_id,
             )
             controller.laundry_status = LaundryStatus.PROCESSING
             asyncio.create_task(
@@ -244,7 +249,11 @@ class LaundryService(BaseIoTService):
             return
 
         try:
-            await self.iot_client.lock_button_and_turn_off_led(controller.device_id)
+            await self.iot_client.lock_button_and_turn_off_led(
+                device_id=controller.device_id,
+                relay_id=controller.button_relay_id,
+                output_id=controller.led_output_id,
+            )
         except (ControllerTimeoutError, ControllerResponseError):
             logger.error(
                 "Failed to lock machine on timeout",

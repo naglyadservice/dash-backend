@@ -32,6 +32,8 @@ class LaundryController(Controller):
         default=LaundryStatus.AVAILABLE
     )
     timeout_minutes: Mapped[int] = mapped_column(default=5)
+    button_relay_id: Mapped[int] = mapped_column(default=1)
+    led_output_id: Mapped[int] = mapped_column(default=1)
 
     fixed_price: Mapped[int] = mapped_column(default=1000)
     max_hold_amount: Mapped[int] = mapped_column(default=1000)
