@@ -83,7 +83,7 @@ class LaundryService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_company_owner(controller.company_id)
 
-        for key, value in data.settings.model_dump(exclude_none=True):
+        for key, value in data.settings.model_dump(exclude_none=True).items():
             if hasattr(controller, key):
                 setattr(controller, key, value)
 
