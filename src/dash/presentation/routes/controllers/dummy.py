@@ -33,7 +33,7 @@ async def read_controller(
     return await service.read_controller(data)
 
 
-@dummy_router.patch(
+@dummy_router.put(
     "/{controller_id}/description",
     status_code=204,
     responses=build_responses(*controller_errors),

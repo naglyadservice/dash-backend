@@ -21,4 +21,4 @@ class DummyControllerIoTScheme(IoTControllerBaseDTO):
 
 class SetDummyDescriptionRequest(BaseModel):
     controller_id: UUID
-    description: str | None
+    description: str

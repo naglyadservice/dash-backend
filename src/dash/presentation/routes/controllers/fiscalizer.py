@@ -156,7 +156,7 @@ async def sync_settings(
 
 @dataclass
 class DescriptionDTO:
-    description: str | None
+    description: str
 
 
 @fiscalizer_router.put(
