@@ -9,7 +9,7 @@ from dash.models.controllers.controller import (
     ControllerStatus,
     ControllerType,
 )
-from dash.models.controllers.laundry import LaundryTariffType
+from dash.models.controllers.laundry import LaundryStatus, LaundryTariffType
 from dash.services.common.dto import ControllerID, PublicCompanyDTO, PublicLocationDTO
 from dash.services.common.errors.base import ValidationError
 from dash.services.common.pagination import Pagination
@@ -214,6 +214,7 @@ class PublicLaundryScheme(BasePublicControllerScheme):
     max_hold_amount: int
     transition_after_minutes: int
     price_per_minute_after_transition: int
+    laundry_status: LaundryStatus
 
 
 class PublicDummyScheme(BasePublicControllerScheme):
