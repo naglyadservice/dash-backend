@@ -1,4 +1,5 @@
 from uuid import UUID
+from dataclasses import dataclass
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
@@ -33,6 +34,11 @@ async def read_controller(
     return await service.read_controller(data)
 
 
+@dataclass
+class DescriptionDTO:
+    description: str
+
+
 @dummy_router.put(
     "/{controller_id}/description",
     status_code=204,
@@ -41,7 +47,9 @@ async def read_controller(
 async def set_description(
     service: FromDishka[DummyService],
     controller_id: UUID,
-    data: SetDummyDescriptionRequest,
+    data: DescriptionDTO,
 ) -> None:
-    data.controller_id = controller_id
-    await service.set_description(data)
+    dto = SetDummyDescriptionRequest(
+        controller_id=controller_id, description=data.description
+    )
+    await service.set_description(dto)
