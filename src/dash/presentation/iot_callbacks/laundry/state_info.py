@@ -86,8 +86,8 @@ def parse_state(source: dict[str, Any], key: str, target_id: int) -> bool:
 def returned_to_idle(
     cur_btn: bool, prev_btn: bool, cur_led: bool, prev_led: bool, door: bool
 ) -> bool:
-    button_reset = prev_btn and not cur_btn
-    led_reset = prev_led and not cur_led
     door_closed = not door
+    button_reset = prev_btn and not cur_btn
+    # led_reset = prev_led and not cur_led
 
-    return button_reset and led_reset and door_closed
+    return door_closed and button_reset  # and led_reset
