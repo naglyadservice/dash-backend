@@ -50,6 +50,11 @@ async def laundry_state_info_callback(
     prev_led = parse_state(prev_state, "output", controller.led_output_id)
 
     if returned_to_idle(cur_btn, prev_btn, cur_led, prev_led, cur_door):
+        logger.info(
+            "Machine returned to idle state",
+            device_id=device_id,
+            controller_id=controller.id,
+        )
         await laundry_service.handle_idle_state(controller.id)
 
     if cur_door != prev_door:
