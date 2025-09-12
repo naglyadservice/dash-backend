@@ -3,9 +3,12 @@ from uuid import UUID
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.controllers.dummy import DummyController
-from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.models.payment import Payment, PaymentGatewayType, PaymentStatus, PaymentType
 from dash.services.common.dto import ControllerID
-from dash.services.common.errors.controller import ControllerNotFoundError
+from dash.services.common.errors.controller import (
+    ControllerNotFoundError,
+    UnsupportedPaymentGatewayTypeError,
+)
 from dash.services.common.payment_helper import PaymentHelper
 from dash.services.iot.base import BaseIoTService, InsufficientDepositAmountError
 from dash.services.iot.dto import (
@@ -107,50 +110,6 @@ class DummyService(BaseIoTService):
     async def blocking(self, data: BlockingRequest) -> None:
         pass
 
-    async def create_invoice(self, data: CreateInvoiceRequest) -> CreateInvoiceResponse:
-        controller = await self._get_controller(data.controller_id)
-
-        if data.amount < controller.min_deposit_amount:
-            raise InsufficientDepositAmountError
-
-        invoice_result = await self.payment_helper.create_invoice(
-            controller=controller,
-            amount=data.amount,
-            gateway_type=data.gateway_type,
-        )
-        payment = self.payment_helper.create_payment(
-            controller_id=controller.id,
-            location_id=controller.location_id,
-            payment_type=PaymentType.CASHLESS,
-            gateway_type=data.gateway_type,
-            amount=data.amount,
-            invoice_id=invoice_result.invoice_id,
-        )
-        await self.payment_helper.save_and_commit(payment)
-        return invoice_result
-
-    async def process_hold_status(self, payment: Payment) -> None:
-        payment.status = PaymentStatus.HOLD
-        await self.payment_helper.commit()
-
-    async def process_processing_status(self, payment: Payment) -> None:
-        payment.status = PaymentStatus.PROCESSING
-        await self.payment_helper.commit()
-
-    async def process_success_status(self, payment: Payment) -> None:
-        payment.status = PaymentStatus.COMPLETED
-        controller = await self._get_controller(payment.controller_id)
-
-        if controller.checkbox_active:
-            await self.payment_helper.fiscalize(controller, payment)
-
-        await self.payment_helper.commit()
-
-    async def process_reversed_status(self, payment: Payment) -> None:
-        payment.status = PaymentStatus.REVERSED
-        await self.payment_helper.commit()
-
-    async def process_failed_status(self, payment: Payment, description: str) -> None:
-        payment.status = PaymentStatus.FAILED
-        payment.failure_reason = description
-        await self.payment_helper.commit()
+    @property
+    def should_hold_money(self) -> bool:
+        return False

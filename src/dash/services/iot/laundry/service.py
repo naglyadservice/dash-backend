@@ -112,14 +112,14 @@ class LaundryService(BaseIoTService):
             if controller.tariff_type is LaundryTariffType.FIXED
             else controller.max_hold_amount
         )
-        hold_money = controller.tariff_type is LaundryTariffType.PER_MINUTE
+        should_hold_money = controller.tariff_type is LaundryTariffType.PER_MINUTE
 
         controller = await self._get_controller(data.controller_id)
         invoice_result = await self.payment_helper.create_invoice(
             controller=controller,
             amount=amount,
             gateway_type=data.gateway_type,
-            hold_money=hold_money,
+            hold_money=should_hold_money,
         )
         payment = self.payment_helper.create_payment(
             controller_id=controller.id,
