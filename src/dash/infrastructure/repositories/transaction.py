@@ -15,7 +15,7 @@ from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.car_cleaner import CarCleanerTransaction
 from dash.models.transactions.fiscalizer import FiscalizerTransaction
-from dash.models.transactions.laundry import LaundryTransaction
+from dash.models.transactions.laundry import LaundrySessionStatus, LaundryTransaction
 from dash.models.transactions.transaction import Transaction
 from dash.models.transactions.water_vending import WsmTransaction
 from dash.services.dashboard.dto import (
@@ -342,10 +342,20 @@ class TransactionRepository(BaseRepository):
         )
         return await self._get_today_clients(data, whereclause)
 
-    async def get_last_laundry(self, controller_id: UUID) -> LaundryTransaction | None:
+    async def get_laundry_active(
+        self, controller_id: UUID
+    ) -> LaundryTransaction | None:
         query = (
             select(LaundryTransaction)
-            .where(LaundryTransaction.controller_id == controller_id)
+            .where(
+                LaundryTransaction.controller_id == controller_id,
+                LaundryTransaction.session_status.in_(
+                    (
+                        LaundrySessionStatus.WAITING_START,
+                        LaundrySessionStatus.IN_PROGRESS,
+                    )
+                ),
+            )
             .order_by(LaundryTransaction.created_at.desc())
             .limit(1)
         )

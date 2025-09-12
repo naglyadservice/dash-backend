@@ -32,13 +32,15 @@ class LaundryIoTClient(BaseIoTClient):
         ouput_id: int,
         ttl: int = 10,
     ) -> dict[str, Any]:
-        return await self.set_state(
+        return await self._wait_for_response(
             device_id=device_id,
+            topic="client/state/set",
             payload={
                 "relay": [{"id": relay_id, "state": True}],
                 "output": [{"id": ouput_id, "state": True}],
                 "duration": duration_mins * 60000,
             },
+            qos=1,
             ttl=ttl,
         )
 
@@ -47,13 +49,13 @@ class LaundryIoTClient(BaseIoTClient):
         device_id: str,
         relay_id: int,
         output_id: int,
-        ttl: int = 10,
-    ) -> dict[str, Any]:
-        return await self.set_state(
+    ) -> None:
+        await self.send_message(
             device_id=device_id,
+            topic="client/state/set",
             payload={
                 "relay": [{"id": relay_id, "state": False}],
                 "output": [{"id": output_id, "state": False}],
             },
-            ttl=ttl,
+            qos=1,
         )
