@@ -32,13 +32,13 @@ class LaundryIoTClient(BaseIoTClient):
         ouput_id: int,
         ttl: int = 10,
     ) -> dict[str, Any]:
+        duration_ms = duration_mins * 60000
         return await self._wait_for_response(
             device_id=device_id,
             topic="client/state/set",
             payload={
-                "relay": [{"id": relay_id, "state": True}],
-                "output": [{"id": ouput_id, "state": True}],
-                "duration": duration_mins * 60000,
+                "relay": [{"id": relay_id, "state": True, "duration": duration_ms}],
+                "output": [{"id": ouput_id, "state": True, "duration": duration_ms}],
             },
             qos=1,
             ttl=ttl,
