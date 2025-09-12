@@ -183,6 +183,12 @@ class LaundryService(BaseIoTService):
         )
         if transaction:
             transaction.session_status = LaundrySessionStatus.TIMEOUT
+            if controller.tariff_type == LaundryTariffType.PER_MINUTE:
+                await self.payment_helper.finalize_hold(
+                    controller=controller,
+                    payment=transaction.payment,
+                    amount=transaction.payment.amount,
+                )
 
         await self.controller_repository.commit()
 
