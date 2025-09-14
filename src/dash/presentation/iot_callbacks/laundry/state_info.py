@@ -88,6 +88,6 @@ def returned_to_idle(
 ) -> bool:
     door_closed = not door
     button_reset = prev_btn and not cur_btn
-    # led_reset = prev_led and not cur_led
+    led_reset = prev_led and not cur_led
 
-    return door_closed and button_reset  # and led_reset
+    return door_closed and button_reset and led_reset

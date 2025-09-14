@@ -3,19 +3,15 @@ from uuid import UUID
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.controllers.dummy import DummyController
-from dash.models.payment import Payment, PaymentGatewayType, PaymentStatus, PaymentType
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
-    UnsupportedPaymentGatewayTypeError,
 )
 from dash.services.common.payment_helper import PaymentHelper
-from dash.services.iot.base import BaseIoTService, InsufficientDepositAmountError
+from dash.services.iot.base import BaseIoTService
 from dash.services.iot.dto import (
     BlockingRequest,
     ClearPaymentsRequest,
-    CreateInvoiceRequest,
-    CreateInvoiceResponse,
     GetDisplayInfoRequest,
     RebootControllerRequest,
     SendActionRequest,

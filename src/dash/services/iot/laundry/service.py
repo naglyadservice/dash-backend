@@ -159,7 +159,7 @@ class LaundryService(BaseIoTService):
             controller_id
         )
         if transaction:
-            if controller.tariff_type == LaundryTariffType.PER_MINUTE:
+            if transaction.tariff_type is LaundryTariffType.PER_MINUTE:
                 self._calculate_per_minute_tariff(transaction, controller)
                 await self.payment_helper.finalize_hold(
                     controller, transaction.payment, transaction.final_amount
@@ -183,7 +183,7 @@ class LaundryService(BaseIoTService):
         )
         if transaction:
             transaction.session_status = LaundrySessionStatus.TIMEOUT
-            if controller.tariff_type == LaundryTariffType.PER_MINUTE:
+            if transaction.tariff_type == LaundryTariffType.PER_MINUTE:
                 await self.payment_helper.finalize_hold(
                     controller=controller,
                     payment=transaction.payment,
