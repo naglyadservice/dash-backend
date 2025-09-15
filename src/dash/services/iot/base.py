@@ -273,11 +273,8 @@ class BaseIoTService(ABC):
 
         await self.payment_helper.commit()
 
-    async def process_processing_status(
-        self, payment: Payment, masked_pan: str
-    ) -> None:
+    async def process_processing_status(self, payment: Payment) -> None:
         payment.status = PaymentStatus.PROCESSING
-        payment.masked_pan = masked_pan
         await self.payment_helper.commit()
 
     async def process_success_status(self, payment: Payment) -> None:

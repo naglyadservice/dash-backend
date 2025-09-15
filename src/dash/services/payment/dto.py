@@ -43,6 +43,7 @@ class PaymentScheme(BaseModel):
     created_at_controller: datetime | None
     failure_reason: str | None
     checkbox_error: str | None
+    masked_pan: str | None
 
     model_config = ConfigDict(from_attributes=True)
 

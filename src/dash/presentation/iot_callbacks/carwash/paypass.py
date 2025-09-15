@@ -8,7 +8,7 @@ from structlog import get_logger
 
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.payment import PaymentRepository
-from dash.models.payment import Payment, PaymentGatewayType, PaymentStatus, PaymentType
+from dash.models.payment import PaymentGatewayType, PaymentStatus, PaymentType
 from dash.presentation.iot_callbacks.common.di_injector import inject, request_scope
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
