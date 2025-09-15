@@ -85,15 +85,15 @@ async def carwash_paypass_callback(
         data=data,
     )
 
-    payment = Payment(
-        invoice_id=data.invoice,
+    payment = payment_helper.create_payment(
         controller_id=controller.id,
         location_id=controller.location_id,
         amount=int(data.amount),
-        status=PaymentStatus.COMPLETED,
-        type=PaymentType.CASHLESS,
+        payment_type=PaymentType.CASHLESS,
+        status=PaymentStatus.CREATED,
         gateway_type=PaymentGatewayType.PAYPASS,
-        created_at_controller=data.sended or data.created,
+        invoice_id=data.invoice,
+        masked_pan=data.pan,
         extra=Retort().dump(data),
     )
     if controller.checkbox_active:

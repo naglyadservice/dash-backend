@@ -53,6 +53,7 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     checkbox_error: Mapped[str | None] = mapped_column()
     created_at_controller: Mapped[datetime | None] = mapped_column()
     extra: Mapped[dict[str, Any] | None] = mapped_column()
+    masked_pan: Mapped[str | None] = mapped_column()
 
     @property
     def receipt_url(self) -> str | None:

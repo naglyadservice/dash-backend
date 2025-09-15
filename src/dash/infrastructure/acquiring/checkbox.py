@@ -169,8 +169,8 @@ class CheckboxService:
         }
         if payment.gateway_type == PaymentGatewayType.PAYPASS and payment.extra:
             paypass_dict = {
+                "card_mask": payment.masked_pan,
                 "payment_system": payment.extra["paysys"],
-                "card_mask": payment.extra["pan"],
                 "acquirer_and_seller": payment.extra["mid"],
                 "auth_code": payment.extra["auth"],
                 "rrn": payment.extra["rrn"],

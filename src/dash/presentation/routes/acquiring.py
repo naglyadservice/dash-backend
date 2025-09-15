@@ -109,7 +109,9 @@ async def monopay_webhook(
     if status == "hold":
         await service.process_hold_status(payment)
     elif status == "processing":
-        await service.process_processing_status(payment)
+        await service.process_processing_status(
+            payment, dict_data.get("paymentInfo", {}).get("maskedPan")
+        )
     elif status == "success":
         await service.process_success_status(payment)
     elif status == "reversed":
@@ -180,7 +182,9 @@ async def liqpay_webhook(
     if status == "hold_wait":
         await service.process_hold_status(payment)
     elif status == "processing":
-        await service.process_processing_status(payment)
+        await service.process_processing_status(
+            payment, dict_data.get("sender_card_mask2")
+        )
     elif status == "success":
         await service.process_success_status(payment)
     elif status == "reversed":
