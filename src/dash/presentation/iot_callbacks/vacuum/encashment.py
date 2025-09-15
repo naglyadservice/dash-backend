@@ -52,9 +52,9 @@ async def vacuum_encashment_callback(
             device_id=device_id,
             data=dict_data,
         )
-        # await vacuum_client.encashment_ack(
-        #     device_id=device_id, payload={"id": data.id, "code": 1}
-        # )
+        await vacuum_client.encashment_ack(
+            device_id=device_id, payload={"id": data.id, "code": 1}
+        )
         return
 
     logger.info(

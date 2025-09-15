@@ -59,14 +59,14 @@ async def vacuum_payment_card_get_callback(
             card_id=data.card_uid,
             data=dict_data,
         )
-        # await vacuum_client.payment_card_ack(
-        #     device_id=device_id,
-        #     payload={
-        #         "request_id": data.request_id,
-        #         "cardUID": data.card_uid,
-        #         "code": 1,
-        #     },
-        # )
+        await vacuum_client.payment_card_ack(
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "code": 1,
+            },
+        )
         return
 
     if controller.company_id is None:
@@ -76,14 +76,14 @@ async def vacuum_payment_card_get_callback(
             controller_id=controller.id,
             data=dict_data,
         )
-        # await vacuum_client.payment_card_ack(
-        #     device_id=device_id,
-        #     payload={
-        #         "request_id": data.request_id,
-        #         "cardUID": data.card_uid,
-        #         "code": 1,
-        #     },
-        # )
+        await vacuum_client.payment_card_ack(
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "code": 1,
+            },
+        )
         return
 
     customer = await customer_repository.get_by_card_id(
@@ -97,14 +97,14 @@ async def vacuum_payment_card_get_callback(
             card_id=data.card_uid,
             data=dict_data,
         )
-        # await vacuum_client.payment_card_ack(
-        #     device_id=device_id,
-        #     payload={
-        #         "request_id": data.request_id,
-        #         "cardUID": data.card_uid,
-        #         "code": 1,
-        #     },
-        # )
+        await vacuum_client.payment_card_ack(
+            device_id=device_id,
+            payload={
+                "request_id": data.request_id,
+                "cardUID": data.card_uid,
+                "code": 1,
+            },
+        )
         return
 
     logger.info(
