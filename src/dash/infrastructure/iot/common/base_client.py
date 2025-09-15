@@ -25,6 +25,7 @@ class BaseIoTDispatcher(BaseDispatcher):
     setting_ack = MessageHandler(topic="/+/server/setting/ack", is_ack=True)
     action_ack = MessageHandler(topic="/+/server/action/ack", is_ack=True)
     payment_ack = MessageHandler(topic="/+/server/payment/ack", is_ack=True)
+    paypass = MessageHandler(topic="/+/server/paypass/set")
 
 
 class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
@@ -185,4 +186,13 @@ class BaseIoTClient(BaseClient[BaseIoTDispatcher]):
             payload={"fields": fields},
             qos=1,
             ttl=ttl,
+        )
+
+    async def paypass_ack(self, device_id: str, payload: dict[str, Any]) -> None:
+        await self.send_message(
+            device_id=device_id,
+            topic="client/paypass/ack",
+            payload=payload,
+            qos=1,
+            ttl=None,
         )

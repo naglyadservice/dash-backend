@@ -8,7 +8,7 @@ from structlog import get_logger
 from dash.infrastructure.api_client import APIClient
 from dash.main.config import AppConfig
 from dash.models import Controller
-from dash.models.payment import Payment
+from dash.models.payment import Payment, PaymentGatewayType
 
 logger = get_logger()
 
@@ -96,13 +96,13 @@ class CheckboxService:
         logger.error("Shift opening timeout", shift_id=shift_id, timeout=timeout)
         return False
 
-    async def _open_shift(self, controller: Controller, token: str) -> bool:
+    async def _open_shift(self, license_key: str, token: str) -> bool:
         shift_id = str(uuid4())
         response, status = await self._make_request(
             method="POST",
             endpoint="/shifts",
             headers={
-                "X-License-Key": controller.checkbox_license_key,
+                "X-License-Key": license_key,
                 "Authorization": f"Bearer {token}",
             },
             json={
@@ -118,7 +118,7 @@ class CheckboxService:
 
         return await self._wait_for_shift_opened(shift_id, token)
 
-    async def _open_shift_if_needed(self, controller: Controller, token: str) -> bool:
+    async def _open_shift_if_needed(self, license_key: str, token: str) -> bool:
         active_shift = await self._get_active_shift(token)
         if active_shift:
             if active_shift["status"] == "OPENED":
@@ -126,7 +126,7 @@ class CheckboxService:
             elif active_shift["status"] in ("OPENING", "CREATED"):
                 return await self._wait_for_shift_opened(active_shift["id"], token)
 
-        return await self._open_shift(controller, token)
+        return await self._open_shift(license_key, token)
 
     async def create_receipt(
         self,
@@ -159,8 +159,24 @@ class CheckboxService:
             )
             return None
 
-        if not await self._open_shift_if_needed(controller, token):
+        if not await self._open_shift_if_needed(controller.checkbox_license_key, token):
             return None
+
+        payment_dict = {
+            "type": payment.type.value,
+            "value": payment.amount,
+            "payment_system": payment.gateway_type and payment.gateway_type.value,
+        }
+        if payment.gateway_type == PaymentGatewayType.PAYPASS and payment.extra:
+            paypass_dict = {
+                "payment_system": payment.extra["paysys"],
+                "card_mask": payment.extra["pan"],
+                "acquirer_and_seller": payment.extra["mid"],
+                "auth_code": payment.extra["auth"],
+                "rrn": payment.extra["rrn"],
+                "terminal": payment.extra["tid"],
+            }
+            payment_dict.update(paypass_dict)
 
         data = {
             "id": str(receipt_id),
@@ -175,14 +191,7 @@ class CheckboxService:
                     "quantity": 1000,
                 }
             ],
-            "payments": [
-                {
-                    "type": payment.type.value,
-                    "value": payment.amount,
-                    "payment_system": payment.gateway_type
-                    and payment.gateway_type.value,
-                }
-            ],
+            "payments": [payment_dict],
         }
         response, status = await self._make_request(
             method="POST",

@@ -14,6 +14,7 @@ from dash.presentation.iot_callbacks.carwash.encashment import (
 from dash.presentation.iot_callbacks.carwash.payment_card_get import (
     carwash_payment_card_get_callback,
 )
+from dash.presentation.iot_callbacks.carwash.paypass import carwash_paypass_callback
 from dash.presentation.iot_callbacks.carwash.sale import carwash_sale_callback
 from dash.presentation.iot_callbacks.denomination import denomination_callback
 from dash.presentation.iot_callbacks.state_info import state_info_callback
@@ -39,4 +40,5 @@ async def get_carwash_client(
             carwash_payment_card_get_callback,  # type: ignore
         )
         client.dispatcher.encashment.register_callback(carwash_encashment_callback)  # type: ignore
+        client.dispatcher.paypass.register_callback(carwash_paypass_callback)  # type: ignore
         yield client
