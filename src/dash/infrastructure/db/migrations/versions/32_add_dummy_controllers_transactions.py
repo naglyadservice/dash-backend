@@ -86,6 +86,12 @@ def downgrade() -> None:
     op.drop_table("dummy_transactions")
     op.drop_table("dummy_controllers")
     op.execute("DELETE FROM transactions WHERE type = 'DUMMY'")
+    op.execute(
+        "DELETE FROM payments WHERE controller_id in (SELECT id FROM controllers WHERE type = 'DUMMY')"
+    )
+    op.execute(
+        "DELETE FROM encashments WHERE controller_id in (SELECT id FROM controllers WHERE type = 'DUMMY')"
+    )
     op.execute("DELETE FROM controllers WHERE type = 'DUMMY'")
 
     op.sync_enum_values(  # type: ignore
