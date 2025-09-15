@@ -56,4 +56,7 @@ class Payment(Base, UUIDMixin, TimestampMixin):
 
     @property
     def receipt_url(self) -> str | None:
+        if not self.receipt_id:
+            return None
+
         return f"https://check.checkbox.ua/{self.receipt_id}"
