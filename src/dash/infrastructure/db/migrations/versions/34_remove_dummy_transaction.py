@@ -13,8 +13,8 @@ import sqlalchemy as sa
 from alembic_postgresql_enum import TableReference
 
 # revision identifiers, used by Alembic.
-revision: str = "33"
-down_revision: Union[str, None] = "32"
+revision: str = "34"
+down_revision: Union[str, None] = "33"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
