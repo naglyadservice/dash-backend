@@ -110,6 +110,7 @@ class CarwashSettings(BaseModel):
     timeLight: int | None = None
     timeTechnicalMode: int | None = None
     lightBtnAfterPay: bool | None = None
+    timeDelayPompOn: int | None = None
 
 
 class CarwashOperatingMode(StrEnum):

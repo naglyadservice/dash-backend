@@ -1,6 +1,8 @@
+from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
+from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from dash.models.base import Base, TimestampMixin, UUIDMixin
@@ -25,6 +27,13 @@ class AdminUser(Base, UUIDMixin, TimestampMixin):
     role: Mapped[AdminRole] = mapped_column()
     company_id: Mapped[UUID | None] = mapped_column()
     message: Mapped[str | None] = mapped_column()
+
+    subscription_paid_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
+    subscription_payment_details: Mapped[str | None] = mapped_column()
+    subscription_amount: Mapped[int | None] = mapped_column()
+    is_blocked: Mapped[bool] = mapped_column(default=False)
 
     companies: Mapped[list["Company"]] = relationship(
         back_populates="owner", lazy="joined"

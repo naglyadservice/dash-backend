@@ -5,6 +5,7 @@ from typing import Any, Literal
 import ecdsa
 from fastapi import HTTPException
 from redis.asyncio import Redis
+from structlog import get_logger
 
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.api_client import APIClient
@@ -16,6 +17,12 @@ from dash.models.controllers import Controller
 from dash.models.payment import Payment
 from dash.services.common.payment_gateway import PaymentGateway
 from dash.services.iot.dto import CreateInvoiceResponse
+
+logger = get_logger()
+
+
+class MonopayAPIError(Exception):
+    pass
 
 
 class MonopayGateway(PaymentGateway):
@@ -52,26 +59,28 @@ class MonopayGateway(PaymentGateway):
         endpoint: str,
         json: dict[str, Any] | None = None,
         headers: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
-        response, status = await self.api_client.make_request(
+        params: dict[str, Any] | None = None,
+    ) -> tuple[dict[str, Any], int]:
+        return await self.api_client.make_request(
             method=method,
             url=self.base_url + endpoint,
             headers=headers,
             json=json,
+            params=params,
         )
-        if status != 200:
-            raise HTTPException(
-                status_code=503, detail="Failed to connect with Monobank"
-            )
-
-        return response
 
     async def _request_pub_key(self, invoice_id: str, token: str) -> bytes:
-        response = await self.make_request(
+        response, status = await self.make_request(
             method="GET",
             endpoint="/merchant/pubkey",
             headers=self._prepare_headers(token),
         )
+        if status != 200:
+            logger.error(
+                "Monopay API Error: request pub key failed",
+                response=response,
+                status=status,
+            )
 
         pub_key = response["key"]
         pub_key_bytes = base64.b64decode(pub_key)
@@ -107,7 +116,7 @@ class MonopayGateway(PaymentGateway):
         self, controller: Controller, amount: int, hold_money: bool = True
     ) -> CreateInvoiceResponse:
         token = self._require_token(controller)
-        response = await self.make_request(
+        response, status = await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/create",
             json={
@@ -119,6 +128,14 @@ class MonopayGateway(PaymentGateway):
             },
             headers=self._prepare_headers(token),
         )
+        if status != 200:
+            logger.error(
+                "Monopay API Error: create invoice failed",
+                response=response,
+                status=status,
+            )
+            raise MonopayAPIError
+
         invoice_id = response["invoiceId"]
 
         await self.acquiring_storage.set_monopay_token(
@@ -131,17 +148,34 @@ class MonopayGateway(PaymentGateway):
     async def finalize(
         self, controller: Controller, payment: Payment, amount: int
     ) -> None:
-        await self.make_request(
+        response, status = await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/finalize",
             json={"invoiceId": payment.invoice_id, "amount": amount},
             headers=self._prepare_headers(self._require_token(controller)),
         )
+        if status != 200:
+            logger.error(
+                "Monopay API Error: finalize failed", response=response, status=status
+            )
 
     async def refund(self, controller: Controller, payment: Payment) -> None:
-        await self.make_request(
+        response, status = await self.make_request(
             method="POST",
             endpoint="/merchant/invoice/cancel",
             json={"invoiceId": payment.invoice_id},
             headers=self._prepare_headers(self._require_token(controller)),
         )
+        if status != 200:
+            logger.error(
+                "Monopay API Error: refund failed", response=response, status=status
+            )
+
+    async def request_pan(self, invoice_id: str, controller: Controller) -> str | None:
+        response, _ = await self.make_request(
+            method="GET",
+            endpoint="/merchant/invoice/status",
+            headers=self._prepare_headers(self._require_token(controller)),
+            params={"invoiceId": invoice_id},
+        )
+        return response.get("paymentInfo", {}).get("maskedPan")

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any, Sequence, Type
 from uuid import UUID
 
@@ -15,7 +15,7 @@ from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
 from dash.models.transactions.car_cleaner import CarCleanerTransaction
 from dash.models.transactions.fiscalizer import FiscalizerTransaction
-from dash.models.transactions.laundry import LaundryTransaction
+from dash.models.transactions.laundry import LaundrySessionStatus, LaundryTransaction
 from dash.models.transactions.transaction import Transaction
 from dash.models.transactions.water_vending import WsmTransaction
 from dash.services.dashboard.dto import (
@@ -86,6 +86,12 @@ class TransactionRepository(BaseRepository):
         )
 
         stmt = select(Transaction).options(loader_opt)
+
+        if data.date_from:
+            stmt = stmt.where(Transaction.created_at >= data.date_from)
+
+        if data.date_to:
+            stmt = stmt.where(Transaction.created_at <= data.date_to)
 
         if data.company_id is not None:
             stmt = stmt.join(Location).where(Location.company_id == data.company_id)
@@ -158,8 +164,8 @@ class TransactionRepository(BaseRepository):
                 func.sum(Transaction.card_amount).label("card"),
             )
             .where(
-                Transaction.created_at >= now - timedelta(days=data.period),
-                Transaction.created_at <= now,
+                Transaction.created_at >= data.date_from,
+                Transaction.created_at <= data.date_to,
             )
             .group_by(date_expression)
             .order_by(date_expression)
@@ -336,10 +342,20 @@ class TransactionRepository(BaseRepository):
         )
         return await self._get_today_clients(data, whereclause)
 
-    async def get_last_laundry(self, controller_id: UUID) -> LaundryTransaction | None:
+    async def get_laundry_active(
+        self, controller_id: UUID
+    ) -> LaundryTransaction | None:
         query = (
             select(LaundryTransaction)
-            .where(LaundryTransaction.controller_id == controller_id)
+            .where(
+                LaundryTransaction.controller_id == controller_id,
+                LaundryTransaction.session_status.in_(
+                    (
+                        LaundrySessionStatus.WAITING_START,
+                        LaundrySessionStatus.IN_PROGRESS,
+                    )
+                ),
+            )
             .order_by(LaundryTransaction.created_at.desc())
             .limit(1)
         )

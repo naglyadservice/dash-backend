@@ -40,35 +40,54 @@ async def laundry_state_info_callback(
     )
     prev_state = await iot_storage.get_state(controller.id) or {}
 
-    door_input_id = controller.input_id
+    cur_door = parse_state(data, "input", controller.input_id)
+    prev_door = parse_state(prev_state, "input", controller.input_id)
 
-    door_lock_inp: dict[str, Any] | None = next(
-        (inp for inp in data.get("input", []) if inp.get("id") == door_input_id), None
-    )
-    door_lock_inp_prev: dict[str, Any] | None = next(
-        (inp for inp in prev_state.get("input", []) if inp.get("id") == door_input_id),
-        None,
-    )
+    cur_btn = parse_state(data, "relay", controller.button_relay_id)
+    prev_btn = parse_state(prev_state, "relay", controller.button_relay_id)
 
-    current_state = door_lock_inp.get("state", False) if door_lock_inp else False
-    prev_state_value = (
-        door_lock_inp_prev.get("state", False) if door_lock_inp_prev else False
-    )
+    cur_led = parse_state(data, "output", controller.led_output_id)
+    prev_led = parse_state(prev_state, "output", controller.led_output_id)
 
-    if current_state != prev_state_value:
+    if returned_to_idle(cur_btn, prev_btn, cur_led, prev_led, cur_door):
+        logger.info(
+            "Machine returned to idle state",
+            device_id=device_id,
+            controller_id=controller.id,
+        )
+        await laundry_service.handle_idle_state(controller.id)
+
+    if cur_door != prev_door:
         logger.info(
             "Door state changed",
             device_id=device_id,
             controller_id=controller.id,
-            previous_state=prev_state_value,
-            current_state=current_state,
-            input_id=door_input_id,
+            previous_state=prev_door,
+            current_state=cur_door,
+            input_id=controller.input_id,
         )
 
-        if current_state is True:
+        if cur_door is True:
             await laundry_service.handle_door_locked(controller.id)
-        elif current_state is False:
+        elif cur_door is False:
             await laundry_service.handle_door_unlocked(controller.id)
 
     data["created"] = datetime.now(UTC).isoformat()
     await iot_storage.set_state(data, controller.id)
+
+
+def parse_state(source: dict[str, Any], key: str, target_id: int) -> bool:
+    return next(
+        (item["state"] for item in source.get(key, []) if item.get("id") == target_id),
+        False,
+    )
+
+
+def returned_to_idle(
+    cur_btn: bool, prev_btn: bool, cur_led: bool, prev_led: bool, door: bool
+) -> bool:
+    door_closed = not door
+    button_reset = prev_btn and not cur_btn
+    led_reset = prev_led and not cur_led
+
+    return door_closed and button_reset and led_reset

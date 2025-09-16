@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from dash.models.payment import PaymentStatus, PaymentType, PaymentGatewayType
 from dash.services.common.errors.base import ValidationError
@@ -34,7 +34,7 @@ class BasePaymentFilters(BaseModel):
 class PaymentScheme(BaseModel):
     id: UUID
     controller_id: UUID
-    receipt_id: UUID | None
+    receipt_url: str | None
     amount: int
     status: PaymentStatus
     type: PaymentType
@@ -43,6 +43,7 @@ class PaymentScheme(BaseModel):
     created_at_controller: datetime | None
     failure_reason: str | None
     checkbox_error: str | None
+    masked_pan: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -58,7 +59,21 @@ class PublicPaymentScheme(BaseModel):
 
 
 class ReadPaymentListRequest(Pagination, BasePaymentFilters):
-    pass
+    date_from: datetime | None = None
+    date_to: datetime | None = None
+    masked_pan: str | None = Field(default=None, min_length=16, max_length=16)
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if (
+            values.get("date_from")
+            and values.get("date_to")
+            and values["date_from"] > values["date_to"]
+        ):
+            raise ValidationError("date_from should be less than date_to")
+
+        return values
 
 
 class ReadPaymentListResponse(BaseModel):

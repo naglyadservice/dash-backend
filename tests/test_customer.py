@@ -77,6 +77,7 @@ async def test_create_customer(
             discount_percent=10,
             tariff_per_liter_1=100,
             tariff_per_liter_2=100,
+            readable_card_code=None,
         )
     )
     assert await deps.customer_repository.exists_by_id(

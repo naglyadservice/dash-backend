@@ -1,6 +1,10 @@
 from dataclasses import dataclass
 
-from dash.services.common.errors.base import ApplicationError, ValidationError
+from dash.services.common.errors.base import (
+    AccessDeniedError,
+    ApplicationError,
+    ValidationError,
+)
 
 
 @dataclass
@@ -46,3 +50,8 @@ class CustomerNotFoundError(AuthError):
 @dataclass
 class InvalidVerificationCodeError(ValidationError):
     message: str = "Invalid verification code"
+
+
+@dataclass
+class UserIsBlockedError(AccessDeniedError):
+    message = "User is blocked"

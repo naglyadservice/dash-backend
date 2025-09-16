@@ -105,4 +105,4 @@ class SetupSIMRequest(ControllerID):
 
 
 class SetDescriptionRequest(ControllerID):
-    description: str | None
+    description: str

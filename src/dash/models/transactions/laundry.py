@@ -10,7 +10,6 @@ from dash.models.transactions.transaction import Transaction, TransactionType
 
 
 class LaundrySessionStatus(StrEnum):
-    PAYMENT_CONFIRMED = "PAYMENT_CONFIRMED"
     WAITING_START = "WAITING_START"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"

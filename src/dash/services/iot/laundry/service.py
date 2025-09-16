@@ -1,4 +1,3 @@
-import asyncio
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -83,7 +82,7 @@ class LaundryService(BaseIoTService):
         controller = await self._get_controller(data.controller_id)
         await self.identity_provider.ensure_company_owner(controller.company_id)
 
-        for key, value in data.settings.model_dump(exclude_none=True):
+        for key, value in data.settings.model_dump(exclude_none=True).items():
             if hasattr(controller, key):
                 setattr(controller, key, value)
 
@@ -113,14 +112,14 @@ class LaundryService(BaseIoTService):
             if controller.tariff_type is LaundryTariffType.FIXED
             else controller.max_hold_amount
         )
-        hold_money = controller.tariff_type is LaundryTariffType.PER_MINUTE
+        should_hold_money = controller.tariff_type is LaundryTariffType.PER_MINUTE
 
         controller = await self._get_controller(data.controller_id)
         invoice_result = await self.payment_helper.create_invoice(
             controller=controller,
             amount=amount,
             gateway_type=data.gateway_type,
-            hold_money=hold_money,
+            hold_money=should_hold_money,
         )
         payment = self.payment_helper.create_payment(
             controller_id=controller.id,
@@ -135,44 +134,63 @@ class LaundryService(BaseIoTService):
         return invoice_result
 
     async def handle_door_locked(self, controller_id: UUID) -> None:
-        transaction = await self.transaction_repository.get_last_laundry(controller_id)
-        if not transaction:
-            return
-
         controller = await self._get_controller(controller_id)
-
-        transaction.session_status = LaundrySessionStatus.IN_PROGRESS
-        transaction.session_start_time = datetime.now()
         controller.laundry_status = LaundryStatus.IN_USE
 
-        try:
-            await self.iot_client.lock_button_and_turn_off_led(
-                controller.device_id,
-            )
-        except (ControllerTimeoutError, ControllerResponseError):
-            logger.error("Failed to lock laundry machine", controller_id=controller_id)
+        transaction = await self.transaction_repository.get_laundry_active(
+            controller_id
+        )
+        if transaction:
+            transaction.session_status = LaundrySessionStatus.IN_PROGRESS
+            transaction.session_start_time = datetime.now()
 
-        await self.transaction_repository.commit()
+        await self.iot_client.lock_button_and_turn_off_led(
+            device_id=controller.device_id,
+            relay_id=controller.button_relay_id,
+            output_id=controller.led_output_id,
+        )
+        await self.controller_repository.commit()
 
     async def handle_door_unlocked(self, controller_id: UUID) -> None:
-        transaction = await self.transaction_repository.get_last_laundry(controller_id)
-        if not transaction:
-            return
-
         controller = await self._get_controller(controller_id)
-
-        if controller.tariff_type == LaundryTariffType.PER_MINUTE:
-            self._calculate_per_minute_tariff(transaction, controller)
-
-        transaction.session_status = LaundrySessionStatus.COMPLETED
-        transaction.session_end_time = datetime.now()
-        transaction.qr_amount = transaction.final_amount
         controller.laundry_status = LaundryStatus.AVAILABLE
 
-        await self.payment_helper.finalize_hold(
-            controller, transaction.payment, transaction.final_amount
+        transaction = await self.transaction_repository.get_laundry_active(
+            controller_id
         )
-        await self.transaction_repository.commit()
+        if transaction:
+            if transaction.tariff_type is LaundryTariffType.PER_MINUTE:
+                self._calculate_per_minute_tariff(transaction, controller)
+                await self.payment_helper.finalize_hold(
+                    controller, transaction.payment, transaction.final_amount
+                )
+                transaction.qr_amount = transaction.final_amount
+
+            transaction.session_status = LaundrySessionStatus.COMPLETED
+            transaction.session_end_time = datetime.now()
+
+        await self.controller_repository.commit()
+
+    async def handle_idle_state(self, controller_id: UUID) -> None:
+        controller = await self._get_controller(controller_id)
+        if controller.laundry_status is LaundryStatus.AVAILABLE:
+            return
+
+        controller.laundry_status = LaundryStatus.AVAILABLE
+
+        transaction = await self.transaction_repository.get_laundry_active(
+            controller_id
+        )
+        if transaction:
+            transaction.session_status = LaundrySessionStatus.TIMEOUT
+            if transaction.tariff_type == LaundryTariffType.PER_MINUTE:
+                await self.payment_helper.finalize_hold(
+                    controller=controller,
+                    payment=transaction.payment,
+                    amount=transaction.payment.amount,
+                )
+
+        await self.controller_repository.commit()
 
     async def process_hold_status(self, payment: Payment) -> None:
         await self._start_laundry_session(payment)
@@ -180,7 +198,7 @@ class LaundryService(BaseIoTService):
     async def process_success_status(self, payment: Payment) -> None:
         controller = await self._get_controller(payment.controller_id)
         if controller.tariff_type is LaundryTariffType.FIXED:
-            await self._start_laundry_session(payment)
+            return await self._start_laundry_session(payment)
 
         await super().process_success_status(payment)
 
@@ -212,47 +230,28 @@ class LaundryService(BaseIoTService):
 
         try:
             await self.iot_client.unlock_button_and_turn_on_led(
-                controller.device_id, controller.timeout_minutes
+                device_id=controller.device_id,
+                duration_mins=controller.timeout_minutes,
+                relay_id=controller.button_relay_id,
+                ouput_id=controller.led_output_id,
             )
             controller.laundry_status = LaundryStatus.PROCESSING
-            asyncio.create_task(
-                self._monitor_session_timeout(transaction.id, controller)
-            )
         except (ControllerTimeoutError, ControllerResponseError):
             logger.error(
                 "Failed to unlock laundry machine",
                 controller_id=controller.id,
                 device_id=controller.device_id,
             )
-            transaction.session_status = LaundrySessionStatus.ERROR
             await self.payment_helper.refund(controller, payment)
-            raise
+            transaction.session_status = LaundrySessionStatus.ERROR
+            controller.laundry_status = LaundryStatus.AVAILABLE
         finally:
-            payment.status = PaymentStatus.HOLD
+            if controller.tariff_type is LaundryTariffType.PER_MINUTE:
+                payment.status = PaymentStatus.HOLD
+            else:
+                payment.status = PaymentStatus.COMPLETED
+
             await self.transaction_repository.commit()
-
-    async def _monitor_session_timeout(
-        self, transaction_id: UUID, controller: LaundryController
-    ) -> None:
-        await asyncio.sleep(controller.timeout_minutes * 60)
-
-        transaction = await self.transaction_repository.get_laundry(transaction_id)
-        if (
-            not transaction
-            or transaction.session_status != LaundrySessionStatus.WAITING_START
-        ):
-            return
-
-        try:
-            await self.iot_client.lock_button_and_turn_off_led(controller.device_id)
-        except (ControllerTimeoutError, ControllerResponseError):
-            logger.error(
-                "Failed to lock machine on timeout",
-                device_id=controller.device_id,
-                controller_id=controller.id,
-            )
-        transaction.session_status = LaundrySessionStatus.TIMEOUT
-        await self.transaction_repository.commit()
 
     def _calculate_per_minute_tariff(
         self, transaction: LaundryTransaction, controller: LaundryController

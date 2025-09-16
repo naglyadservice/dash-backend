@@ -4,6 +4,8 @@ import json
 import uuid
 from typing import Any, Literal
 
+from structlog import get_logger
+
 from dash.infrastructure.acquiring.checkbox import CheckboxService
 from dash.infrastructure.api_client import APIClient
 from dash.infrastructure.repositories.controller import ControllerRepository
@@ -13,6 +15,9 @@ from dash.models.controllers import Controller
 from dash.models.payment import Payment
 from dash.services.common.payment_gateway import PaymentGateway
 from dash.services.iot.dto import CreateInvoiceResponse
+
+
+logger = get_logger()
 
 
 class LiqpayGateway(PaymentGateway):
@@ -40,13 +45,12 @@ class LiqpayGateway(PaymentGateway):
         self,
         method: Literal["GET", "POST"],
         data: dict[str, Any],
-    ) -> dict[str, Any]:
-        response, status = await self.api_client.make_request(
+    ) -> tuple[dict[str, Any], int]:
+        return await self.api_client.make_request(
             method=method,
             url=self.base_url,
             data=data,
         )
-        return response
 
     def _require_private_key(self, controller: Controller) -> str:
         if controller.liqpay_private_key is None:
@@ -80,7 +84,7 @@ class LiqpayGateway(PaymentGateway):
         return CreateInvoiceResponse(invoice_url=invoice_url, invoice_id=invoice_id)
 
     async def refund(self, controller: Controller, payment: Payment) -> None:
-        await self._make_request(
+        _, status = await self._make_request(
             method="POST",
             data=self._prepare_data(
                 data={
@@ -93,11 +97,13 @@ class LiqpayGateway(PaymentGateway):
                 private_key=self._require_private_key(controller),
             ),
         )
+        if status != 200:
+            logger.error("LiqPay API Error: refund failed")
 
     async def finalize(
         self, controller: Controller, payment: Payment, amount: int
     ) -> None:
-        await self._make_request(
+        _, status = await self._make_request(
             method="POST",
             data=self._prepare_data(
                 data={
@@ -110,6 +116,8 @@ class LiqpayGateway(PaymentGateway):
                 private_key=self._require_private_key(controller),
             ),
         )
+        if status != 200:
+            logger.error("LiqPay API Error: finalize failed")
 
     def _data_to_sign(self, params: dict[str, Any]) -> str:
         json_encoded_params = json.dumps(params, sort_keys=True)

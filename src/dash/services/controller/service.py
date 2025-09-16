@@ -11,6 +11,7 @@ from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.controllers.car_cleaner import CarCleanerController
 from dash.models.controllers.carwash import CarwashController
 from dash.models.controllers.controller import Controller, ControllerType
+from dash.models.controllers.dummy import DummyController
 from dash.models.controllers.fiscalizer import FiscalizerController
 from dash.models.controllers.laundry import LaundryController
 from dash.models.controllers.vacuum import VacuumController
@@ -43,6 +44,7 @@ from dash.services.controller.dto import (
     GetEnergyStatsResponse,
     PublicCarCleanerScheme,
     PublicCarwashScheme,
+    PublicDummyScheme,
     PublicFiscalizerScheme,
     PublicLaundryScheme,
     PublicWsmScheme,
@@ -161,6 +163,9 @@ class ControllerService:
         if data.type is ControllerType.CAR_CLEANER:
             controller = CarCleanerController(**controller_dict)
 
+        if data.type is ControllerType.DUMMY:
+            controller = DummyController(**controller_dict)
+
         await self.factory.get(controller.type).sync_settings_infra(controller)
 
         self.controller_repository.add(controller)
@@ -276,6 +281,8 @@ class ControllerService:
             controller_scheme = PublicLaundryScheme.model_validate(controller)
         elif controller.type is ControllerType.CAR_CLEANER:
             controller_scheme = PublicCarCleanerScheme.model_validate(controller)
+        elif controller.type is ControllerType.DUMMY:
+            controller_scheme = PublicDummyScheme.model_validate(controller)
         else:
             raise ValueError("This controller type is not supported yet")
 

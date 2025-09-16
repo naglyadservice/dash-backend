@@ -103,6 +103,8 @@ class DashboardService:
             company_id=data.company_id,
             location_id=data.location_id,
             controller_id=data.controller_id,
+            date_from=data.date_from,
+            date_to=data.date_to,
         )
         return await self._call_by_role(
             user,
@@ -158,12 +160,7 @@ class DashboardService:
     async def _get_transaction_stats_by_role(
         self, data: ReadDashboardStatsRequest, user: AdminUser
     ):
-        stats_request = ReadTransactionStatsRequest(
-            company_id=data.company_id,
-            location_id=data.location_id,
-            controller_id=data.controller_id,
-            period=data.period,
-        )
+        stats_request = ReadTransactionStatsRequest(**data.model_dump())
         return await self._call_by_role(
             user,
             lambda: self.transaction_repository.get_stats_all(stats_request),
@@ -178,12 +175,7 @@ class DashboardService:
     async def _get_payment_stats_by_role(
         self, data: ReadDashboardStatsRequest, user: AdminUser
     ):
-        stats_request = ReadPaymentStatsRequest(
-            company_id=data.company_id,
-            location_id=data.location_id,
-            controller_id=data.controller_id,
-            period=data.period,
-        )
+        stats_request = ReadPaymentStatsRequest(**data.model_dump())
         return await self._call_by_role(
             user,
             lambda: self.payment_repository.get_stats_all(stats_request),

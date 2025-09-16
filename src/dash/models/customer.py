@@ -2,7 +2,15 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, Numeric, UniqueConstraint, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Numeric,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from dash.models.base import Base, TimestampMixin, UUIDMixin
@@ -16,10 +24,13 @@ class Customer(Base, UUIDMixin, TimestampMixin):
     phone_number: Mapped[str] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()
     card_id: Mapped[str | None] = mapped_column()
+    readable_card_code: Mapped[str | None] = mapped_column()
     balance: Mapped[Decimal] = mapped_column(
         Numeric(10, 2, asdecimal=True), default=Decimal("0.00")
     )
-    last_balance_update: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), default=func.now())
+    last_balance_update: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), default=func.now()
+    )
     tariff_per_liter_1: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 2, asdecimal=True)
     )

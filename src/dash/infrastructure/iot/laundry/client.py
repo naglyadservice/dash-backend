@@ -28,28 +28,34 @@ class LaundryIoTClient(BaseIoTClient):
         self,
         device_id: str,
         duration_mins: int,
+        relay_id: int,
+        ouput_id: int,
         ttl: int = 10,
     ) -> dict[str, Any]:
-        return await self.set_state(
+        duration_ms = duration_mins * 60000
+        return await self._wait_for_response(
             device_id=device_id,
+            topic="client/state/set",
             payload={
-                "relay": [{"id": 1, "state": True}],
-                "output": [{"id": 1, "state": True}],
-                "duration": duration_mins * 60000,
+                "relay": [{"id": relay_id, "state": True, "duration": duration_ms}],
+                "output": [{"id": ouput_id, "state": True, "duration": duration_ms}],
             },
+            qos=1,
             ttl=ttl,
         )
 
     async def lock_button_and_turn_off_led(
         self,
         device_id: str,
-        ttl: int = 10,
-    ) -> dict[str, Any]:
-        return await self.set_state(
+        relay_id: int,
+        output_id: int,
+    ) -> None:
+        await self.send_message(
             device_id=device_id,
+            topic="client/state/set",
             payload={
-                "relay": [{"id": 1, "state": False}],
-                "output": [{"id": 1, "state": False}],
+                "relay": [{"id": relay_id, "state": False}],
+                "output": [{"id": output_id, "state": False}],
             },
-            ttl=ttl,
+            qos=1,
         )

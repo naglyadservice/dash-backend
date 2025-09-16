@@ -69,6 +69,8 @@ class LaundryBusinessSettings(BaseModel):
     price_per_minute_before_transition: int | None = None
     transition_after_minutes: int | None = None
     price_per_minute_after_transition: int | None = None
+    button_relay_id: int | None = None
+    led_output_id: int | None = None
 
 
 class UpdateLaudnrySettingsRequest(ControllerID):

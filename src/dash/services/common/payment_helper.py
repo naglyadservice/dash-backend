@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 from uuid import UUID
 
 from uuid_utils.compat import uuid7
@@ -36,6 +37,8 @@ class PaymentHelper:
         gateway_type: PaymentGatewayType | None = None,
         invoice_id: str | None = None,
         transaction_id: UUID | None = None,
+        masked_pan: str | None = None,
+        extra: dict[str, Any] | None = None,
     ) -> Payment:
         payment = Payment(
             controller_id=controller_id,
@@ -46,6 +49,8 @@ class PaymentHelper:
             status=status,
             gateway_type=gateway_type,
             invoice_id=invoice_id,
+            masked_pan=masked_pan,
+            extra=extra,
         )
         return payment
 

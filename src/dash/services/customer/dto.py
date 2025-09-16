@@ -12,6 +12,7 @@ class BaseCustomer(BaseModel):
     phone_number: str
     name: str | None
     card_id: str | None
+    readable_card_code: str | None
     birth_date: date | None
     discount_percent: int | None
     tariff_per_liter_1: float | None
@@ -28,6 +29,7 @@ class CreateCustomerResponse(BaseModel):
 
 class EditCustomerDTO(BaseModel):
     card_id: str | None = None
+    readable_card_code: str | None = None
     balance: float | None = None
     discount_percent: int | None = None
     tariff_per_liter_1: float | None = None

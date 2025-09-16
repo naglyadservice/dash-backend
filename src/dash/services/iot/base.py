@@ -52,6 +52,10 @@ class BaseIoTService(ABC):
     async def _get_controller(self, controller_id: UUID) -> Controller:
         raise NotImplementedError
 
+    @property
+    def should_hold_money(self) -> bool:
+        return True
+
     async def sync_settings_infra(self, controller: Controller) -> None:
         config = await self.iot_client.get_config(controller.device_id)
         config.pop("request_id")
@@ -225,6 +229,7 @@ class BaseIoTService(ABC):
             controller=controller,
             amount=data.amount,
             gateway_type=data.gateway_type,
+            hold_money=self.should_hold_money,
         )
         payment = self.payment_helper.create_payment(
             controller_id=controller.id,

@@ -79,7 +79,7 @@ async def test_session_fixed(
     await deps.service.process_hold_status(payment)
     deps.iot.unlock_button_and_turn_on_led.assert_called_once()  # type: ignore
 
-    transaction = await deps.transaction_repo.get_last_laundry(
+    transaction = await deps.transaction_repo.get_laundry_active(
         test_env.laundry_controller_fixed.id
     )
     assert transaction is not None

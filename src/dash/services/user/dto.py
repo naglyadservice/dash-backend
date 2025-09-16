@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -69,6 +70,12 @@ class RegeneratePasswordResponse(BaseModel):
     new_password: str
 
 
-class SetMessageRequest(BaseModel):
+class UpdateOwnerDTO(BaseModel):
+    subscription_paid_until: datetime | None
+    subscription_payment_details: str | None
+    subscription_amount: int | None
+    is_blocked: bool
+
+
+class UpdateOwnerRequest(UpdateOwnerDTO):
     id: UUID
-    message: str | None

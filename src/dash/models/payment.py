@@ -1,5 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import ForeignKey
@@ -51,7 +52,12 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     failure_reason: Mapped[str | None] = mapped_column()
     checkbox_error: Mapped[str | None] = mapped_column()
     created_at_controller: Mapped[datetime | None] = mapped_column()
+    extra: Mapped[dict[str, Any] | None] = mapped_column()
+    masked_pan: Mapped[str | None] = mapped_column()
 
     @property
     def receipt_url(self) -> str | None:
+        if not self.receipt_id:
+            return None
+
         return f"https://check.checkbox.ua/{self.receipt_id}"
