@@ -17,7 +17,8 @@ from dash.services.user.dto import (
     RegeneratePasswordRequest,
     RegeneratePasswordResponse,
     RemoveLocationAdminRequest,
-    SetMessageRequest,
+    UpdateOwnerDTO,
+    UpdateOwnerRequest,
 )
 from dash.services.user.service import UserService
 
@@ -86,12 +87,12 @@ class MessageDTO:
     message: str | None
 
 
-@user_router.patch(
-    "/{id}/message",
+@user_router.put(
+    "/{id}/owner",
     status_code=204,
     responses=build_responses((404, (UserNotFoundError,))),
 )
-async def set_message(
-    user_service: FromDishka[UserService], data: MessageDTO, id: UUID
+async def update_owner(
+    user_service: FromDishka[UserService], data: UpdateOwnerDTO, id: UUID
 ) -> None:
-    await user_service.set_message(SetMessageRequest(id=id, message=data.message))
+    await user_service.update_owner(UpdateOwnerRequest(id=id, **data.model_dump()))

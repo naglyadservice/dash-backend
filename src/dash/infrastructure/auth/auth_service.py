@@ -17,6 +17,7 @@ from dash.infrastructure.auth.dto import (
 from dash.infrastructure.auth.errors import (
     InvalidCredentialsError,
     InvalidVerificationCodeError,
+    UserIsBlockedError,
 )
 from dash.infrastructure.auth.password_processor import PasswordProcessor
 from dash.infrastructure.auth.sms_sender import SMSClient
@@ -26,6 +27,7 @@ from dash.infrastructure.repositories.customer import CustomerRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.infrastructure.storages.session import SessionStorage
 from dash.infrastructure.storages.verification import VerificationStorage
+from dash.models.admin_user import AdminRole
 from dash.models.customer import Customer
 from dash.services.common.errors.company import CompanyNotFoundError
 from dash.services.common.errors.user import (
@@ -62,6 +64,9 @@ class AuthService:
 
         if not self.password_processor.verify(data.password, user.password_hash):
             raise InvalidCredentialsError
+
+        if user.is_blocked and user.role != AdminRole.SUPERADMIN:
+            raise UserIsBlockedError
 
         return LoginResponse(
             access_token=self.token_processor.create_access_token(user.id),

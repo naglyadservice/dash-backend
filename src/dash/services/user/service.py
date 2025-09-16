@@ -6,7 +6,7 @@ from dash.infrastructure.repositories.location import LocationRepository
 from dash.infrastructure.repositories.user import UserRepository
 from dash.models.admin_user import AdminRole, AdminUser
 from dash.models.location_admin import LocationAdmin
-from dash.services.common.errors.base import AccessForbiddenError
+from dash.services.common.errors.base import AccessForbiddenError, ValidationError
 from dash.services.common.errors.location import LocationNotFoundError
 from dash.services.common.errors.user import EmailAlreadyTakenError, UserNotFoundError
 from dash.services.user.dto import (
@@ -19,7 +19,7 @@ from dash.services.user.dto import (
     RegeneratePasswordRequest,
     RegeneratePasswordResponse,
     RemoveLocationAdminRequest,
-    SetMessageRequest,
+    UpdateOwnerRequest,
     UserDTO,
 )
 
@@ -157,12 +157,19 @@ class UserService:
 
         return RegeneratePasswordResponse(new_password=password)
 
-    async def set_message(self, data: SetMessageRequest) -> None:
+    async def update_owner(self, data: UpdateOwnerRequest) -> None:
         await self.identity_provider.ensure_superadmin()
 
         user = await self.user_repository.get(data.id)
         if not user:
             raise UserNotFoundError
 
-        user.message = data.message
+        if user.role != AdminRole.COMPANY_OWNER:
+            raise ValidationError("User is not COMPANY_OWNER")
+
+        user.subscription_paid_until = data.subscription_paid_until
+        user.subscription_payment_details = data.subscription_payment_details
+        user.subscription_amount = data.subscription_amount
+        user.is_blocked = data.is_blocked
+
         await self.user_repository.commit()

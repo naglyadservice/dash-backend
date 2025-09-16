@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from datetime import datetime
 from uuid import UUID
 
 from dishka import FromDishka
 from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from dash.infrastructure.auth.auth_service import (
     AuthService,
@@ -65,13 +66,15 @@ async def login_customer(
     return await auth_service.authenticate_customer(data)
 
 
-@dataclass
-class UserScheme:
+class UserScheme(BaseModel):
     id: UUID
     email: str
     name: str
     role: AdminRole
-    message: str | None
+    subscription_paid_until: datetime | None
+    subscription_payment_details: str | None
+    subscription_amount: int | None
+    is_blocked: bool
 
 
 @auth_router.get(
@@ -92,13 +95,7 @@ class UserScheme:
 )
 async def me(idp: FromDishka[IdProvider]) -> UserScheme:
     user = await idp.authorize()
-    return UserScheme(
-        id=user.id,
-        email=user.email,
-        name=user.name,
-        role=user.role,
-        message=user.message,
-    )
+    return UserScheme.model_validate(user, from_attributes=True)
 
 
 @auth_router.post(
