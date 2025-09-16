@@ -16,6 +16,7 @@ from dash.presentation.iot_callbacks.common.di_injector import (
 )
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.services.common.payment_helper import PaymentHelper
+from dash.services.common.utils import unify_pan_mask
 
 logger = get_logger()
 
@@ -93,7 +94,7 @@ async def carwash_paypass_callback(
         status=PaymentStatus.COMPLETED,
         gateway_type=PaymentGatewayType.PAYPASS,
         invoice_id=data.invoice,
-        masked_pan=data.pan,
+        masked_pan=unify_pan_mask(data.pan),
         extra=Retort().dump(data),
     )
     if controller.checkbox_active:

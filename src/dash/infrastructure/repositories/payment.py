@@ -53,6 +53,14 @@ class PaymentRepository(BaseRepository):
         if data.location_id is not None:
             stmt = stmt.where(Payment.location_id == data.location_id)
 
+        if (pan := data.masked_pan) is not None:
+            if not pan.startswith("*"):
+                search_pattern = f"{pan[:4]}%{pan[-2:]}"
+            else:
+                search_pattern = f"%{pan[-4:]}"
+
+            stmt = stmt.where(Payment.masked_pan.like(search_pattern))
+
         if whereclause is not None:
             stmt = stmt.where(whereclause)
 

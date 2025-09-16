@@ -25,6 +25,7 @@ from dash.services.common.errors.controller import (
     InsufficientDepositAmountError,
     UnsupportedPaymentGatewayTypeError,
 )
+from dash.services.common.utils import unify_pan_mask
 from dash.services.iot.base import CreateInvoiceRequest, CreateInvoiceResponse
 from dash.services.iot.factory import IoTServiceFactory
 
@@ -107,7 +108,7 @@ async def monopay_webhook(
     status = dict_data["status"]
 
     if pan := await monopay_service.request_pan(invoice_id, controller):
-        payment.masked_pan = pan
+        payment.masked_pan = unify_pan_mask(pan)
 
     if status == "hold":
         await service.process_hold_status(payment)
@@ -181,7 +182,7 @@ async def liqpay_webhook(
     service = factory.get(controller.type)
 
     if pan := dict_data.get("sender_card_mask2"):
-        payment.masked_pan = pan
+        payment.masked_pan = unify_pan_mask(pan)
 
     if status == "hold_wait":
         await service.process_hold_status(payment)

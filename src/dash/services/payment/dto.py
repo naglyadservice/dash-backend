@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from dash.models.payment import PaymentStatus, PaymentType, PaymentGatewayType
 from dash.services.common.errors.base import ValidationError
@@ -61,6 +61,7 @@ class PublicPaymentScheme(BaseModel):
 class ReadPaymentListRequest(Pagination, BasePaymentFilters):
     date_from: datetime | None = None
     date_to: datetime | None = None
+    masked_pan: str | None = Field(default=None, min_length=16, max_length=16)
 
     @model_validator(mode="before")
     @classmethod
