@@ -90,7 +90,7 @@ async def carwash_paypass_callback(
         location_id=controller.location_id,
         amount=int(data.amount),
         payment_type=PaymentType.CASHLESS,
-        status=PaymentStatus.CREATED,
+        status=PaymentStatus.COMPLETED,
         gateway_type=PaymentGatewayType.PAYPASS,
         invoice_id=data.invoice,
         masked_pan=data.pan,
