@@ -28,6 +28,9 @@ class UserDTO(BaseModel):
     role: AdminRole
     locations: list[LocationDTO] | None
     message: str | None
+    subscription_paid_until: datetime | None
+    subscription_payment_details: str | None
+    subscription_amount: int | None
 
     model_config = ConfigDict(from_attributes=True)
 
