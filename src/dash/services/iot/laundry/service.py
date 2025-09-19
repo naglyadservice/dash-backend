@@ -122,6 +122,7 @@ class LaundryService(BaseIoTService):
             controller=controller,
             amount=amount,
             gateway_type=data.gateway_type,
+            redirect_url=data.redirect_url,
             hold_money=should_hold_money,
         )
         payment = self.payment_helper.create_payment(

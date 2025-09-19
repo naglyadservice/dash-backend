@@ -10,6 +10,7 @@ class PaymentGateway(Protocol):
         self,
         controller: Controller,
         amount: int,
+        redirect_url: str,
         hold_money: bool = True,
     ) -> CreateInvoiceResponse:
         raise NotImplementedError

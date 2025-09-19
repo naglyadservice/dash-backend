@@ -62,6 +62,7 @@ class LiqpayGateway(PaymentGateway):
         self,
         controller: Controller,
         amount: int,
+        redirect_url: str,
         hold_money: bool = True,
     ) -> CreateInvoiceResponse:
         invoice_id = str(uuid.uuid4())
@@ -73,7 +74,7 @@ class LiqpayGateway(PaymentGateway):
             "description": f"Поповнення для {controller.name}",
             "order_id": str(invoice_id),
             "version": "3",
-            "result_url": self.config.redirect_url,
+            "result_url": redirect_url,
             "server_url": self.config.webhook_url,
         }
         params = self._prepare_data(

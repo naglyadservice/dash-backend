@@ -69,10 +69,13 @@ class PaymentHelper:
         controller: Controller,
         amount: int,
         gateway_type: PaymentGatewayType,
+        redirect_url: str,
         hold_money: bool = True,
     ) -> CreateInvoiceResponse:
         gateway = self._get_payment_gateway(gateway_type)
-        return await gateway.create_invoice(controller, amount, hold_money)
+        return await gateway.create_invoice(
+            controller, amount, redirect_url, hold_money
+        )
 
     async def refund(self, controller: Controller, payment: Payment) -> None:
         gateway = self._get_payment_gateway(payment.gateway_type)

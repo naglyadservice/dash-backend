@@ -158,6 +158,7 @@ class AmountDTO(BaseModel):
 
 class CreateInvoiceRequest(ControllerID, AmountDTO):
     gateway_type: Literal[PaymentGatewayType.LIQPAY, PaymentGatewayType.MONOPAY]
+    redirect_url: str
 
 
 class CreateInvoiceResponse(BaseModel):

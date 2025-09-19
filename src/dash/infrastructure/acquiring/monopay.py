@@ -113,7 +113,11 @@ class MonopayGateway(PaymentGateway):
         raise HTTPException(status_code=400, detail="Invalid signature")
 
     async def create_invoice(
-        self, controller: Controller, amount: int, hold_money: bool = True
+        self,
+        controller: Controller,
+        amount: int,
+        redirect_url: str,
+        hold_money: bool = True,
     ) -> CreateInvoiceResponse:
         token = self._require_token(controller)
         response, status = await self.make_request(
@@ -123,7 +127,7 @@ class MonopayGateway(PaymentGateway):
                 "amount": amount,
                 "ccy": 980,
                 "webHookUrl": self.config.webhook_url,
-                "redirectUrl": self.config.redirect_url,
+                "redirectUrl": redirect_url,
                 "paymentType": "hold" if hold_money else "debit",
             },
             headers=self._prepare_headers(token),

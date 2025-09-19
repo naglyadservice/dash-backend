@@ -11,6 +11,7 @@ from dash.services.iot.dto import IoTControllerBaseDTO
 
 class CreateLaundryInvoiceRequest(ControllerID):
     gateway_type: Literal[PaymentGatewayType.MONOPAY, PaymentGatewayType.LIQPAY]
+    redirect_url: str
 
 
 class LaundryState(BaseModel):
