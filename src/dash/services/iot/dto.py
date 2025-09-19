@@ -152,8 +152,11 @@ class SyncSettingsResponse(BaseModel):
     settings: dict[str, Any]
 
 
-class CreateInvoiceRequest(ControllerID):
-    amount: int
+class AmountDTO(BaseModel):
+    amount: int = Field(gt=0)
+
+
+class CreateInvoiceRequest(ControllerID, AmountDTO):
     gateway_type: Literal[PaymentGatewayType.LIQPAY, PaymentGatewayType.MONOPAY]
 
 

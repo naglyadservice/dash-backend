@@ -3,6 +3,7 @@ from uuid import UUID
 from dash.infrastructure.auth.id_provider import IdProvider
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.models.controllers.dummy import DummyController
+from dash.models.payment import PaymentStatus, PaymentType
 from dash.services.common.dto import ControllerID
 from dash.services.common.errors.controller import (
     ControllerNotFoundError,
@@ -22,6 +23,7 @@ from dash.services.iot.dto import (
     SyncSettingsRequest,
 )
 from dash.services.iot.dummy.dto import (
+    AddCashPaymentRequest,
     DummyControllerIoTScheme,
     SetDummyDescriptionRequest,
 )
@@ -109,3 +111,19 @@ class DummyService(BaseIoTService):
     @property
     def should_hold_money(self) -> bool:
         return False
+
+    async def add_cash_payment(self, data: AddCashPaymentRequest) -> None:
+        controller = await self._get_controller(data.controller_id)
+        await self.identity_provider.ensure_location_admin(controller.location_id)
+
+        payment = self.payment_helper.create_payment(
+            controller_id=controller.id,
+            location_id=controller.location_id,
+            payment_type=PaymentType.CASH,
+            status=PaymentStatus.COMPLETED,
+            amount=data.amount,
+        )
+        if controller.checkbox_active and controller.fiscalize_cash:
+            await self.payment_helper.fiscalize(controller, payment)
+
+        await self.payment_helper.save_and_commit(payment)

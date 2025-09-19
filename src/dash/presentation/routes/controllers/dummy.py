@@ -6,14 +6,15 @@ from dishka.integrations.fastapi import DishkaRoute
 from fastapi import APIRouter, Depends
 
 from dash.presentation.bearer import bearer_scheme
-from dash.presentation.response_builder import build_responses, controller_errors
+from dash.presentation.response_builder import build_responses
 from dash.services.common.errors.controller import ControllerNotFoundError
 from dash.services.iot.dummy.dto import (
+    AddCashPaymentRequest,
     DummyControllerIoTScheme,
     SetDummyDescriptionRequest,
 )
 from dash.services.iot.dummy.service import DummyService
-from dash.services.iot.dto import ControllerID
+from dash.services.iot.dto import AmountDTO, ControllerID
 
 dummy_router = APIRouter(
     prefix="/dummy",
@@ -42,7 +43,7 @@ class DescriptionDTO:
 @dummy_router.put(
     "/{controller_id}/description",
     status_code=204,
-    responses=build_responses(*controller_errors),
+    responses=build_responses((404, (ControllerNotFoundError,))),
 )
 async def set_description(
     service: FromDishka[DummyService],
@@ -53,3 +54,17 @@ async def set_description(
         controller_id=controller_id, description=data.description
     )
     await service.set_description(dto)
+
+
+@dummy_router.post(
+    "/{controller_id}/cash",
+    status_code=204,
+    responses=build_responses((404, (ControllerNotFoundError,))),
+)
+async def add_cash_payment(
+    service: FromDishka[DummyService],
+    controller_id: UUID,
+    data: AmountDTO,
+) -> None:
+    dto = AddCashPaymentRequest(controller_id=controller_id, amount=data.amount)
+    await service.add_cash_payment(dto)
