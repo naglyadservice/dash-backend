@@ -40,7 +40,6 @@ class LaundryMqttSettings(BaseModel):
 
 class LaundryIoTControllerScheme(IoTControllerBaseDTO):
     type: Literal[ControllerType.LAUNDRY]
-    input_id: int
     tariff_type: LaundryTariffType
     timeout_minutes: int
     laundry_status: LaundryStatus
@@ -50,6 +49,10 @@ class LaundryIoTControllerScheme(IoTControllerBaseDTO):
     price_per_minute_before_transition: int
     transition_after_minutes: int
     price_per_minute_after_transition: int
+    
+    input_id: int
+    button_relay_id: int
+    led_output_id: int
 
     config: LaundryConfig | None
     settings: LaundryMqttSettings | None
