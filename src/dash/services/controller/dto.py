@@ -46,6 +46,7 @@ class ControllerScheme(BaseModel):
     id: UUID
     device_id: str
     location_id: UUID | None
+    company_id: UUID | None
     name: str
     version: str
     type: ControllerType
