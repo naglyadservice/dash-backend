@@ -19,7 +19,7 @@ class RegisterUserResponse:
 
 @dataclass
 class LoginRequest:
-    email: EmailStr
+    email: str
     password: str
 
 
