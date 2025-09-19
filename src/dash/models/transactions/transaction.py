@@ -45,7 +45,7 @@ class Transaction(Base, UUIDMixin, CreatedAtMixin):
     card_balance_out: Mapped[int | None] = mapped_column()
     card_uid: Mapped[str | None] = mapped_column()
 
-    customer: Mapped["Customer"] = relationship(lazy="joined")
+    customer: Mapped["Customer | None"] = relationship(lazy="joined")
 
     __mapper_args__ = {"polymorphic_on": type, "polymorphic_identity": "transaction"}
 

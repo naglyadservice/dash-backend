@@ -33,6 +33,6 @@ class LaundryTransaction(Transaction):
     refund_amount: Mapped[int | None] = mapped_column()
     final_amount: Mapped[int] = mapped_column()
 
-    payment: Mapped[Payment] = relationship(lazy="joined")
+    payment: Mapped["Payment"] = relationship(lazy="joined")
 
     __mapper_args__ = {"polymorphic_identity": TransactionType.LAUNDRY.value}

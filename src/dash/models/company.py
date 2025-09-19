@@ -28,4 +28,6 @@ class Company(Base, UUIDMixin, CreatedAtMixin):
     locations: Mapped[list["Location"]] = relationship(
         back_populates="company", cascade="all, delete"
     )
-    owner: Mapped["AdminUser"] = relationship(back_populates="companies", lazy="joined")
+    owner: Mapped["AdminUser | None"] = relationship(
+        back_populates="companies", lazy="joined"
+    )

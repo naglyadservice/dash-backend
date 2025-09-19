@@ -44,7 +44,7 @@ class CompanyOwnerDTO(BaseModel):
 class CompanyScheme(BaseModel):
     id: UUID
     name: str
-    owner: CompanyOwnerDTO
+    owner: CompanyOwnerDTO | None
     offer_agreement: str | None
     privacy_policy: str | None
     about: str | None

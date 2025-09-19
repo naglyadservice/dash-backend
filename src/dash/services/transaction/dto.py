@@ -30,7 +30,7 @@ class TransactionBase(BaseModel):
     id: UUID
     type: TransactionType
     controller_transaction_id: int
-    controller_id: UUID
+    controller_id: UUID | None
     location_id: UUID | None
     coin_amount: int
     bill_amount: int
