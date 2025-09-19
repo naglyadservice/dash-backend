@@ -10,7 +10,7 @@ class DummyController(Controller):
     __tablename__ = "dummy_controllers"
 
     controller_id: Mapped[UUID] = mapped_column(
-        ForeignKey("controllers.id"), primary_key=True
+        ForeignKey("controllers.id", ondelete="CASCADE"), primary_key=True
     )
     description: Mapped[str | None] = mapped_column()
 

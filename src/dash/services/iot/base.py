@@ -49,7 +49,7 @@ class BaseIoTService(ABC):
         self.payment_helper = payment_helper
 
     @abstractmethod
-    async def _get_controller(self, controller_id: UUID) -> Controller:
+    async def _get_controller(self, controller_id: UUID | None) -> Controller:
         raise NotImplementedError
 
     @property
@@ -243,6 +243,9 @@ class BaseIoTService(ABC):
         return invoice_result
 
     async def process_hold_status(self, payment: Payment) -> None:
+        if not payment.controller_id:
+            return
+
         payment.status = PaymentStatus.HOLD
         controller = await self._get_controller(payment.controller_id)
         try:

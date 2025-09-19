@@ -41,3 +41,6 @@ class CompanyRepository(BaseRepository):
     async def get_list_by_owner(self, owner_id: UUID) -> Sequence[Company]:
         whereclause = Company.owner_id == owner_id
         return await self._get_list(whereclause)
+
+    async def delete(self, company: Company) -> None:
+        await self.session.delete(company)

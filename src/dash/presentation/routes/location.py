@@ -10,6 +10,7 @@ from dash.services.common.errors.company import CompanyNotFoundError
 from dash.services.location.dto import (
     CreateLocationRequest,
     CreateLocationResponse,
+    DeleteLocationRequest,
     EditLocationDTO,
     EditLocationRequest,
     ReadLocationListRequest,
@@ -59,3 +60,16 @@ async def edit_location(
     return await service.edit_location(
         EditLocationRequest(location_id=location_id, data=data)
     )
+
+
+@location_router.delete(
+    "/{location_id}",
+    status_code=204,
+    responses=build_responses(
+        (404, (CompanyNotFoundError,)),
+    ),
+)
+async def delete_location(
+    service: FromDishka[LocationService], data: DeleteLocationRequest = Depends()
+) -> None:
+    return await service.delete(data)

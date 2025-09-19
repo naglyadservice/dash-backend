@@ -49,7 +49,7 @@ class LaundryIoTControllerScheme(IoTControllerBaseDTO):
     price_per_minute_before_transition: int
     transition_after_minutes: int
     price_per_minute_after_transition: int
-    
+
     input_id: int
     button_relay_id: int
     led_output_id: int

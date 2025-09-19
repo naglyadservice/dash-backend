@@ -21,7 +21,7 @@ class TransactionType(StrEnum):
 class Transaction(Base, UUIDMixin, CreatedAtMixin):
     __tablename__ = "transactions"
 
-    controller_id: Mapped[UUID] = mapped_column(
+    controller_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("controllers.id", ondelete="SET NULL")
     )
     controller_transaction_id: Mapped[int | None] = mapped_column()

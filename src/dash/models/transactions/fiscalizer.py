@@ -10,7 +10,7 @@ class FiscalizerTransaction(Transaction):
     __tablename__ = "fiscalizer_transactions"
 
     transaction_id: Mapped[UUID] = mapped_column(
-        ForeignKey("transactions.id"), primary_key=True
+        ForeignKey("transactions.id", ondelete="CASCADE"), primary_key=True
     )
 
     __mapper_args__ = {"polymorphic_identity": TransactionType.FISCALIZER.value}

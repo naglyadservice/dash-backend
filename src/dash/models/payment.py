@@ -35,7 +35,7 @@ class Payment(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "payments"
 
     invoice_id: Mapped[str | None] = mapped_column(unique=True)
-    controller_id: Mapped[UUID] = mapped_column(
+    controller_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("controllers.id", ondelete="SET NULL")
     )
     location_id: Mapped[UUID | None] = mapped_column(

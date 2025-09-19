@@ -10,7 +10,7 @@ class WaterVendingController(Controller):
     __tablename__ = "water_vending_controllers"
 
     controller_id: Mapped[UUID] = mapped_column(
-        ForeignKey("controllers.id"), primary_key=True
+        ForeignKey("controllers.id", ondelete="CASCADE"), primary_key=True
     )
 
     @property

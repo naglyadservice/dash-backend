@@ -14,7 +14,9 @@ if TYPE_CHECKING:
 class Company(Base, UUIDMixin, CreatedAtMixin):
     __tablename__ = "companies"
 
-    owner_id: Mapped[UUID] = mapped_column(ForeignKey("admin_users.id"))
+    owner_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("admin_users.id", ondelete="SET NULL")
+    )
     name: Mapped[str] = mapped_column()
     privacy_policy: Mapped[str | None] = mapped_column()
     offer_agreement: Mapped[str | None] = mapped_column()
@@ -23,5 +25,7 @@ class Company(Base, UUIDMixin, CreatedAtMixin):
     phone_number: Mapped[str | None] = mapped_column()
     email: Mapped[str | None] = mapped_column()
 
-    locations: Mapped[list["Location"]] = relationship(back_populates="company")
+    locations: Mapped[list["Location"]] = relationship(
+        back_populates="company", cascade="all, delete"
+    )
     owner: Mapped["AdminUser"] = relationship(back_populates="companies", lazy="joined")

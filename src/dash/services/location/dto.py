@@ -65,3 +65,7 @@ class EditLocationRequest(BaseModel):
 class AttachLocationToCompanyRequest(BaseModel):
     location_id: UUID
     company_id: UUID
+
+
+class DeleteLocationRequest(BaseModel):
+    location_id: UUID

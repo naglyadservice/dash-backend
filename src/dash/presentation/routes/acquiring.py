@@ -97,7 +97,7 @@ async def monopay_webhook(
     await storage.set_last_modified_date(invoice_id, current_modified_date)
 
     payment = await payment_repository.get_by_invoice_id(invoice_id)
-    if not payment:
+    if not payment or not payment.controller_id:
         return
 
     controller = await controller_repository.get(payment.controller_id)
@@ -162,7 +162,7 @@ async def liqpay_webhook(
     logger.info(f"Liqpay webhook request", data=dict_data)
 
     payment = await payment_repository.get_by_invoice_id(invoice_id)
-    if not payment:
+    if not payment or not payment.controller_id:
         return
 
     controller = await controller_repository.get(payment.controller_id)

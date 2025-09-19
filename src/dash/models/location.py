@@ -13,7 +13,9 @@ if TYPE_CHECKING:
 class Location(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "locations"
 
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"))
+    company_id: Mapped[UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE")
+    )
     name: Mapped[str] = mapped_column()
     address: Mapped[str | None] = mapped_column()
 

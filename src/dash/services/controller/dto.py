@@ -276,3 +276,7 @@ class GetEnergyStatsResponse(BaseModel):
 
 class SetMinDepositAmountRequest(ControllerID):
     min_deposit_amount: int
+
+
+class DeleteControllerRequest(ControllerID):
+    pass

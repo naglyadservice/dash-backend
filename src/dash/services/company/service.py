@@ -13,6 +13,7 @@ from dash.services.company.dto import (
     CompanyScheme,
     CreateCompanyRequest,
     CreateCompanyResponse,
+    DeleteCompanyRequest,
     DeleteLogoRequest,
     EditCompanyRequest,
     PublicCompanyScheme,
@@ -131,8 +132,17 @@ class CompanyService:
 
     async def read_public_company(self, data: ReadCompanyPublicRequest):
         company = await self.company_repository.get_with_locations(data.company_id)
-
         if not company:
             raise CompanyNotFoundError
 
         return PublicCompanyScheme.model_validate(company)
+
+    async def delete(self, data: DeleteCompanyRequest) -> None:
+        await self.identity_provider.ensure_superadmin()
+
+        company = await self.company_repository.get_with_locations(data.company_id)
+        if not company:
+            raise CompanyNotFoundError
+
+        await self.company_repository.delete(company)
+        await self.company_repository.commit()

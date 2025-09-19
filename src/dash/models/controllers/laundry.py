@@ -22,7 +22,7 @@ class LaundryController(Controller):
     __tablename__ = "laundry_controllers"
 
     controller_id: Mapped[UUID] = mapped_column(
-        ForeignKey("controllers.id"), primary_key=True
+        ForeignKey("controllers.id", ondelete="CASCADE"), primary_key=True
     )
     input_id: Mapped[int] = mapped_column(default=1)
     tariff_type: Mapped[LaundryTariffType] = mapped_column(

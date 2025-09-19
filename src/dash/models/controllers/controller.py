@@ -34,7 +34,9 @@ class Controller(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "controllers"
 
     device_id: Mapped[str] = mapped_column(unique=True)
-    location_id: Mapped[UUID | None] = mapped_column(ForeignKey("locations.id"))
+    location_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("locations.id", ondelete="SET NULL")
+    )
     type: Mapped[ControllerType] = mapped_column()
     name: Mapped[str] = mapped_column()
     version: Mapped[str] = mapped_column()

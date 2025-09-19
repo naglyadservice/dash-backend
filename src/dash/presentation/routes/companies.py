@@ -14,6 +14,7 @@ from dash.services.common.errors.user import UserNotFoundError
 from dash.services.company.dto import (
     CreateCompanyRequest,
     CreateCompanyResponse,
+    DeleteCompanyRequest,
     DeleteLogoRequest,
     EditCompanyDTO,
     EditCompanyRequest,
@@ -119,3 +120,15 @@ async def attach_location_to_company(
             location_id=data.location_id, company_id=company_id
         )
     )
+
+
+@company_router.delete(
+    "/{company_id}",
+    status_code=204,
+    responses=build_responses((404, (CompanyNotFoundError,))),
+    dependencies=[bearer_scheme],
+)
+async def delete_company(
+    service: FromDishka[CompanyService], data: DeleteCompanyRequest = Depends()
+) -> None:
+    return await service.delete(data)

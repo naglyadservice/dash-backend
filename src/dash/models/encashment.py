@@ -10,7 +10,9 @@ from dash.models.base import Base, TimestampMixin, UUIDMixin
 class Encashment(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "encashments"
 
-    controller_id: Mapped[UUID] = mapped_column(ForeignKey("controllers.id"))
+    controller_id: Mapped[UUID] = mapped_column(
+        ForeignKey("controllers.id", ondelete="CASCADE")
+    )
     coin_1: Mapped[int] = mapped_column()
     coin_2: Mapped[int] = mapped_column()
     coin_3: Mapped[int] = mapped_column()

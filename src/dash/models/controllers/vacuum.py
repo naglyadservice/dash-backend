@@ -10,7 +10,7 @@ class VacuumController(Controller):
     __tablename__ = "vacuum_controllers"
 
     controller_id: Mapped[UUID] = mapped_column(
-        ForeignKey("controllers.id"), primary_key=True
+        ForeignKey("controllers.id", ondelete="CASCADE"), primary_key=True
     )
 
     @property

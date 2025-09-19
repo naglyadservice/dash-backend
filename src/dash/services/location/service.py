@@ -12,6 +12,7 @@ from dash.services.location.dto import (
     AttachLocationToCompanyRequest,
     CreateLocationRequest,
     CreateLocationResponse,
+    DeleteLocationRequest,
     EditLocationRequest,
     LocationScheme,
     ReadLocationListRequest,
@@ -111,4 +112,14 @@ class LocationService:
             raise LocationNotFoundError
 
         location.company_id = data.company_id
+        await self.location_repository.commit()
+
+    async def delete(self, data: DeleteLocationRequest) -> None:
+        await self.identity_provider.ensure_superadmin()
+
+        location = await self.location_repository.get(data.location_id)
+        if not location:
+            raise LocationNotFoundError
+
+        await self.location_repository.delete(location)
         await self.location_repository.commit()

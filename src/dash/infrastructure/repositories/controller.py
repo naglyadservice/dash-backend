@@ -247,3 +247,6 @@ class ControllerRepository(BaseRepository):
             select(LocationAdmin.location_id).where(LocationAdmin.user_id == user_id)
         )
         return await self._get_list(data, whereclause)
+
+    async def delete(self, controller: Controller) -> None:
+        await self.session.delete(controller)

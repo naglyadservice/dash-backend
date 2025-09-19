@@ -38,6 +38,7 @@ from dash.services.controller.dto import (
     AddMonopayCredentialsRequest,
     CloseEncashmentRequest,
     ControllerScheme,
+    DeleteControllerRequest,
     EditControllerRequest,
     EncashmentScheme,
     GetEnergyStatsRequest,
@@ -363,3 +364,10 @@ class ControllerService:
         await self.identity_provider.ensure_location_admin(controller.location_id)
 
         return await self.energy_repository.get_stats(data)
+
+    async def delete(self, data: DeleteControllerRequest) -> None:
+        await self.identity_provider.ensure_superadmin()
+
+        controller = await self._get_controller(data.controller_id)
+        await self.controller_repository.delete(controller)
+        await self.controller_repository.commit()

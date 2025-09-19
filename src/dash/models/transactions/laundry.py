@@ -22,7 +22,7 @@ class LaundryTransaction(Transaction):
     __tablename__ = "laundry_transactions"
 
     transaction_id: Mapped[UUID] = mapped_column(
-        ForeignKey("transactions.id"), primary_key=True
+        ForeignKey("transactions.id", ondelete="CASCADE"), primary_key=True
     )
     payment_id: Mapped[UUID] = mapped_column(ForeignKey("payments.id"))
     tariff_type: Mapped[LaundryTariffType] = mapped_column()

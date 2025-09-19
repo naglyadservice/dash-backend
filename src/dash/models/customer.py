@@ -19,7 +19,9 @@ from dash.models.base import Base, TimestampMixin, UUIDMixin
 class Customer(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "customers"
 
-    company_id: Mapped[UUID] = mapped_column(ForeignKey("companies.id"))
+    company_id: Mapped[UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE")
+    )
     name: Mapped[str | None] = mapped_column()
     phone_number: Mapped[str] = mapped_column()
     password_hash: Mapped[str | None] = mapped_column()

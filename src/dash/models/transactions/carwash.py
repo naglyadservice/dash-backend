@@ -11,7 +11,7 @@ class CarwashTransaction(Transaction):
     __tablename__ = "carwash_transactions"
 
     transaction_id: Mapped[UUID] = mapped_column(
-        ForeignKey("transactions.id"), primary_key=True
+        ForeignKey("transactions.id", ondelete="CASCADE"), primary_key=True
     )
     services_sold_seconds: Mapped[dict[str, Any]] = mapped_column()
     tariff: Mapped[dict[str, Any]] = mapped_column()

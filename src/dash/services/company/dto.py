@@ -90,3 +90,7 @@ class ReadCompanyPublicRequest(BaseModel):
 
 class PublicCompanyScheme(PublicCompanyDTO):
     locations: list[PublicLocationDTO]
+
+
+class DeleteCompanyRequest(BaseModel):
+    company_id: UUID

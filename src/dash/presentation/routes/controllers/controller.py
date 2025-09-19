@@ -26,6 +26,7 @@ from dash.services.controller.dto import (
     AddMonopayCredentialsRequest,
     CheckboxCredentialsDTO,
     CloseEncashmentRequest,
+    DeleteControllerRequest,
     EditControllerDTO,
     EditControllerRequest,
     GetEnergyStatsRequest,
@@ -255,3 +256,13 @@ async def set_min_deposit_amount(
             controller_id=controller_id, min_deposit_amount=data.amount
         )
     )
+
+
+@controller_router.delete(
+    "/{controller_id}", status_code=204, dependencies=[bearer_scheme]
+)
+async def delete_controller(
+    controller_service: FromDishka[ControllerService],
+    data: DeleteControllerRequest = Depends(),
+) -> None:
+    await controller_service.delete(data)

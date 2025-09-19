@@ -59,7 +59,10 @@ class LaundryService(BaseIoTService):
         self.iot_storage = iot_storage
         self.check_online = check_online_interactor
 
-    async def _get_controller(self, controller_id: UUID) -> LaundryController:
+    async def _get_controller(self, controller_id: UUID | None) -> LaundryController:
+        if not controller_id:
+            raise ControllerNotFoundError
+
         controller = await self.controller_repository.get_laundry(controller_id)
 
         if not controller:
