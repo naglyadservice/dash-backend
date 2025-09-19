@@ -189,6 +189,9 @@ class LaundryService(BaseIoTService):
                     payment=transaction.payment,
                     amount=transaction.payment.amount,
                 )
+                transaction.final_amount = (
+                    transaction.hold_amount or transaction.qr_amount
+                )
 
         await self.controller_repository.commit()
 

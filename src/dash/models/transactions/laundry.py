@@ -6,6 +6,7 @@ from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from dash.models.payment import Payment
+from dash.models.controllers.laundry import LaundryTariffType
 from dash.models.transactions.transaction import Transaction, TransactionType
 
 
@@ -24,7 +25,7 @@ class LaundryTransaction(Transaction):
         ForeignKey("transactions.id"), primary_key=True
     )
     payment_id: Mapped[UUID] = mapped_column(ForeignKey("payments.id"))
-    tariff_type: Mapped[str] = mapped_column()
+    tariff_type: Mapped[LaundryTariffType] = mapped_column()
     session_status: Mapped[LaundrySessionStatus] = mapped_column()
     session_start_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     session_end_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
