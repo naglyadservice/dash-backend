@@ -71,6 +71,7 @@ async def test_session_fixed(
         CreateLaundryInvoiceRequest(
             controller_id=test_env.laundry_controller_fixed.id,
             gateway_type=PaymentGatewayType.LIQPAY,
+            redirect_url="test",
         )
     )
     payment = await deps.payment_repo.get_by_invoice_id(result.invoice_id)

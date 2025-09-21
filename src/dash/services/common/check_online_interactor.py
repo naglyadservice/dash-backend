@@ -12,7 +12,6 @@ class CheckOnlineInteractor:
         if controller.type == ControllerType.DUMMY:
             return True
 
-        broker_online = await self.iot_storage.is_online(controller.device_id)
         state = await self.iot_storage.get_state(controller.id)
 
         if state and datetime.fromisoformat(state["created"]) + timedelta(
@@ -20,4 +19,4 @@ class CheckOnlineInteractor:
         ) < datetime.now(UTC):
             return False
 
-        return broker_online
+        return await self.iot_storage.is_online(controller.device_id)

@@ -38,8 +38,12 @@ class BaseControllerFilters(BaseModel):
         return values
 
 
-class ReadControllerListRequest(Pagination, BaseControllerFilters):
+class ReadPaginatedControllerListRequest(Pagination, BaseControllerFilters):
     type: ControllerType | None = None
+
+
+class ReadControllerListRequest(ReadPaginatedControllerListRequest):
+    limit: int | None = None
 
 
 class ControllerScheme(BaseModel):

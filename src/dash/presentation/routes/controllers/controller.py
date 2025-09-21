@@ -35,6 +35,7 @@ from dash.services.controller.dto import (
     LocationID,
     MonopayCredentialsDTO,
     ReadControllerListRequest,
+    ReadPaginatedControllerListRequest,
     ReadControllerResponse,
     ReadEncashmentListRequest,
     ReadEncashmentListResponse,
@@ -57,9 +58,11 @@ controller_router = APIRouter(
 @controller_router.get("", dependencies=[bearer_scheme])
 async def read_controllers(
     controller_service: FromDishka[ControllerService],
-    data: ReadControllerListRequest = Depends(),
+    data: ReadPaginatedControllerListRequest = Depends(),
 ) -> ReadControllerResponse:
-    return await controller_service.read_controllers(data)
+    return await controller_service.read_controllers(
+        ReadControllerListRequest(**data.model_dump())
+    )
 
 
 @controller_router.post(

@@ -54,7 +54,7 @@ class DashboardService:
                 raise ControllerNotFoundError
             await self.identity_provider.ensure_location_admin(controller.location_id)
 
-        controllers, total = await self._get_controllers_by_role(data, user)
+        controllers, total = await self._get_all_controllers_by_role(data, user)
 
         return ReadDashboardStatsResponse(
             revenue=await self._get_revenue_by_role(data, user),
@@ -136,7 +136,7 @@ class DashboardService:
             ),
         )
 
-    async def _get_controllers_by_role(
+    async def _get_all_controllers_by_role(
         self, data: ReadDashboardStatsRequest, user: AdminUser
     ):
         if data.controller_id:
@@ -145,6 +145,7 @@ class DashboardService:
         controllers_data = ReadControllerListRequest(
             company_id=data.company_id,
             location_id=data.location_id,
+            limit=None,
         )
         return await self._call_by_role(
             user,
