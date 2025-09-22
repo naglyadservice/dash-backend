@@ -22,7 +22,7 @@ async def sys_connect_callback(
 
     logger.info("$SYS connection established", deivce_id=real_device_id, data=data)
 
-    await iot_storage.set_online(True, real_device_id)
+    await iot_storage.set_broker_online_status(True, real_device_id)
 
 
 @tracer.wrap()
@@ -37,4 +37,4 @@ async def sys_disconnect_callback(
 
     logger.info("$SYS connection lost", deivce_id=deivce_id, data=data)
 
-    await iot_storage.set_online(False, real_device_id)
+    await iot_storage.set_broker_online_status(False, real_device_id)

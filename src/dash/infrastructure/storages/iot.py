@@ -12,6 +12,7 @@ class IoTStorage:
         self.state_key = "iot:state:{controller_id}"
         self.energy_state_key = "iot:energy_state:{controller_id}"
         self.online_key = "iot:online:{device_id}"
+        self.status_key = "iot:status:{controller_id}"
 
     async def set_state(self, state: dict[str, Any], controller_id: UUID) -> None:
         await self.redis.setex(
@@ -43,13 +44,33 @@ class IoTStorage:
             return json.loads(energy_state)
         return None
 
-    async def set_online(self, online: bool, device_id: str) -> None:
+    async def set_broker_online_status(self, value: bool, device_id: str) -> None:
         await self.redis.setex(
             name=self.online_key.format(device_id=device_id),
-            value=json.dumps(online),
+            value=json.dumps(value),
             time=timedelta(days=365),
         )
 
-    async def is_online(self, device_id: str) -> bool:
-        is_online = await self.redis.get(self.online_key.format(device_id=device_id))
-        return json.loads(is_online) if is_online else False
+    async def get_broker_online_status(self, device_id: str) -> bool:
+        status = await self.redis.get(self.online_key.format(device_id=device_id))
+
+        if not status:
+            return False
+
+        return json.loads(status)
+
+    async def set_last_online_status(self, controller_id: UUID, value: bool) -> None:
+        await self.redis.setex(
+            name=self.status_key.format(controller_id=controller_id),
+            value=json.dumps(value),
+            time=timedelta(days=7),
+        )
+
+    async def get_last_online_status(self, controller_id: UUID) -> bool | None:
+        status = await self.redis.get(
+            self.status_key.format(controller_id=controller_id)
+        )
+        if not status:
+            return None
+
+        return json.loads(status)

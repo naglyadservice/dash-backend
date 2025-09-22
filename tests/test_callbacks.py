@@ -260,7 +260,7 @@ async def test_sys_callbacks(
         di_container=di_container,  # type: ignore
     )
 
-    state = await deps.iot_storage.is_online(device_id)
+    state = await deps.iot_storage.get_broker_online_status(device_id)
     assert state is True
 
     await deps.mqtt_client.dispatcher.sys_disconnect._process_callbacks(  # type: ignore
@@ -271,7 +271,7 @@ async def test_sys_callbacks(
         di_container=di_container,  # type: ignore
     )
 
-    state = await deps.iot_storage.is_online(device_id)
+    state = await deps.iot_storage.get_broker_online_status(device_id)
     assert state is False
 
 

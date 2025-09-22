@@ -18,6 +18,7 @@ class CreateCompanyRequest(BaseModel):
     about: str | None = None
     phone_number: str | None = None
     email: str | None = None
+    tg_chat_id: str | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -51,6 +52,7 @@ class CompanyScheme(BaseModel):
     logo_key: str | None
     phone_number: str | None
     email: str | None
+    tg_chat_id: str | None
 
 
 class ReadCompanyListResponse(BaseModel):
@@ -64,6 +66,7 @@ class EditCompanyDTO(BaseModel):
     about: str | None = None
     phone_number: str | None = None
     email: str | None = None
+    tg_chat_id: str | None = None
 
 
 class EditCompanyRequest(BaseModel):

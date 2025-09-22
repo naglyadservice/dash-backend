@@ -24,6 +24,7 @@ class Company(Base, UUIDMixin, CreatedAtMixin):
     logo_key: Mapped[str | None] = mapped_column()
     phone_number: Mapped[str | None] = mapped_column()
     email: Mapped[str | None] = mapped_column()
+    tg_chat_id: Mapped[str | None] = mapped_column()
 
     locations: Mapped[list["Location"]] = relationship(
         back_populates="company", cascade="all, delete"

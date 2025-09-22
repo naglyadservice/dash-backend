@@ -81,6 +81,10 @@ class JWTConfig(BaseModel):
     refresh_expire_days: int
 
 
+class TgBotConfig(BaseModel):
+    token: str
+
+
 LoggingLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
 
@@ -113,6 +117,7 @@ class Config(BaseSettings):
     jwt: JWTConfig
     sms: SMSConfig
     s3: S3Config
+    bot: TgBotConfig
 
     model_config = {
         "arbitrary_types_allowed": True,

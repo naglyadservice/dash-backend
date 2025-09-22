@@ -1,3 +1,4 @@
+from aiogram import Bot
 from dishka import AsyncContainer, Provider, Scope, make_async_container
 from fastapi import Request
 
@@ -44,6 +45,7 @@ from dash.infrastructure.storages.iot import IoTStorage
 from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
 from dash.infrastructure.storages.session import SessionStorage
 from dash.infrastructure.storages.verification import VerificationStorage
+from dash.infrastructure.tgbot import get_tg_bot
 from dash.main.config import (
     AppConfig,
     Config,
@@ -55,6 +57,7 @@ from dash.main.config import (
     RedisConfig,
     S3Config,
     SMSConfig,
+    TgBotConfig,
 )
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
 from dash.services.common.payment_helper import PaymentHelper
@@ -90,6 +93,7 @@ def provide_configs() -> Provider:
     provider.from_context(JWTConfig, scope=Scope.APP)
     provider.from_context(SMSConfig, scope=Scope.APP)
     provider.from_context(S3Config, scope=Scope.APP)
+    provider.from_context(TgBotConfig, scope=Scope.APP)
 
     return provider
 
@@ -185,6 +189,8 @@ def provide_infrastructure() -> Provider:
     provider.provide(SMSClient, scope=Scope.REQUEST)
     provider.provide(S3Service, scope=Scope.REQUEST)
 
+    provider.provide(get_tg_bot, scope=Scope.APP, provides=Bot)
+
     return provider
 
 
@@ -212,5 +218,6 @@ def setup_di(config: Config) -> AsyncContainer:
             JWTConfig: config.jwt,
             SMSConfig: config.sms,
             S3Config: config.s3,
+            TgBotConfig: config.bot,
         },
     )

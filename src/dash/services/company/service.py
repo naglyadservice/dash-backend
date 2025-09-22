@@ -62,6 +62,7 @@ class CompanyService:
             about=data.about,
             phone_number=data.phone_number,
             email=data.email,
+            tg_chat_id=data.tg_chat_id,
         )
         self.company_repository.add(company)
         await self.company_repository.commit()

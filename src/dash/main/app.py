@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
 
+import aiocron
 from dishka import AsyncContainer
 from dishka.integrations.fastapi import setup_dishka
 from fastapi import FastAPI
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
+from dash.infrastructure.controllers_online_monitor import monitor_controllers_online
 from dash.infrastructure.iot.car_cleaner.client import CarCleanerIoTClient
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.iot.fiscalizer.client import FiscalizerIoTClient
@@ -30,6 +32,13 @@ async def lifespan(app: FastAPI):
     await di_container.get(LaundryIoTClient)
     await di_container.get(VacuumIoTClient)
     await di_container.get(CarCleanerIoTClient)
+
+    aiocron.Cron(
+        "* * * * *",
+        func=monitor_controllers_online,
+        args=(di_container,),
+        start=True,
+    )
 
     yield
 

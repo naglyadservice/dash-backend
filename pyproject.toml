@@ -41,6 +41,8 @@ dependencies = [
     "debugpy>=1.8.14",
     "aioboto3>=15.0.0",
     "tenacity>=9.1.2",
+    "aiogram>=3.22.0",
+    "aiocron>=2.1",
 ]
 
 [project.optional-dependencies]

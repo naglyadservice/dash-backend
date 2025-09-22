@@ -14,9 +14,9 @@ class CheckOnlineInteractor:
 
         state = await self.iot_storage.get_state(controller.id)
 
-        if state and datetime.fromisoformat(state["created"]) + timedelta(
-            minutes=3
-        ) < datetime.now(UTC):
-            return False
+        if state:
+            online_threshold = datetime.now(UTC) - timedelta(minutes=3)
+            if datetime.fromisoformat(state["created"]) < online_threshold:
+                return False
 
-        return await self.iot_storage.is_online(controller.device_id)
+        return await self.iot_storage.get_broker_online_status(controller.device_id)
