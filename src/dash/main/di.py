@@ -29,6 +29,7 @@ from dash.infrastructure.iot.vacuum.client import VacuumIoTClient
 from dash.infrastructure.iot.vacuum.di import get_vacuum_client
 from dash.infrastructure.iot.wsm.client import WsmIoTClient
 from dash.infrastructure.iot.wsm.di import get_wsm_client
+from dash.infrastructure.rate_limiter import RateLimiter
 from dash.infrastructure.repositories.company import CompanyRepository
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.repositories.customer import CustomerRepository
@@ -42,7 +43,7 @@ from dash.infrastructure.s3 import S3Service
 from dash.infrastructure.storages.acquiring import AcquiringStorage
 from dash.infrastructure.storages.carwash_session import CarwashSessionStorage
 from dash.infrastructure.storages.iot import IoTStorage
-from dash.infrastructure.storages.redis import get_redis_client, get_redis_pool
+from dash.infrastructure.storages.redis import get_redis_client
 from dash.infrastructure.storages.session import SessionStorage
 from dash.infrastructure.storages.verification import VerificationStorage
 from dash.infrastructure.tgbot import get_tg_bot
@@ -105,8 +106,7 @@ def provide_db() -> Provider:
     provider.provide(get_async_sessionmaker, scope=Scope.APP)
     provider.provide(get_async_session, scope=Scope.REQUEST)
 
-    provider.provide(get_redis_pool, scope=Scope.APP)
-    provider.provide(get_redis_client, scope=Scope.REQUEST)
+    provider.provide(get_redis_client, scope=Scope.APP)
 
     return provider
 
@@ -190,6 +190,7 @@ def provide_infrastructure() -> Provider:
     provider.provide(S3Service, scope=Scope.REQUEST)
 
     provider.provide(get_tg_bot, scope=Scope.APP, provides=Bot)
+    provider.provide(RateLimiter, scope=Scope.APP)
 
     return provider
 

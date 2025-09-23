@@ -1,15 +1,11 @@
-from redis.asyncio import ConnectionPool, Redis
+from typing import AsyncIterable
+from redis.asyncio import Redis
 
 from dash.main.config import RedisConfig
 
 
-def get_redis_pool(config: RedisConfig) -> ConnectionPool:
-    return ConnectionPool(
-        host=config.host,
-        port=config.port,
-        password=config.password,
-    )
-
-
-def get_redis_client(pool: ConnectionPool) -> Redis:
-    return Redis.from_pool(pool)
+async def get_redis_client(config: RedisConfig) -> AsyncIterable[Redis]:
+    async with Redis(
+        host=config.host, port=config.port, password=config.password
+    ) as redis:
+        yield redis

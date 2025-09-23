@@ -1,6 +1,7 @@
 from aiogram import Bot
 from dishka import AsyncContainer
 from structlog import get_logger
+from dash.infrastructure.rate_limiter import RateLimiter
 from dash.infrastructure.repositories.controller import ControllerRepository
 from dash.infrastructure.storages.iot import IoTStorage
 from dash.services.common.check_online_interactor import CheckOnlineInteractor
@@ -16,6 +17,7 @@ async def monitor_controllers_online(di_container: AsyncContainer) -> None:
         check_online_interactor = await dic.get(CheckOnlineInteractor)
         iot_storage = await dic.get(IoTStorage)
         bot = await dic.get(Bot)
+        rate_limiter = await dic.get(RateLimiter)
 
         controllers, _ = await controller_repository.get_list_all(
             ReadControllerListRequest(limit=None)
@@ -40,4 +42,5 @@ async def monitor_controllers_online(di_container: AsyncContainer) -> None:
                 else:
                     text = f"Пристрій {controller.name} ({controller.device_id}) не в мережі ⚠️"
 
+                await rate_limiter.enforce_with_retry("tg_send")
                 await bot.send_message(chat_id, text)
