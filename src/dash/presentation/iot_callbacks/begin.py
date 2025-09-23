@@ -31,5 +31,5 @@ async def begin_callback(
     if controller.company and (chat_id := controller.company.tg_chat_id):
         await bot.send_message(
             chat_id=chat_id,
-            text=f"Пристрій {controller.name} ({controller.device_id}) перезавантажено 🤖",
+            text=f"Пристрій {controller.name} ({controller.device_id}) запущено 🤖",
         )

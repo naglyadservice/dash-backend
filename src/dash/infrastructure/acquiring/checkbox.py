@@ -43,12 +43,20 @@ class CheckboxService:
             params=params,
         )
 
-    async def _get_token(self, login: str, password: str) -> str | None:
+    async def _get_token(
+        self, login: str, password: str, controller_id: UUID
+    ) -> str | None:
         response, status = await self._make_request(
             method="POST",
             endpoint="/cashier/signin",
             json={"login": login, "password": password},
         )
+        if status != 200:
+            logger.error(
+                "Error while getting checkbox token",
+                response=response,
+                controller_id=controller_id,
+            )
         return response.get("access_token")
 
     async def _get_active_shift(self, token: str):
@@ -151,12 +159,9 @@ class CheckboxService:
         logger.info(f"Creating receipt", receipt_id=receipt_id)
 
         token = await self._get_token(
-            controller.checkbox_login, controller.checkbox_password
+            controller.checkbox_login, controller.checkbox_password, controller.id
         )
         if not token:
-            logger.error(
-                "Error while getting checkbox token", controller_id=controller.id
-            )
             return None
 
         if not await self._open_shift_if_needed(controller.checkbox_license_key, token):
