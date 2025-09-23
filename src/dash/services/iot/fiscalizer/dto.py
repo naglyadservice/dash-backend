@@ -36,11 +36,18 @@ class PortSettingsDTO(BaseModel):
     table: list[int] = Field(min_length=24, max_length=24)
 
 
+class CumulativeDTO(BaseModel):
+    enable: int = Field(ge=0, le=1)
+    summa: int
+    time: int
+
+
 class FiscalizerSettings(BaseModel):
     mc: PortSettingsDTO | None = None
     coin: PortSettingsDTO | None = None
     bill: PortSettingsDTO | None = None
     fiscalizationTime: int | None = None
+    cumulative: CumulativeDTO | None = None
 
 
 class SetFiscalizerConfigRequest(SetConfigRequest):
