@@ -23,7 +23,7 @@ class EncashmentRepository(BaseRepository):
         stmt = select(Encashment).where(Encashment.controller_id == data.controller_id)
 
         paginated_stmt = (
-            stmt.order_by(Encashment.is_closed.desc())
+            stmt.order_by(Encashment.created_at.desc())
             .offset(data.offset)
             .limit(data.limit)
         )
