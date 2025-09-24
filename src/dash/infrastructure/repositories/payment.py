@@ -117,27 +117,27 @@ class PaymentRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> list[PaymentStatsDTO]:
         date_expression = cast(Payment.created_at, Date).label("date")
+        total_expression = func.coalesce(func.sum(Payment.amount), 0).label("total")
+
+        aggregations = [
+            ("cash", Payment.type == PaymentType.CASH),
+            ("cashless", Payment.type == PaymentType.CASHLESS),
+            ("paypass", Payment.gateway_type == PaymentGatewayType.PAYPASS),
+            ("liqpay", Payment.gateway_type == PaymentGatewayType.LIQPAY),
+            ("monopay", Payment.gateway_type == PaymentGatewayType.MONOPAY),
+        ]
+
+        select_expressions = [
+            date_expression,
+            total_expression,
+            *[
+                func.coalesce(func.sum(Payment.amount).filter(cond), 0).label(label)
+                for label, cond in aggregations
+            ],
+        ]
 
         stmt = (
-            select(
-                date_expression,
-                func.sum(Payment.amount).label("total"),
-                func.sum(Payment.amount)
-                .filter(Payment.type == PaymentType.CASH)
-                .label("cash"),
-                func.sum(Payment.amount)
-                .filter(Payment.type == PaymentType.CASHLESS)
-                .label("cashless"),
-                func.sum(Payment.amount)
-                .filter(Payment.gateway_type == PaymentGatewayType.PAYPASS)
-                .label("paypass"),
-                func.sum(Payment.amount)
-                .filter(Payment.gateway_type == PaymentGatewayType.LIQPAY)
-                .label("liqpay"),
-                func.sum(Payment.amount)
-                .filter(Payment.gateway_type == PaymentGatewayType.MONOPAY)
-                .label("monopay"),
-            )
+            select(*select_expressions)
             .where(
                 Payment.created_at >= data.date_from,
                 Payment.created_at <= data.date_to,
