@@ -47,6 +47,9 @@ class PaymentStatsDTO(BaseModel):
     total: int
     cash: int
     cashless: int
+    paypass: int
+    liqpay: int
+    monopay: int
 
 
 class GetRevenueRequest(BaseFilters):

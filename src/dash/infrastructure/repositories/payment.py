@@ -2,14 +2,14 @@ from datetime import UTC, datetime
 from typing import Any, Sequence
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Date, case, cast, func, select
+from sqlalchemy import ColumnElement, Date, cast, func, select
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
 from dash.models.location_admin import LocationAdmin
-from dash.models.payment import Payment, PaymentStatus, PaymentType
+from dash.models.payment import Payment, PaymentGatewayType, PaymentStatus, PaymentType
 from dash.services.dashboard.dto import (
     GetPaymentAnalyticsRequest,
     PaymentAnalyticsDTO,
@@ -117,25 +117,31 @@ class PaymentRepository(BaseRepository):
         whereclause: ColumnElement[Any] | None = None,
     ) -> list[PaymentStatsDTO]:
         date_expression = cast(Payment.created_at, Date).label("date")
-        now = datetime.now(UTC)
 
         stmt = (
             select(
                 date_expression,
                 func.sum(Payment.amount).label("total"),
-                func.sum(
-                    case((Payment.type == PaymentType.CASH, Payment.amount), else_=0)
-                ).label("cash"),
-                func.sum(
-                    case(
-                        (Payment.type == PaymentType.CASHLESS, Payment.amount), else_=0
-                    )
-                ).label("cashless"),
+                func.sum(Payment.amount)
+                .filter(Payment.type == PaymentType.CASH)
+                .label("cash"),
+                func.sum(Payment.amount)
+                .filter(Payment.type == PaymentType.CASHLESS)
+                .label("cashless"),
+                func.sum(Payment.amount)
+                .filter(Payment.gateway_type == PaymentGatewayType.PAYPASS)
+                .label("paypass"),
+                func.sum(Payment.amount)
+                .filter(Payment.gateway_type == PaymentGatewayType.LIQPAY)
+                .label("liqpay"),
+                func.sum(Payment.amount)
+                .filter(Payment.gateway_type == PaymentGatewayType.MONOPAY)
+                .label("monopay"),
             )
             .where(
                 Payment.created_at >= data.date_from,
                 Payment.created_at <= data.date_to,
-                Payment.status == "COMPLETED",
+                Payment.status == PaymentStatus.COMPLETED,
             )
             .group_by(date_expression)
             .order_by(date_expression)
