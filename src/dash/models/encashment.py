@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from dash.models.base import Base, TimestampMixin, UUIDMixin
@@ -29,5 +29,15 @@ class Encashment(Base, UUIDMixin, TimestampMixin):
     bill_8: Mapped[int] = mapped_column()
     encashed_amount: Mapped[int] = mapped_column()
     received_amount: Mapped[int | None] = mapped_column()
-    created_at_controller: Mapped[datetime] = mapped_column()
     is_closed: Mapped[bool] = mapped_column(default=False)
+    created_at_controller: Mapped[datetime] = mapped_column()
+    controller_encashment_id: Mapped[int | None] = mapped_column()
+
+    __table_args__ = (
+        UniqueConstraint(
+            controller_encashment_id,
+            controller_id,
+            created_at_controller,
+            name="uix_encashment_controller_encashment_id",
+        ),
+    )

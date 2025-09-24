@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Any, Sequence, Type
+from typing import Any, Sequence
 from uuid import UUID
 
 from sqlalchemy import ColumnElement, Date, cast, func, select
@@ -7,8 +7,8 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
+from dash.infrastructure.repositories.utils import parse_model_fields
 from dash.models import CarwashTransaction, VacuumTransaction
-from dash.models.base import Base
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
@@ -30,21 +30,12 @@ from dash.services.transaction.dto import (
 )
 
 
-def parse_model(instance: Base, model: Type[Base]) -> dict[str, Any]:
-    return {
-        c.name: getattr(instance, c.name)
-        for c in model.__table__.columns
-        if hasattr(instance, c.name) and getattr(instance, c.name) is not None
-    }
-
-
 class TransactionRepository(BaseRepository):
-    async def insert_with_conflict_ignore(self, model: Base) -> bool:
-        base_cols = parse_model(model, Transaction)
+    async def insert_with_conflict_ignore(self, model: Transaction) -> bool:
         insert_tx = (
             insert(Transaction)
             .values(
-                **base_cols,
+                parse_model_fields(model, type(model)),
             )
             .on_conflict_do_nothing(
                 constraint="uix_transaction_controller_transaction_id"
@@ -56,12 +47,10 @@ class TransactionRepository(BaseRepository):
         if not inserted_id:
             return False
 
-        child_cols = parse_model(model, type(model))
-
         await self.session.execute(
             insert(type(model)).values(
                 transaction_id=inserted_id,
-                **child_cols,
+                **parse_model_fields(model, type(model)),
             )
         )
         return True

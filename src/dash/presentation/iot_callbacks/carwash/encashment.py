@@ -8,6 +8,7 @@ from structlog import get_logger
 
 from dash.infrastructure.iot.carwash.client import CarwashIoTClient
 from dash.infrastructure.repositories.controller import ControllerRepository
+from dash.infrastructure.repositories.encashment import EncashmentRepository
 from dash.models.encashment import Encashment
 from dash.presentation.iot_callbacks.common.di_injector import (
     datetime_recipe,
@@ -41,7 +42,7 @@ async def carwash_encashment_callback(
     data: CarwashEncashmentCallbackPayload,
     controller_repository: FromDishka[ControllerRepository],
     carwash_client: FromDishka[CarwashIoTClient],
-    encashment_repository: FromDishka[ControllerRepository],
+    encashment_repository: FromDishka[EncashmentRepository],
 ) -> None:
     dict_data = carwash_encashment_callback_retort.dump(data)
     controller = await controller_repository.get_by_device_id(device_id)
@@ -82,8 +83,10 @@ async def carwash_encashment_callback(
         bill_7=data.bill[6],
         bill_8=data.bill[7],
     )
-    encashment_repository.add(encashment)
-    await encashment_repository.commit()
+    was_inserted = await encashment_repository.insert_with_conflict_ignore(encashment)
+
+    if was_inserted:
+        await encashment_repository.commit()
 
     await carwash_client.encashment_ack(
         device_id=device_id, payload={"id": data.id, "code": 0}
