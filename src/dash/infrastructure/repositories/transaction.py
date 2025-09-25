@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectin_polymorphic
 
 from dash.infrastructure.repositories.base import BaseRepository
 from dash.infrastructure.repositories.utils import parse_model_fields
-from dash.models import CarwashTransaction, VacuumTransaction
+from dash.models import Base, CarwashTransaction, VacuumTransaction
 from dash.models.company import Company
 from dash.models.controllers.controller import Controller
 from dash.models.location import Location
@@ -31,7 +31,7 @@ from dash.services.transaction.dto import (
 
 
 class TransactionRepository(BaseRepository):
-    async def insert_with_conflict_ignore(self, model: Transaction) -> bool:
+    async def insert_with_conflict_ignore(self, model: Base) -> bool:
         insert_tx = (
             insert(Transaction)
             .values(
