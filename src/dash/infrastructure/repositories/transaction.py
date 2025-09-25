@@ -35,7 +35,7 @@ class TransactionRepository(BaseRepository):
         insert_tx = (
             insert(Transaction)
             .values(
-                parse_model_fields(model, type(model)),
+                **parse_model_fields(model, type(model)),
             )
             .on_conflict_do_nothing(
                 constraint="uix_transaction_controller_transaction_id"
