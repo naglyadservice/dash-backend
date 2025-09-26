@@ -63,7 +63,7 @@ async def laundry_state_info_callback(
 
     if cur_door:
         await laundry_service.handle_door_locked(controller.id)
-    else:
+    elif not (cur_door or cur_led or cur_btn):
         await laundry_service.handle_door_unlocked(controller.id)
 
     if returned_to_idle(cur_btn, prev_btn, cur_led, prev_led, cur_door):
