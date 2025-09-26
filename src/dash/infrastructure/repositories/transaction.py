@@ -333,19 +333,14 @@ class TransactionRepository(BaseRepository):
         )
         return await self._get_today_clients(data, whereclause)
 
-    async def get_laundry_active(
-        self, controller_id: UUID
+    async def get_laundry_by_status(
+        self, controller_id: UUID, statuses: list[LaundrySessionStatus]
     ) -> LaundryTransaction | None:
         query = (
             select(LaundryTransaction)
             .where(
                 LaundryTransaction.controller_id == controller_id,
-                LaundryTransaction.session_status.in_(
-                    (
-                        LaundrySessionStatus.WAITING_START,
-                        LaundrySessionStatus.IN_PROGRESS,
-                    )
-                ),
+                LaundryTransaction.session_status.in_(statuses),
             )
             .order_by(LaundryTransaction.created_at.desc())
             .limit(1)

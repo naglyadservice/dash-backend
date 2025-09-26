@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from structlog import get_logger
@@ -141,28 +141,34 @@ class LaundryService(BaseIoTService):
         controller = await self._get_controller(controller_id)
         controller.laundry_status = LaundryStatus.IN_USE
 
-        transaction = await self.transaction_repository.get_laundry_active(
-            controller_id
+        transaction = await self.transaction_repository.get_laundry_by_status(
+            controller_id, [LaundrySessionStatus.WAITING_START]
         )
         if transaction:
             transaction.session_status = LaundrySessionStatus.IN_PROGRESS
             transaction.session_start_time = datetime.now()
 
-        await self.iot_client.lock_button_and_turn_off_led(
-            device_id=controller.device_id,
-            relay_id=controller.button_relay_id,
-            output_id=controller.led_output_id,
-        )
+            await self.iot_client.lock_button_and_turn_off_led(
+                device_id=controller.device_id,
+                relay_id=controller.button_relay_id,
+                output_id=controller.led_output_id,
+            )
+
         await self.controller_repository.commit()
 
     async def handle_door_unlocked(self, controller_id: UUID) -> None:
         controller = await self._get_controller(controller_id)
         controller.laundry_status = LaundryStatus.AVAILABLE
 
-        transaction = await self.transaction_repository.get_laundry_active(
-            controller_id
+        transaction = await self.transaction_repository.get_laundry_by_status(
+            controller_id,
+            [LaundrySessionStatus.WAITING_START, LaundrySessionStatus.IN_PROGRESS],
         )
         if transaction:
+            if not transaction.session_start_time:
+                transaction.session_start_time = transaction.created_at + timedelta(
+                    minutes=controller.timeout_minutes
+                )
             if transaction.tariff_type is LaundryTariffType.PER_MINUTE:
                 self._calculate_per_minute_tariff(transaction, controller)
                 await self.payment_helper.finalize_hold(
@@ -182,8 +188,8 @@ class LaundryService(BaseIoTService):
 
         controller.laundry_status = LaundryStatus.AVAILABLE
 
-        transaction = await self.transaction_repository.get_laundry_active(
-            controller_id
+        transaction = await self.transaction_repository.get_laundry_by_status(
+            controller_id, [LaundrySessionStatus.WAITING_START]
         )
         if transaction:
             transaction.session_status = LaundrySessionStatus.TIMEOUT

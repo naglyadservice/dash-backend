@@ -80,11 +80,10 @@ async def test_session_fixed(
     await deps.service.process_hold_status(payment)
     deps.iot.unlock_button_and_turn_on_led.assert_called_once()  # type: ignore
 
-    transaction = await deps.transaction_repo.get_laundry_active(
-        test_env.laundry_controller_fixed.id
+    transaction = await deps.transaction_repo.get_laundry_by_status(
+        test_env.laundry_controller_fixed.id, [LaundrySessionStatus.WAITING_START]
     )
     assert transaction is not None
-    assert transaction.session_status is LaundrySessionStatus.WAITING_START
 
     # Ensure the same state doesn't trigger event twice
     for _ in range(2):
