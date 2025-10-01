@@ -24,6 +24,15 @@ class LaundryIoTClient(BaseIoTClient):
             ttl=ttl,
         )
 
+    async def get_state(self, device_id: str, ttl: int = 5) -> dict[str, Any]:
+        return await self._wait_for_response(
+            device_id=device_id,
+            topic="client/state/get",
+            payload={"relay": [0, 1], "output": [0, 1, 2, 3, 4, 5], "input": [0, 1]},
+            qos=1,
+            ttl=ttl,
+        )
+
     async def unlock_button_and_turn_on_led(
         self,
         device_id: str,
