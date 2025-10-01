@@ -142,7 +142,7 @@ class LaundryService(BaseIoTService):
         controller.laundry_status = LaundryStatus.IN_USE
 
         transaction = await self.transaction_repository.get_laundry_by_status(
-            controller_id, [LaundrySessionStatus.WAITING_START]
+            controller_id=controller_id, statuses=[LaundrySessionStatus.WAITING_START]
         )
         if transaction:
             transaction.session_status = LaundrySessionStatus.IN_PROGRESS
@@ -159,48 +159,38 @@ class LaundryService(BaseIoTService):
     async def handle_door_unlocked(self, controller_id: UUID) -> None:
         controller = await self._get_controller(controller_id)
         controller.laundry_status = LaundryStatus.AVAILABLE
+        session_end_time = datetime.now(UTC)
 
         transaction = await self.transaction_repository.get_laundry_by_status(
-            controller_id,
-            [LaundrySessionStatus.WAITING_START, LaundrySessionStatus.IN_PROGRESS],
+            controller_id=controller_id,
+            statuses=[
+                LaundrySessionStatus.WAITING_START,
+                LaundrySessionStatus.IN_PROGRESS,
+            ],
         )
         if transaction:
             if not transaction.session_start_time:
                 transaction.session_start_time = transaction.created_at + timedelta(
                     minutes=controller.timeout_minutes
                 )
+            transaction.session_end_time = session_end_time
+
+            timeout_deadline = transaction.created_at + timedelta(
+                minutes=controller.timeout_minutes + 1
+            )
+            if session_end_time <= timeout_deadline:
+                transaction.session_status = LaundrySessionStatus.TIMEOUT
+            else:
+                transaction.session_status = LaundrySessionStatus.COMPLETED
+
             if transaction.tariff_type is LaundryTariffType.PER_MINUTE:
-                self._calculate_per_minute_tariff(transaction, controller)
-                await self.payment_helper.finalize_hold(
-                    controller, transaction.payment, transaction.final_amount
-                )
-                transaction.qr_amount = transaction.final_amount
+                if transaction.session_status is LaundrySessionStatus.COMPLETED:
+                    self._calculate_per_minute_tariff(transaction, controller)
 
-            transaction.session_status = LaundrySessionStatus.COMPLETED
-            transaction.session_end_time = datetime.now()
-
-        await self.controller_repository.commit()
-
-    async def handle_idle_state(self, controller_id: UUID) -> None:
-        controller = await self._get_controller(controller_id)
-        if controller.laundry_status is LaundryStatus.AVAILABLE:
-            return
-
-        controller.laundry_status = LaundryStatus.AVAILABLE
-
-        transaction = await self.transaction_repository.get_laundry_by_status(
-            controller_id, [LaundrySessionStatus.WAITING_START]
-        )
-        if transaction:
-            transaction.session_status = LaundrySessionStatus.TIMEOUT
-            if transaction.tariff_type == LaundryTariffType.PER_MINUTE:
                 await self.payment_helper.finalize_hold(
                     controller=controller,
                     payment=transaction.payment,
-                    amount=transaction.payment.amount,
-                )
-                transaction.final_amount = (
-                    transaction.hold_amount or transaction.qr_amount
+                    amount=transaction.final_amount,
                 )
 
         await self.controller_repository.commit()
@@ -269,10 +259,14 @@ class LaundryService(BaseIoTService):
     def _calculate_per_minute_tariff(
         self, transaction: LaundryTransaction, controller: LaundryController
     ) -> None:
-        if not transaction.session_start_time or not transaction.hold_amount:
+        if (
+            not transaction.session_start_time
+            or not transaction.session_end_time
+            or not transaction.hold_amount
+        ):
             raise ValueError("Transaction is invalid")
 
-        duration = datetime.now(UTC) - transaction.session_start_time
+        duration = transaction.session_end_time - transaction.session_start_time
         duration_minutes = int(duration.total_seconds() / 60)
 
         minutes_before_transition = min(
@@ -293,3 +287,4 @@ class LaundryService(BaseIoTService):
         )
         transaction.refund_amount = transaction.hold_amount - transaction.final_amount
         transaction.payment.amount = transaction.final_amount
+        transaction.qr_amount = transaction.final_amount
