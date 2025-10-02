@@ -44,7 +44,7 @@ class CheckboxService:
         )
 
     async def _get_token(
-        self, login: str, password: str, controller_id: UUID
+        self, login: str, password: str, controller: Controller
     ) -> str | None:
         response, status = await self._make_request(
             method="POST",
@@ -55,7 +55,9 @@ class CheckboxService:
             logger.error(
                 "Error while getting checkbox token",
                 response=response,
-                controller_id=controller_id,
+                controller_id=controller.id,
+                controller_device_id=controller.device_id,
+                controller_name=controller.name,
             )
         return response.get("access_token")
 
@@ -104,13 +106,13 @@ class CheckboxService:
         logger.error("Shift opening timeout", shift_id=shift_id, timeout=timeout)
         return False
 
-    async def _open_shift(self, license_key: str, token: str) -> bool:
+    async def _open_shift(self, controller: Controller, token: str) -> bool:
         shift_id = str(uuid4())
         response, status = await self._make_request(
             method="POST",
             endpoint="/shifts",
             headers={
-                "X-License-Key": license_key,
+                "X-License-Key": controller.checkbox_license_key,
                 "Authorization": f"Bearer {token}",
             },
             json={
@@ -121,12 +123,18 @@ class CheckboxService:
             },
         )
         if status != 202:
-            logger.error("Failed to open shift", response=response)
+            logger.error(
+                "Failed to open shift",
+                response=response,
+                controller_id=controller.id,
+                controller_device_id=controller.device_id,
+                controller_name=controller.name,
+            )
             return False
 
         return await self._wait_for_shift_opened(shift_id, token)
 
-    async def _open_shift_if_needed(self, license_key: str, token: str) -> bool:
+    async def _open_shift_if_needed(self, controller: Controller, token: str) -> bool:
         active_shift = await self._get_active_shift(token)
         if active_shift:
             if active_shift["status"] == "OPENED":
@@ -134,7 +142,7 @@ class CheckboxService:
             elif active_shift["status"] in ("OPENING", "CREATED"):
                 return await self._wait_for_shift_opened(active_shift["id"], token)
 
-        return await self._open_shift(license_key, token)
+        return await self._open_shift(controller, token)
 
     async def create_receipt(
         self,
@@ -159,12 +167,12 @@ class CheckboxService:
         logger.info(f"Creating receipt", receipt_id=receipt_id)
 
         token = await self._get_token(
-            controller.checkbox_login, controller.checkbox_password, controller.id
+            controller.checkbox_login, controller.checkbox_password, controller
         )
         if not token:
             return None
 
-        if not await self._open_shift_if_needed(controller.checkbox_license_key, token):
+        if not await self._open_shift_if_needed(controller, token):
             return None
 
         payment_dict = {
@@ -210,13 +218,16 @@ class CheckboxService:
                 status=status,
                 response=response,
                 controller_id=controller.id,
+                controller_device_id=controller.device_id,
+                controller_name=controller.name,
             )
-            raise CheckboxAPIError
+            return
 
         logger.info(
             f"Receipt successfully created",
             receipt_id=receipt_id,
             payment_id=payment.id,
             controller_id=controller.id,
+            controller_device_id=controller.device_id,
+            controller_name=controller.name,
         )
-        return None
