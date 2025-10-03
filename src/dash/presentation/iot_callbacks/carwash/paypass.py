@@ -86,6 +86,13 @@ async def carwash_paypass_callback(
         data=data,
     )
 
+    existing_payment = await payment_repository.get_by_invoice_id(data.invoice)
+    if existing_payment:
+        return await carwash_client.paypass_ack(
+            device_id=device_id,
+            payload={"id": data.id, "code": 0},
+        )
+
     payment = payment_helper.create_payment(
         controller_id=controller.id,
         location_id=controller.location_id,
